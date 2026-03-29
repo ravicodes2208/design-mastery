@@ -1,0 +1,398 @@
+{
+  "id": "classes",
+  "title": "Classes & Objects",
+  "phase": "fundamentals",
+  "order": 1,
+  "icon": "📦",
+  "description": "Understanding the building blocks of Object-Oriented Programming",
+  "estimatedTime": "2-3 hours",
+  "prerequisites": [],
+  
+  "levels": {
+    "basic": {
+      "title": "Basic Concepts",
+      "description": "Introduction to classes and objects",
+      "concepts": [
+        {
+          "id": "what-is-class",
+          "title": "What is a Class?",
+          "explanation": "A class is a blueprint or template for creating objects. It defines properties (attributes) and behaviors (methods) that objects of that class will have.",
+          "realWorldAnalogy": "Think of a class like an architectural blueprint for a house. The blueprint defines what the house will look like, how many rooms it has, etc. But the blueprint itself is not a house - it's a template for building houses.",
+          "keyPoints": [
+            "A class defines the structure and behavior of objects",
+            "Classes encapsulate data and functions together",
+            "A class is a user-defined data type",
+            "Classes provide a way to organize and structure code"
+          ]
+        },
+        {
+          "id": "what-is-object",
+          "title": "What is an Object?",
+          "explanation": "An object is an instance of a class. When you create an object from a class, you're creating a specific entity with the properties and behaviors defined in that class.",
+          "realWorldAnalogy": "If a class is a blueprint, then objects are the actual houses built from that blueprint. Each house (object) has its own specific address, color, and residents, but they all follow the same basic design.",
+          "keyPoints": [
+            "Objects are instances of classes",
+            "Each object has its own copy of instance variables",
+            "Objects can have different values for the same properties",
+            "Objects interact with each other through methods"
+          ]
+        },
+        {
+          "id": "class-members",
+          "title": "Class Members",
+          "explanation": "Class members include attributes (data members/fields) and methods (member functions). Attributes store data, while methods define behaviors.",
+          "keyPoints": [
+            "Attributes/Fields: Variables that hold object data",
+            "Methods: Functions that define object behavior",
+            "Members can be instance-level or class-level (static)"
+          ]
+        }
+      ],
+      "cppCode": {
+        "title": "Class Definition in C++",
+        "code": "// C++ Class Definition\n#include <iostream>\n#include <string>\nusing namespace std;\n\n// Class Definition\nclass Car {\npublic:\n    // Attributes (Data Members)\n    string brand;\n    string model;\n    int year;\n    \n    // Method (Member Function)\n    void displayInfo() {\n        cout << \"Brand: \" << brand << endl;\n        cout << \"Model: \" << model << endl;\n        cout << \"Year: \" << year << endl;\n    }\n    \n    void start() {\n        cout << \"The \" << brand << \" \" << model << \" is starting...\" << endl;\n    }\n};\n\nint main() {\n    // Creating Objects\n    Car car1;  // Object creation\n    Car car2;\n    \n    // Setting attributes\n    car1.brand = \"Toyota\";\n    car1.model = \"Camry\";\n    car1.year = 2023;\n    \n    car2.brand = \"Honda\";\n    car2.model = \"Civic\";\n    car2.year = 2022;\n    \n    // Calling methods\n    car1.displayInfo();\n    car1.start();\n    \n    cout << \"---\" << endl;\n    \n    car2.displayInfo();\n    car2.start();\n    \n    return 0;\n}",
+        "explanation": "In C++, classes are defined using the 'class' keyword. Members are grouped by access specifiers (public, private, protected). The class definition ends with a semicolon."
+      },
+      "javaCode": {
+        "title": "Class Definition in Java",
+        "code": "// Java Class Definition\n\n// Class Definition\npublic class Car {\n    // Attributes (Instance Variables)\n    String brand;\n    String model;\n    int year;\n    \n    // Method\n    void displayInfo() {\n        System.out.println(\"Brand: \" + brand);\n        System.out.println(\"Model: \" + model);\n        System.out.println(\"Year: \" + year);\n    }\n    \n    void start() {\n        System.out.println(\"The \" + brand + \" \" + model + \" is starting...\");\n    }\n    \n    // Main method - entry point\n    public static void main(String[] args) {\n        // Creating Objects using 'new' keyword\n        Car car1 = new Car();\n        Car car2 = new Car();\n        \n        // Setting attributes\n        car1.brand = \"Toyota\";\n        car1.model = \"Camry\";\n        car1.year = 2023;\n        \n        car2.brand = \"Honda\";\n        car2.model = \"Civic\";\n        car2.year = 2022;\n        \n        // Calling methods\n        car1.displayInfo();\n        car1.start();\n        \n        System.out.println(\"---\");\n        \n        car2.displayInfo();\n        car2.start();\n    }\n}",
+        "explanation": "In Java, each public class must be in a file with the same name. Objects are created using the 'new' keyword. Java has no semicolon after class definition."
+      },
+      "comparison": [
+        {
+          "aspect": "Class Definition Syntax",
+          "cpp": "class ClassName { }; // Ends with semicolon",
+          "java": "class ClassName { } // No semicolon needed"
+        },
+        {
+          "aspect": "Object Creation",
+          "cpp": "ClassName obj; // Stack allocation\nClassName* ptr = new ClassName(); // Heap allocation",
+          "java": "ClassName obj = new ClassName(); // Always heap allocation"
+        },
+        {
+          "aspect": "Memory Management",
+          "cpp": "Manual (delete for heap objects) or automatic (stack)",
+          "java": "Automatic garbage collection"
+        },
+        {
+          "aspect": "Default Access Modifier",
+          "cpp": "private (for class members)",
+          "java": "package-private (default)"
+        },
+        {
+          "aspect": "String Type",
+          "cpp": "std::string (requires #include <string>)",
+          "java": "String (built-in)"
+        }
+      ],
+      "practiceQuestions": [
+        {
+          "id": "basic-q1",
+          "title": "Create a Student Class",
+          "difficulty": "basic",
+          "description": "Create a class called 'Student' with the following:\n- Attributes: name (string), age (int), grade (float/double)\n- Method: displayDetails() that prints all the student information\n- Create 2 student objects and display their details",
+          "hints": [
+            "Start by defining the class with the attributes",
+            "Create a method that prints each attribute",
+            "In main, create objects and set their values"
+          ],
+          "solutions": {
+            "cpp": "// C++ Solution\n#include <iostream>\n#include <string>\nusing namespace std;\n\nclass Student {\npublic:\n    string name;\n    int age;\n    float grade;\n    \n    void displayDetails() {\n        cout << \"Name: \" << name << endl;\n        cout << \"Age: \" << age << endl;\n        cout << \"Grade: \" << grade << endl;\n    }\n};\n\nint main() {\n    Student s1, s2;\n    \n    s1.name = \"Alice\";\n    s1.age = 20;\n    s1.grade = 85.5;\n    \n    s2.name = \"Bob\";\n    s2.age = 21;\n    s2.grade = 90.0;\n    \n    cout << \"Student 1:\" << endl;\n    s1.displayDetails();\n    \n    cout << \"\\nStudent 2:\" << endl;\n    s2.displayDetails();\n    \n    return 0;\n}",
+            "java": "// Java Solution\npublic class Student {\n    String name;\n    int age;\n    double grade;\n    \n    void displayDetails() {\n        System.out.println(\"Name: \" + name);\n        System.out.println(\"Age: \" + age);\n        System.out.println(\"Grade: \" + grade);\n    }\n    \n    public static void main(String[] args) {\n        Student s1 = new Student();\n        Student s2 = new Student();\n        \n        s1.name = \"Alice\";\n        s1.age = 20;\n        s1.grade = 85.5;\n        \n        s2.name = \"Bob\";\n        s2.age = 21;\n        s2.grade = 90.0;\n        \n        System.out.println(\"Student 1:\");\n        s1.displayDetails();\n        \n        System.out.println(\"\\nStudent 2:\");\n        s2.displayDetails();\n    }\n}"
+          },
+          "tags": ["class", "object", "attributes", "methods"]
+        },
+        {
+          "id": "basic-q2",
+          "title": "Create a Rectangle Class",
+          "difficulty": "basic",
+          "description": "Create a class called 'Rectangle' with:\n- Attributes: length and width (both doubles)\n- Methods: \n  - calculateArea() - returns the area\n  - calculatePerimeter() - returns the perimeter\n  - display() - prints length, width, area, and perimeter",
+          "hints": [
+            "Area = length × width",
+            "Perimeter = 2 × (length + width)",
+            "Methods can call other methods"
+          ],
+          "solutions": {
+            "cpp": "// C++ Solution\n#include <iostream>\nusing namespace std;\n\nclass Rectangle {\npublic:\n    double length;\n    double width;\n    \n    double calculateArea() {\n        return length * width;\n    }\n    \n    double calculatePerimeter() {\n        return 2 * (length + width);\n    }\n    \n    void display() {\n        cout << \"Length: \" << length << endl;\n        cout << \"Width: \" << width << endl;\n        cout << \"Area: \" << calculateArea() << endl;\n        cout << \"Perimeter: \" << calculatePerimeter() << endl;\n    }\n};\n\nint main() {\n    Rectangle rect;\n    rect.length = 10.0;\n    rect.width = 5.0;\n    \n    rect.display();\n    \n    return 0;\n}",
+            "java": "// Java Solution\npublic class Rectangle {\n    double length;\n    double width;\n    \n    double calculateArea() {\n        return length * width;\n    }\n    \n    double calculatePerimeter() {\n        return 2 * (length + width);\n    }\n    \n    void display() {\n        System.out.println(\"Length: \" + length);\n        System.out.println(\"Width: \" + width);\n        System.out.println(\"Area: \" + calculateArea());\n        System.out.println(\"Perimeter: \" + calculatePerimeter());\n    }\n    \n    public static void main(String[] args) {\n        Rectangle rect = new Rectangle();\n        rect.length = 10.0;\n        rect.width = 5.0;\n        \n        rect.display();\n    }\n}"
+          },
+          "tags": ["class", "methods", "return-values"]
+        }
+      ]
+    },
+    
+    "intermediate": {
+      "title": "Intermediate Concepts",
+      "description": "Access modifiers, constructors, and this keyword",
+      "concepts": [
+        {
+          "id": "access-modifiers-intro",
+          "title": "Access Modifiers in Classes",
+          "explanation": "Access modifiers control the visibility and accessibility of class members. They are fundamental to encapsulation.",
+          "keyPoints": [
+            "public: Accessible from anywhere",
+            "private: Accessible only within the class",
+            "protected: Accessible within class and derived classes",
+            "C++ default: private | Java default: package-private"
+          ]
+        },
+        {
+          "id": "this-keyword",
+          "title": "The 'this' Keyword",
+          "explanation": "The 'this' keyword refers to the current object instance. It's used to differentiate between instance variables and parameters with the same name.",
+          "keyPoints": [
+            "'this' is a pointer in C++ (this->member)",
+            "'this' is a reference in Java (this.member)",
+            "Used to resolve naming conflicts",
+            "Can be used to pass current object to other methods"
+          ]
+        },
+        {
+          "id": "getters-setters",
+          "title": "Getters and Setters",
+          "explanation": "Getter and setter methods provide controlled access to private data members. This is a key aspect of encapsulation.",
+          "keyPoints": [
+            "Getters return the value of private members",
+            "Setters modify the value with validation",
+            "Allows control over how data is accessed/modified",
+            "Essential for data hiding and encapsulation"
+          ]
+        }
+      ],
+      "cppCode": {
+        "title": "Encapsulation with Getters/Setters in C++",
+        "code": "// C++ - Encapsulation Example\n#include <iostream>\n#include <string>\nusing namespace std;\n\nclass BankAccount {\nprivate:\n    string accountNumber;\n    string ownerName;\n    double balance;\n    \npublic:\n    // Constructor\n    BankAccount(string accNum, string name, double initialBalance) {\n        this->accountNumber = accNum;\n        this->ownerName = name;\n        // Validation in setter\n        setBalance(initialBalance);\n    }\n    \n    // Getters\n    string getAccountNumber() {\n        return accountNumber;\n    }\n    \n    string getOwnerName() {\n        return ownerName;\n    }\n    \n    double getBalance() {\n        return balance;\n    }\n    \n    // Setters with validation\n    void setOwnerName(string name) {\n        if (!name.empty()) {\n            this->ownerName = name;\n        } else {\n            cout << \"Error: Name cannot be empty!\" << endl;\n        }\n    }\n    \n    void setBalance(double amount) {\n        if (amount >= 0) {\n            this->balance = amount;\n        } else {\n            cout << \"Error: Balance cannot be negative!\" << endl;\n            this->balance = 0;\n        }\n    }\n    \n    // Business methods\n    void deposit(double amount) {\n        if (amount > 0) {\n            balance += amount;\n            cout << \"Deposited: $\" << amount << endl;\n        } else {\n            cout << \"Error: Deposit amount must be positive!\" << endl;\n        }\n    }\n    \n    bool withdraw(double amount) {\n        if (amount > 0 && amount <= balance) {\n            balance -= amount;\n            cout << \"Withdrawn: $\" << amount << endl;\n            return true;\n        }\n        cout << \"Error: Invalid withdrawal amount!\" << endl;\n        return false;\n    }\n    \n    void displayInfo() {\n        cout << \"Account: \" << accountNumber << endl;\n        cout << \"Owner: \" << ownerName << endl;\n        cout << \"Balance: $\" << balance << endl;\n    }\n};\n\nint main() {\n    BankAccount account(\"ACC001\", \"John Doe\", 1000.0);\n    \n    account.displayInfo();\n    cout << \"---\" << endl;\n    \n    account.deposit(500);\n    account.withdraw(200);\n    \n    cout << \"---\" << endl;\n    cout << \"Current Balance: $\" << account.getBalance() << endl;\n    \n    // This won't work - balance is private\n    // account.balance = 1000000; // Error!\n    \n    return 0;\n}",
+        "explanation": "In C++, 'this' is a pointer, so we use 'this->' to access members. Private members can only be accessed through public methods."
+      },
+      "javaCode": {
+        "title": "Encapsulation with Getters/Setters in Java",
+        "code": "// Java - Encapsulation Example\n\npublic class BankAccount {\n    private String accountNumber;\n    private String ownerName;\n    private double balance;\n    \n    // Constructor\n    public BankAccount(String accNum, String name, double initialBalance) {\n        this.accountNumber = accNum;\n        this.ownerName = name;\n        // Validation in setter\n        setBalance(initialBalance);\n    }\n    \n    // Getters\n    public String getAccountNumber() {\n        return accountNumber;\n    }\n    \n    public String getOwnerName() {\n        return ownerName;\n    }\n    \n    public double getBalance() {\n        return balance;\n    }\n    \n    // Setters with validation\n    public void setOwnerName(String name) {\n        if (name != null && !name.isEmpty()) {\n            this.ownerName = name;\n        } else {\n            System.out.println(\"Error: Name cannot be empty!\");\n        }\n    }\n    \n    public void setBalance(double amount) {\n        if (amount >= 0) {\n            this.balance = amount;\n        } else {\n            System.out.println(\"Error: Balance cannot be negative!\");\n            this.balance = 0;\n        }\n    }\n    \n    // Business methods\n    public void deposit(double amount) {\n        if (amount > 0) {\n            balance += amount;\n            System.out.println(\"Deposited: $\" + amount);\n        } else {\n            System.out.println(\"Error: Deposit amount must be positive!\");\n        }\n    }\n    \n    public boolean withdraw(double amount) {\n        if (amount > 0 && amount <= balance) {\n            balance -= amount;\n            System.out.println(\"Withdrawn: $\" + amount);\n            return true;\n        }\n        System.out.println(\"Error: Invalid withdrawal amount!\");\n        return false;\n    }\n    \n    public void displayInfo() {\n        System.out.println(\"Account: \" + accountNumber);\n        System.out.println(\"Owner: \" + ownerName);\n        System.out.println(\"Balance: $\" + balance);\n    }\n    \n    public static void main(String[] args) {\n        BankAccount account = new BankAccount(\"ACC001\", \"John Doe\", 1000.0);\n        \n        account.displayInfo();\n        System.out.println(\"---\");\n        \n        account.deposit(500);\n        account.withdraw(200);\n        \n        System.out.println(\"---\");\n        System.out.println(\"Current Balance: $\" + account.getBalance());\n        \n        // This won't work - balance is private\n        // account.balance = 1000000; // Error!\n    }\n}",
+        "explanation": "In Java, 'this' is a reference, so we use 'this.' to access members. Java also has package-private access (no modifier) which is different from C++."
+      },
+      "comparison": [
+        {
+          "aspect": "this Keyword",
+          "cpp": "this is a pointer (this->member)",
+          "java": "this is a reference (this.member)"
+        },
+        {
+          "aspect": "Access Modifiers Count",
+          "cpp": "3: public, private, protected",
+          "java": "4: public, private, protected, package-private"
+        },
+        {
+          "aspect": "Default Member Access",
+          "cpp": "private",
+          "java": "package-private"
+        },
+        {
+          "aspect": "Null Check",
+          "cpp": "name.empty() or name == \"\"",
+          "java": "name == null || name.isEmpty()"
+        }
+      ],
+      "practiceQuestions": [
+        {
+          "id": "inter-q1",
+          "title": "Create an Employee Class with Encapsulation",
+          "difficulty": "intermediate",
+          "description": "Create an Employee class with:\n- Private attributes: id, name, salary, department\n- Constructor that initializes all fields\n- Getters for all fields\n- Setters with validation:\n  - name: cannot be empty\n  - salary: cannot be negative, max 1,000,000\n  - department: must be one of 'IT', 'HR', 'Finance', 'Marketing'\n- Method: giveRaise(percentage) - increases salary by given percentage",
+          "hints": [
+            "Use 'this' keyword to differentiate parameters from fields",
+            "Validation should happen in setters",
+            "giveRaise should check if percentage is valid (0-100)"
+          ],
+          "solutions": {
+            "cpp": "// C++ Solution\n#include <iostream>\n#include <string>\n#include <algorithm>\nusing namespace std;\n\nclass Employee {\nprivate:\n    int id;\n    string name;\n    double salary;\n    string department;\n    \n    bool isValidDepartment(string dept) {\n        return dept == \"IT\" || dept == \"HR\" || \n               dept == \"Finance\" || dept == \"Marketing\";\n    }\n    \npublic:\n    Employee(int id, string name, double salary, string department) {\n        this->id = id;\n        setName(name);\n        setSalary(salary);\n        setDepartment(department);\n    }\n    \n    // Getters\n    int getId() { return id; }\n    string getName() { return name; }\n    double getSalary() { return salary; }\n    string getDepartment() { return department; }\n    \n    // Setters\n    void setName(string name) {\n        if (!name.empty()) {\n            this->name = name;\n        } else {\n            cout << \"Error: Name cannot be empty!\" << endl;\n        }\n    }\n    \n    void setSalary(double salary) {\n        if (salary >= 0 && salary <= 1000000) {\n            this->salary = salary;\n        } else {\n            cout << \"Error: Invalid salary range!\" << endl;\n        }\n    }\n    \n    void setDepartment(string department) {\n        if (isValidDepartment(department)) {\n            this->department = department;\n        } else {\n            cout << \"Error: Invalid department!\" << endl;\n        }\n    }\n    \n    void giveRaise(double percentage) {\n        if (percentage > 0 && percentage <= 100) {\n            double raise = salary * (percentage / 100);\n            double newSalary = salary + raise;\n            if (newSalary <= 1000000) {\n                salary = newSalary;\n                cout << \"Raise applied! New salary: $\" << salary << endl;\n            } else {\n                cout << \"Error: Raise exceeds max salary!\" << endl;\n            }\n        } else {\n            cout << \"Error: Invalid percentage!\" << endl;\n        }\n    }\n    \n    void display() {\n        cout << \"ID: \" << id << endl;\n        cout << \"Name: \" << name << endl;\n        cout << \"Salary: $\" << salary << endl;\n        cout << \"Department: \" << department << endl;\n    }\n};\n\nint main() {\n    Employee emp(1, \"Alice\", 50000, \"IT\");\n    emp.display();\n    \n    cout << \"---\" << endl;\n    emp.giveRaise(10);\n    emp.display();\n    \n    return 0;\n}",
+            "java": "// Java Solution\npublic class Employee {\n    private int id;\n    private String name;\n    private double salary;\n    private String department;\n    \n    public Employee(int id, String name, double salary, String department) {\n        this.id = id;\n        setName(name);\n        setSalary(salary);\n        setDepartment(department);\n    }\n    \n    // Getters\n    public int getId() { return id; }\n    public String getName() { return name; }\n    public double getSalary() { return salary; }\n    public String getDepartment() { return department; }\n    \n    // Setters\n    public void setName(String name) {\n        if (name != null && !name.isEmpty()) {\n            this.name = name;\n        } else {\n            System.out.println(\"Error: Name cannot be empty!\");\n        }\n    }\n    \n    public void setSalary(double salary) {\n        if (salary >= 0 && salary <= 1000000) {\n            this.salary = salary;\n        } else {\n            System.out.println(\"Error: Invalid salary range!\");\n        }\n    }\n    \n    public void setDepartment(String department) {\n        if (isValidDepartment(department)) {\n            this.department = department;\n        } else {\n            System.out.println(\"Error: Invalid department!\");\n        }\n    }\n    \n    private boolean isValidDepartment(String dept) {\n        return dept != null && \n               (dept.equals(\"IT\") || dept.equals(\"HR\") || \n                dept.equals(\"Finance\") || dept.equals(\"Marketing\"));\n    }\n    \n    public void giveRaise(double percentage) {\n        if (percentage > 0 && percentage <= 100) {\n            double raise = salary * (percentage / 100);\n            double newSalary = salary + raise;\n            if (newSalary <= 1000000) {\n                salary = newSalary;\n                System.out.println(\"Raise applied! New salary: $\" + salary);\n            } else {\n                System.out.println(\"Error: Raise exceeds max salary!\");\n            }\n        } else {\n            System.out.println(\"Error: Invalid percentage!\");\n        }\n    }\n    \n    public void display() {\n        System.out.println(\"ID: \" + id);\n        System.out.println(\"Name: \" + name);\n        System.out.println(\"Salary: $\" + salary);\n        System.out.println(\"Department: \" + department);\n    }\n    \n    public static void main(String[] args) {\n        Employee emp = new Employee(1, \"Alice\", 50000, \"IT\");\n        emp.display();\n        \n        System.out.println(\"---\");\n        emp.giveRaise(10);\n        emp.display();\n    }\n}"
+          },
+          "tags": ["encapsulation", "getters", "setters", "validation"]
+        },
+        {
+          "id": "inter-q2",
+          "title": "Library Book Management",
+          "difficulty": "intermediate",
+          "description": "Create a Book class with proper encapsulation:\n- Private: isbn, title, author, isAvailable, borrowerName\n- Methods:\n  - borrowBook(borrowerName): marks book as borrowed if available\n  - returnBook(): marks book as available, clears borrower\n  - getDetails(): returns formatted string with all details\n- Validation: ISBN must be 13 characters, title/author non-empty",
+          "hints": [
+            "isAvailable should be a boolean",
+            "borrowBook should fail if already borrowed",
+            "returnBook should fail if not borrowed"
+          ],
+          "solutions": {
+            "cpp": "// C++ Solution\n#include <iostream>\n#include <string>\nusing namespace std;\n\nclass Book {\nprivate:\n    string isbn;\n    string title;\n    string author;\n    bool isAvailable;\n    string borrowerName;\n    \npublic:\n    Book(string isbn, string title, string author) {\n        setIsbn(isbn);\n        setTitle(title);\n        setAuthor(author);\n        this->isAvailable = true;\n        this->borrowerName = \"\";\n    }\n    \n    // Getters\n    string getIsbn() { return isbn; }\n    string getTitle() { return title; }\n    string getAuthor() { return author; }\n    bool getIsAvailable() { return isAvailable; }\n    string getBorrowerName() { return borrowerName; }\n    \n    // Setters\n    void setIsbn(string isbn) {\n        if (isbn.length() == 13) {\n            this->isbn = isbn;\n        } else {\n            cout << \"Error: ISBN must be 13 characters!\" << endl;\n            this->isbn = \"0000000000000\";\n        }\n    }\n    \n    void setTitle(string title) {\n        if (!title.empty()) {\n            this->title = title;\n        } else {\n            cout << \"Error: Title cannot be empty!\" << endl;\n        }\n    }\n    \n    void setAuthor(string author) {\n        if (!author.empty()) {\n            this->author = author;\n        } else {\n            cout << \"Error: Author cannot be empty!\" << endl;\n        }\n    }\n    \n    bool borrowBook(string borrowerName) {\n        if (isAvailable && !borrowerName.empty()) {\n            this->isAvailable = false;\n            this->borrowerName = borrowerName;\n            cout << \"Book borrowed successfully by \" << borrowerName << endl;\n            return true;\n        }\n        cout << \"Error: Book not available or invalid borrower!\" << endl;\n        return false;\n    }\n    \n    bool returnBook() {\n        if (!isAvailable) {\n            cout << \"Book returned by \" << borrowerName << endl;\n            this->isAvailable = true;\n            this->borrowerName = \"\";\n            return true;\n        }\n        cout << \"Error: Book was not borrowed!\" << endl;\n        return false;\n    }\n    \n    string getDetails() {\n        string status = isAvailable ? \"Available\" : \"Borrowed by \" + borrowerName;\n        return \"ISBN: \" + isbn + \"\\nTitle: \" + title + \n               \"\\nAuthor: \" + author + \"\\nStatus: \" + status;\n    }\n};\n\nint main() {\n    Book book(\"9780132350884\", \"Clean Code\", \"Robert Martin\");\n    \n    cout << book.getDetails() << endl;\n    cout << \"---\" << endl;\n    \n    book.borrowBook(\"Alice\");\n    cout << book.getDetails() << endl;\n    cout << \"---\" << endl;\n    \n    book.returnBook();\n    cout << book.getDetails() << endl;\n    \n    return 0;\n}",
+            "java": "// Java Solution\npublic class Book {\n    private String isbn;\n    private String title;\n    private String author;\n    private boolean isAvailable;\n    private String borrowerName;\n    \n    public Book(String isbn, String title, String author) {\n        setIsbn(isbn);\n        setTitle(title);\n        setAuthor(author);\n        this.isAvailable = true;\n        this.borrowerName = \"\";\n    }\n    \n    // Getters\n    public String getIsbn() { return isbn; }\n    public String getTitle() { return title; }\n    public String getAuthor() { return author; }\n    public boolean isAvailable() { return isAvailable; }\n    public String getBorrowerName() { return borrowerName; }\n    \n    // Setters\n    public void setIsbn(String isbn) {\n        if (isbn != null && isbn.length() == 13) {\n            this.isbn = isbn;\n        } else {\n            System.out.println(\"Error: ISBN must be 13 characters!\");\n            this.isbn = \"0000000000000\";\n        }\n    }\n    \n    public void setTitle(String title) {\n        if (title != null && !title.isEmpty()) {\n            this.title = title;\n        } else {\n            System.out.println(\"Error: Title cannot be empty!\");\n        }\n    }\n    \n    public void setAuthor(String author) {\n        if (author != null && !author.isEmpty()) {\n            this.author = author;\n        } else {\n            System.out.println(\"Error: Author cannot be empty!\");\n        }\n    }\n    \n    public boolean borrowBook(String borrowerName) {\n        if (isAvailable && borrowerName != null && !borrowerName.isEmpty()) {\n            this.isAvailable = false;\n            this.borrowerName = borrowerName;\n            System.out.println(\"Book borrowed successfully by \" + borrowerName);\n            return true;\n        }\n        System.out.println(\"Error: Book not available or invalid borrower!\");\n        return false;\n    }\n    \n    public boolean returnBook() {\n        if (!isAvailable) {\n            System.out.println(\"Book returned by \" + borrowerName);\n            this.isAvailable = true;\n            this.borrowerName = \"\";\n            return true;\n        }\n        System.out.println(\"Error: Book was not borrowed!\");\n        return false;\n    }\n    \n    public String getDetails() {\n        String status = isAvailable ? \"Available\" : \"Borrowed by \" + borrowerName;\n        return \"ISBN: \" + isbn + \"\\nTitle: \" + title + \n               \"\\nAuthor: \" + author + \"\\nStatus: \" + status;\n    }\n    \n    public static void main(String[] args) {\n        Book book = new Book(\"9780132350884\", \"Clean Code\", \"Robert Martin\");\n        \n        System.out.println(book.getDetails());\n        System.out.println(\"---\");\n        \n        book.borrowBook(\"Alice\");\n        System.out.println(book.getDetails());\n        System.out.println(\"---\");\n        \n        book.returnBook();\n        System.out.println(book.getDetails());\n    }\n}"
+          },
+          "tags": ["encapsulation", "state-management", "validation"]
+        }
+      ]
+    },
+    
+    "advanced": {
+      "title": "Advanced Concepts",
+      "description": "Static members, object relationships, and memory",
+      "concepts": [
+        {
+          "id": "static-members",
+          "title": "Static Members",
+          "explanation": "Static members belong to the class itself, not to any specific object. They are shared among all instances of the class.",
+          "keyPoints": [
+            "Static variables: shared by all objects of the class",
+            "Static methods: can be called without creating an object",
+            "Static methods cannot access non-static members directly",
+            "Used for counters, utility methods, constants"
+          ]
+        },
+        {
+          "id": "object-relationships",
+          "title": "Object Relationships",
+          "explanation": "Classes can have relationships with other classes: Association, Aggregation, and Composition.",
+          "keyPoints": [
+            "Association: 'uses-a' relationship (weak coupling)",
+            "Aggregation: 'has-a' relationship (can exist independently)",
+            "Composition: 'owns-a' relationship (strong ownership, lifecycle dependency)"
+          ]
+        },
+        {
+          "id": "memory-management",
+          "title": "Memory Management Differences",
+          "explanation": "C++ and Java handle memory very differently. Understanding this is crucial for writing efficient code.",
+          "keyPoints": [
+            "C++: Manual memory management with new/delete",
+            "Java: Automatic garbage collection",
+            "C++: Stack vs Heap allocation choice",
+            "Java: All objects on heap, primitives on stack"
+          ]
+        }
+      ],
+      "cppCode": {
+        "title": "Advanced Class Concepts in C++",
+        "code": "// C++ - Advanced Class Concepts\n#include <iostream>\n#include <string>\n#include <vector>\nusing namespace std;\n\n// Static Members Example\nclass Employee {\nprivate:\n    int id;\n    string name;\n    static int employeeCount;  // Static variable\n    static int nextId;         // Auto-increment ID\n    \npublic:\n    Employee(string name) {\n        this->id = ++nextId;\n        this->name = name;\n        employeeCount++;\n        cout << \"Employee created: \" << name << \" (ID: \" << id << \")\" << endl;\n    }\n    \n    ~Employee() {\n        employeeCount--;\n        cout << \"Employee destroyed: \" << name << endl;\n    }\n    \n    // Static method\n    static int getEmployeeCount() {\n        return employeeCount;\n    }\n    \n    static int getNextId() {\n        return nextId + 1;\n    }\n    \n    void display() {\n        cout << \"ID: \" << id << \", Name: \" << name << endl;\n    }\n    \n    int getId() { return id; }\n    string getName() { return name; }\n};\n\n// Initialize static members (required in C++)\nint Employee::employeeCount = 0;\nint Employee::nextId = 0;\n\n// Composition Example - Strong Ownership\nclass Engine {\nprivate:\n    int horsepower;\n    string type;\n    \npublic:\n    Engine(int hp, string type) : horsepower(hp), type(type) {\n        cout << \"Engine created: \" << type << endl;\n    }\n    \n    ~Engine() {\n        cout << \"Engine destroyed: \" << type << endl;\n    }\n    \n    void start() {\n        cout << \"Engine (\" << horsepower << \"hp \" << type << \") starting...\" << endl;\n    }\n    \n    string getInfo() {\n        return to_string(horsepower) + \"hp \" + type;\n    }\n};\n\nclass Car {\nprivate:\n    string brand;\n    Engine* engine;  // Composition: Car OWNS the Engine\n    \npublic:\n    Car(string brand, int hp, string engineType) {\n        this->brand = brand;\n        this->engine = new Engine(hp, engineType);  // Car creates Engine\n        cout << \"Car created: \" << brand << endl;\n    }\n    \n    ~Car() {\n        delete engine;  // Car destroys Engine (ownership)\n        cout << \"Car destroyed: \" << brand << endl;\n    }\n    \n    void start() {\n        cout << brand << \" starting...\" << endl;\n        engine->start();\n    }\n    \n    void displayInfo() {\n        cout << \"Brand: \" << brand << endl;\n        cout << \"Engine: \" << engine->getInfo() << endl;\n    }\n};\n\n// Aggregation Example - Weak Ownership\nclass Department {\nprivate:\n    string name;\n    vector<Employee*> employees;  // Aggregation: Dept has Employees but doesn't own them\n    \npublic:\n    Department(string name) : name(name) {\n        cout << \"Department created: \" << name << endl;\n    }\n    \n    ~Department() {\n        // Don't delete employees - we don't own them!\n        cout << \"Department destroyed: \" << name << endl;\n    }\n    \n    void addEmployee(Employee* emp) {\n        employees.push_back(emp);\n        cout << \"Added \" << emp->getName() << \" to \" << name << endl;\n    }\n    \n    void removeEmployee(Employee* emp) {\n        for (auto it = employees.begin(); it != employees.end(); ++it) {\n            if (*it == emp) {\n                employees.erase(it);\n                cout << \"Removed \" << emp->getName() << \" from \" << name << endl;\n                return;\n            }\n        }\n    }\n    \n    void listEmployees() {\n        cout << \"Department: \" << name << endl;\n        cout << \"Employees:\" << endl;\n        for (Employee* emp : employees) {\n            cout << \"  - \" << emp->getName() << endl;\n        }\n    }\n};\n\nint main() {\n    cout << \"=== Static Members Demo ===\" << endl;\n    cout << \"Initial count: \" << Employee::getEmployeeCount() << endl;\n    \n    Employee* e1 = new Employee(\"Alice\");\n    Employee* e2 = new Employee(\"Bob\");\n    \n    cout << \"Current count: \" << Employee::getEmployeeCount() << endl;\n    cout << \"Next ID will be: \" << Employee::getNextId() << endl;\n    \n    cout << \"\\n=== Composition Demo ===\" << endl;\n    {\n        Car car(\"Tesla\", 450, \"Electric\");\n        car.displayInfo();\n        car.start();\n    }  // Car and Engine both destroyed here\n    \n    cout << \"\\n=== Aggregation Demo ===\" << endl;\n    Department* itDept = new Department(\"IT\");\n    itDept->addEmployee(e1);\n    itDept->addEmployee(e2);\n    itDept->listEmployees();\n    \n    delete itDept;  // Department destroyed, but employees still exist\n    \n    cout << \"\\nEmployees still exist:\" << endl;\n    e1->display();\n    e2->display();\n    \n    // Cleanup\n    delete e1;\n    delete e2;\n    \n    cout << \"\\nFinal count: \" << Employee::getEmployeeCount() << endl;\n    \n    return 0;\n}",
+        "explanation": "This demonstrates static members, composition (Car owns Engine - deletes it in destructor), and aggregation (Department has Employees but doesn't own them)."
+      },
+      "javaCode": {
+        "title": "Advanced Class Concepts in Java",
+        "code": "// Java - Advanced Class Concepts\nimport java.util.ArrayList;\nimport java.util.List;\n\n// Static Members Example\nclass Employee {\n    private int id;\n    private String name;\n    private static int employeeCount = 0;  // Static variable\n    private static int nextId = 0;         // Auto-increment ID\n    \n    public Employee(String name) {\n        this.id = ++nextId;\n        this.name = name;\n        employeeCount++;\n        System.out.println(\"Employee created: \" + name + \" (ID: \" + id + \")\");\n    }\n    \n    // Static method\n    public static int getEmployeeCount() {\n        return employeeCount;\n    }\n    \n    public static int getNextId() {\n        return nextId + 1;\n    }\n    \n    // Called before garbage collection (not guaranteed!)\n    @Override\n    protected void finalize() {\n        employeeCount--;\n        System.out.println(\"Employee finalized: \" + name);\n    }\n    \n    public void display() {\n        System.out.println(\"ID: \" + id + \", Name: \" + name);\n    }\n    \n    public int getId() { return id; }\n    public String getName() { return name; }\n}\n\n// Composition Example - Strong Ownership\nclass Engine {\n    private int horsepower;\n    private String type;\n    \n    public Engine(int hp, String type) {\n        this.horsepower = hp;\n        this.type = type;\n        System.out.println(\"Engine created: \" + type);\n    }\n    \n    public void start() {\n        System.out.println(\"Engine (\" + horsepower + \"hp \" + type + \") starting...\");\n    }\n    \n    public String getInfo() {\n        return horsepower + \"hp \" + type;\n    }\n}\n\nclass Car {\n    private String brand;\n    private final Engine engine;  // Composition: Car OWNS the Engine (final = can't reassign)\n    \n    public Car(String brand, int hp, String engineType) {\n        this.brand = brand;\n        this.engine = new Engine(hp, engineType);  // Car creates Engine\n        System.out.println(\"Car created: \" + brand);\n    }\n    \n    public void start() {\n        System.out.println(brand + \" starting...\");\n        engine.start();\n    }\n    \n    public void displayInfo() {\n        System.out.println(\"Brand: \" + brand);\n        System.out.println(\"Engine: \" + engine.getInfo());\n    }\n}\n\n// Aggregation Example - Weak Ownership\nclass Department {\n    private String name;\n    private List<Employee> employees;  // Aggregation: Dept has Employees but doesn't own them\n    \n    public Department(String name) {\n        this.name = name;\n        this.employees = new ArrayList<>();\n        System.out.println(\"Department created: \" + name);\n    }\n    \n    public void addEmployee(Employee emp) {\n        employees.add(emp);\n        System.out.println(\"Added \" + emp.getName() + \" to \" + name);\n    }\n    \n    public void removeEmployee(Employee emp) {\n        if (employees.remove(emp)) {\n            System.out.println(\"Removed \" + emp.getName() + \" from \" + name);\n        }\n    }\n    \n    public void listEmployees() {\n        System.out.println(\"Department: \" + name);\n        System.out.println(\"Employees:\");\n        for (Employee emp : employees) {\n            System.out.println(\"  - \" + emp.getName());\n        }\n    }\n}\n\n// Main class\npublic class AdvancedConcepts {\n    public static void main(String[] args) {\n        System.out.println(\"=== Static Members Demo ===\");\n        System.out.println(\"Initial count: \" + Employee.getEmployeeCount());\n        \n        Employee e1 = new Employee(\"Alice\");\n        Employee e2 = new Employee(\"Bob\");\n        \n        System.out.println(\"Current count: \" + Employee.getEmployeeCount());\n        System.out.println(\"Next ID will be: \" + Employee.getNextId());\n        \n        System.out.println(\"\\n=== Composition Demo ===\");\n        Car car = new Car(\"Tesla\", 450, \"Electric\");\n        car.displayInfo();\n        car.start();\n        // In Java, we don't manually destroy objects\n        // GC handles it, but timing is not guaranteed\n        \n        System.out.println(\"\\n=== Aggregation Demo ===\");\n        Department itDept = new Department(\"IT\");\n        itDept.addEmployee(e1);\n        itDept.addEmployee(e2);\n        itDept.listEmployees();\n        \n        // Even if we set itDept to null, employees still exist\n        itDept = null;\n        \n        System.out.println(\"\\nEmployees still exist:\");\n        e1.display();\n        e2.display();\n        \n        // No manual cleanup needed - GC handles it\n        System.out.println(\"\\nFinal count: \" + Employee.getEmployeeCount());\n    }\n}",
+        "explanation": "Java handles memory automatically with garbage collection. Composition is shown with 'final' keyword ensuring Engine can't be reassigned. Aggregation uses ArrayList."
+      },
+      "comparison": [
+        {
+          "aspect": "Static Initialization",
+          "cpp": "Must initialize outside class: int Class::var = 0;",
+          "java": "Can initialize inline: private static int var = 0;"
+        },
+        {
+          "aspect": "Memory Cleanup",
+          "cpp": "Manual with delete, destructors called immediately",
+          "java": "Automatic GC, finalize() not guaranteed"
+        },
+        {
+          "aspect": "Object Destruction",
+          "cpp": "Destructors (~ClassName) always called",
+          "java": "finalize() deprecated, use try-with-resources"
+        },
+        {
+          "aspect": "Composition Implementation",
+          "cpp": "Pointer + delete in destructor",
+          "java": "final reference, no explicit cleanup"
+        },
+        {
+          "aspect": "Static Method Access",
+          "cpp": "ClassName::methodName() or obj.methodName()",
+          "java": "ClassName.methodName() (preferred) or obj.methodName()"
+        }
+      ],
+      "practiceQuestions": [
+        {
+          "id": "adv-q1",
+          "title": "Implement a Singleton Logger",
+          "difficulty": "advanced",
+          "description": "Create a Logger class using the Singleton pattern:\n- Only one instance should exist\n- Methods: log(message), error(message), warn(message)\n- Track total log count (static)\n- Thread-safe in Java (bonus)\n- Include timestamp with each log message",
+          "hints": [
+            "Private constructor prevents external instantiation",
+            "Static method returns the single instance",
+            "Use static variable to hold the instance",
+            "Java: consider synchronized or enum-based singleton"
+          ],
+          "solutions": {
+            "cpp": "// C++ Singleton Logger Solution\n#include <iostream>\n#include <string>\n#include <ctime>\n#include <mutex>\nusing namespace std;\n\nclass Logger {\nprivate:\n    static Logger* instance;\n    static mutex mtx;\n    static int logCount;\n    \n    // Private constructor\n    Logger() {\n        cout << \"Logger instance created\" << endl;\n    }\n    \n    string getTimestamp() {\n        time_t now = time(0);\n        char* dt = ctime(&now);\n        string timestamp(dt);\n        timestamp.pop_back();  // Remove newline\n        return timestamp;\n    }\n    \npublic:\n    // Delete copy constructor and assignment\n    Logger(const Logger&) = delete;\n    Logger& operator=(const Logger&) = delete;\n    \n    static Logger* getInstance() {\n        lock_guard<mutex> lock(mtx);\n        if (instance == nullptr) {\n            instance = new Logger();\n        }\n        return instance;\n    }\n    \n    void log(const string& message) {\n        cout << \"[\" << getTimestamp() << \"] [INFO] \" << message << endl;\n        logCount++;\n    }\n    \n    void error(const string& message) {\n        cout << \"[\" << getTimestamp() << \"] [ERROR] \" << message << endl;\n        logCount++;\n    }\n    \n    void warn(const string& message) {\n        cout << \"[\" << getTimestamp() << \"] [WARN] \" << message << endl;\n        logCount++;\n    }\n    \n    static int getLogCount() {\n        return logCount;\n    }\n    \n    // Cleanup (call at program end)\n    static void destroy() {\n        delete instance;\n        instance = nullptr;\n    }\n};\n\n// Initialize static members\nLogger* Logger::instance = nullptr;\nmutex Logger::mtx;\nint Logger::logCount = 0;\n\nint main() {\n    // Get logger instance\n    Logger* logger1 = Logger::getInstance();\n    Logger* logger2 = Logger::getInstance();\n    \n    // Verify same instance\n    cout << \"Same instance? \" << (logger1 == logger2 ? \"Yes\" : \"No\") << endl;\n    \n    // Use logger\n    logger1->log(\"Application started\");\n    logger1->warn(\"Low memory warning\");\n    logger2->error(\"Connection failed\");\n    logger1->log(\"Retrying connection...\");\n    \n    cout << \"Total logs: \" << Logger::getLogCount() << endl;\n    \n    Logger::destroy();\n    return 0;\n}",
+            "java": "// Java Singleton Logger Solution (Thread-safe)\nimport java.time.LocalDateTime;\nimport java.time.format.DateTimeFormatter;\n\npublic class Logger {\n    // Volatile ensures visibility across threads\n    private static volatile Logger instance;\n    private static int logCount = 0;\n    private static final Object lock = new Object();\n    private DateTimeFormatter formatter;\n    \n    // Private constructor\n    private Logger() {\n        formatter = DateTimeFormatter.ofPattern(\"yyyy-MM-dd HH:mm:ss\");\n        System.out.println(\"Logger instance created\");\n    }\n    \n    // Double-checked locking for thread safety\n    public static Logger getInstance() {\n        if (instance == null) {\n            synchronized (lock) {\n                if (instance == null) {\n                    instance = new Logger();\n                }\n            }\n        }\n        return instance;\n    }\n    \n    private String getTimestamp() {\n        return LocalDateTime.now().format(formatter);\n    }\n    \n    public synchronized void log(String message) {\n        System.out.println(\"[\" + getTimestamp() + \"] [INFO] \" + message);\n        logCount++;\n    }\n    \n    public synchronized void error(String message) {\n        System.out.println(\"[\" + getTimestamp() + \"] [ERROR] \" + message);\n        logCount++;\n    }\n    \n    public synchronized void warn(String message) {\n        System.out.println(\"[\" + getTimestamp() + \"] [WARN] \" + message);\n        logCount++;\n    }\n    \n    public static int getLogCount() {\n        return logCount;\n    }\n    \n    public static void main(String[] args) {\n        // Get logger instance\n        Logger logger1 = Logger.getInstance();\n        Logger logger2 = Logger.getInstance();\n        \n        // Verify same instance\n        System.out.println(\"Same instance? \" + (logger1 == logger2 ? \"Yes\" : \"No\"));\n        \n        // Use logger\n        logger1.log(\"Application started\");\n        logger1.warn(\"Low memory warning\");\n        logger2.error(\"Connection failed\");\n        logger1.log(\"Retrying connection...\");\n        \n        System.out.println(\"Total logs: \" + Logger.getLogCount());\n    }\n}\n\n// Alternative: Enum-based Singleton (Simplest, recommended)\n/*\npublic enum LoggerEnum {\n    INSTANCE;\n    \n    private int logCount = 0;\n    \n    public void log(String message) {\n        System.out.println(\"[INFO] \" + message);\n        logCount++;\n    }\n    \n    public int getLogCount() {\n        return logCount;\n    }\n}\n// Usage: LoggerEnum.INSTANCE.log(\"message\");\n*/"
+          },
+          "tags": ["singleton", "design-pattern", "static", "thread-safety"]
+        },
+        {
+          "id": "adv-q2",
+          "title": "University Management System",
+          "difficulty": "advanced",
+          "description": "Design classes showing different relationships:\n\n1. University (Composition with Departments)\n   - Has multiple departments\n   - When university is destroyed, departments are destroyed\n\n2. Department (Aggregation with Professors)\n   - Has multiple professors\n   - Professors can exist without department\n\n3. Professor (Association with Courses)\n   - Teaches multiple courses\n   - Can switch courses\n\n4. Include static member to track total universities\n\nImplement with proper encapsulation and demonstrate all relationships.",
+          "hints": [
+            "Composition: Container creates and destroys components",
+            "Aggregation: Container holds references but doesn't own",
+            "Association: Objects reference each other loosely",
+            "Use vectors/lists to hold multiple objects"
+          ],
+          "solutions": {
+            "cpp": "// C++ Solution - University Management System\n#include <iostream>\n#include <string>\n#include <vector>\n#include <memory>\nusing namespace std;\n\n// Forward declarations\nclass Course;\nclass Professor;\nclass Department;\n\n// Course class (for Association)\nclass Course {\nprivate:\n    string code;\n    string name;\n    int credits;\n    \npublic:\n    Course(string code, string name, int credits)\n        : code(code), name(name), credits(credits) {\n        cout << \"  Course created: \" << name << endl;\n    }\n    \n    ~Course() {\n        cout << \"  Course destroyed: \" << name << endl;\n    }\n    \n    string getName() const { return name; }\n    string getCode() const { return code; }\n    \n    void display() const {\n        cout << \"    \" << code << \": \" << name << \" (\" << credits << \" credits)\" << endl;\n    }\n};\n\n// Professor class (Aggregation target, Association with Courses)\nclass Professor {\nprivate:\n    int id;\n    string name;\n    string specialization;\n    vector<Course*> courses;  // Association: doesn't own courses\n    \npublic:\n    Professor(int id, string name, string spec)\n        : id(id), name(name), specialization(spec) {\n        cout << \"  Professor created: \" << name << endl;\n    }\n    \n    ~Professor() {\n        cout << \"  Professor destroyed: \" << name << endl;\n    }\n    \n    void assignCourse(Course* course) {\n        courses.push_back(course);\n        cout << \"    \" << name << \" assigned to teach \" << course->getName() << endl;\n    }\n    \n    void removeCourse(Course* course) {\n        for (auto it = courses.begin(); it != courses.end(); ++it) {\n            if (*it == course) {\n                courses.erase(it);\n                cout << \"    \" << name << \" removed from \" << course->getName() << endl;\n                return;\n            }\n        }\n    }\n    \n    string getName() const { return name; }\n    int getId() const { return id; }\n    \n    void display() const {\n        cout << \"    Prof. \" << name << \" (\" << specialization << \")\" << endl;\n        if (!courses.empty()) {\n            cout << \"      Teaching:\" << endl;\n            for (const Course* c : courses) {\n                cout << \"        - \" << c->getName() << endl;\n            }\n        }\n    }\n};\n\n// Department class (Aggregation with Professors)\nclass Department {\nprivate:\n    string name;\n    string building;\n    vector<Professor*> professors;  // Aggregation: doesn't own professors\n    \npublic:\n    Department(string name, string building)\n        : name(name), building(building) {\n        cout << \"  Department created: \" << name << endl;\n    }\n    \n    ~Department() {\n        // Don't delete professors - we don't own them\n        cout << \"  Department destroyed: \" << name << endl;\n    }\n    \n    void addProfessor(Professor* prof) {\n        professors.push_back(prof);\n        cout << \"    Added \" << prof->getName() << \" to \" << name << endl;\n    }\n    \n    void removeProfessor(Professor* prof) {\n        for (auto it = professors.begin(); it != professors.end(); ++it) {\n            if (*it == prof) {\n                professors.erase(it);\n                return;\n            }\n        }\n    }\n    \n    string getName() const { return name; }\n    \n    void display() const {\n        cout << \"  Department: \" << name << \" (Building: \" << building << \")\" << endl;\n        cout << \"  Professors:\" << endl;\n        for (const Professor* p : professors) {\n            p->display();\n        }\n    }\n};\n\n// University class (Composition with Departments)\nclass University {\nprivate:\n    string name;\n    string location;\n    vector<Department*> departments;  // Composition: owns departments\n    static int universityCount;\n    \npublic:\n    University(string name, string location)\n        : name(name), location(location) {\n        universityCount++;\n        cout << \"University created: \" << name << endl;\n    }\n    \n    ~University() {\n        cout << \"University being destroyed: \" << name << endl;\n        // Composition: delete all owned departments\n        for (Department* dept : departments) {\n            delete dept;\n        }\n        departments.clear();\n        universityCount--;\n        cout << \"University destroyed: \" << name << endl;\n    }\n    \n    // University creates departments (Composition)\n    Department* createDepartment(string name, string building) {\n        Department* dept = new Department(name, building);\n        departments.push_back(dept);\n        return dept;\n    }\n    \n    static int getUniversityCount() {\n        return universityCount;\n    }\n    \n    void display() const {\n        cout << \"\\n========================================\" << endl;\n        cout << \"University: \" << name << endl;\n        cout << \"Location: \" << location << endl;\n        cout << \"Departments: \" << departments.size() << endl;\n        cout << \"========================================\" << endl;\n        for (const Department* dept : departments) {\n            dept->display();\n            cout << endl;\n        }\n    }\n};\n\nint University::universityCount = 0;\n\nint main() {\n    cout << \"\\n=== Creating University ===\"  << endl;\n    cout << \"Universities: \" << University::getUniversityCount() << endl;\n    \n    // Create university (will own departments)\n    University* mit = new University(\"MIT\", \"Cambridge, MA\");\n    \n    cout << \"\\n=== Creating Departments (Composition) ===\" << endl;\n    Department* csDept = mit->createDepartment(\"Computer Science\", \"Stata Center\");\n    Department* mathDept = mit->createDepartment(\"Mathematics\", \"Building 2\");\n    \n    cout << \"\\n=== Creating Professors (Independent) ===\" << endl;\n    Professor* prof1 = new Professor(1, \"Dr. Smith\", \"AI/ML\");\n    Professor* prof2 = new Professor(2, \"Dr. Johnson\", \"Algorithms\");\n    Professor* prof3 = new Professor(3, \"Dr. Williams\", \"Pure Mathematics\");\n    \n    cout << \"\\n=== Creating Courses (Independent) ===\" << endl;\n    Course* cs101 = new Course(\"CS101\", \"Intro to Programming\", 3);\n    Course* cs201 = new Course(\"CS201\", \"Data Structures\", 4);\n    Course* math101 = new Course(\"MATH101\", \"Calculus I\", 4);\n    \n    cout << \"\\n=== Setting up Relationships ===\" << endl;\n    \n    // Aggregation: Add professors to departments\n    csDept->addProfessor(prof1);\n    csDept->addProfessor(prof2);\n    mathDept->addProfessor(prof3);\n    \n    // Association: Assign courses to professors\n    prof1->assignCourse(cs101);\n    prof1->assignCourse(cs201);\n    prof2->assignCourse(cs201);\n    prof3->assignCourse(math101);\n    \n    // Display everything\n    mit->display();\n    \n    cout << \"\\n=== Destroying University (tests Composition) ===\" << endl;\n    delete mit;  // This should destroy departments but NOT professors/courses\n    \n    cout << \"\\n=== Professors still exist (Aggregation proof) ===\" << endl;\n    prof1->display();\n    \n    cout << \"\\n=== Cleanup independent objects ===\" << endl;\n    delete prof1;\n    delete prof2;\n    delete prof3;\n    delete cs101;\n    delete cs201;\n    delete math101;\n    \n    cout << \"\\nUniversities remaining: \" << University::getUniversityCount() << endl;\n    \n    return 0;\n}",
+            "java": "// Java Solution - University Management System\nimport java.util.ArrayList;\nimport java.util.List;\n\n// Course class (for Association)\nclass Course {\n    private String code;\n    private String name;\n    private int credits;\n    \n    public Course(String code, String name, int credits) {\n        this.code = code;\n        this.name = name;\n        this.credits = credits;\n        System.out.println(\"  Course created: \" + name);\n    }\n    \n    public String getName() { return name; }\n    public String getCode() { return code; }\n    \n    public void display() {\n        System.out.println(\"    \" + code + \": \" + name + \" (\" + credits + \" credits)\");\n    }\n}\n\n// Professor class (Aggregation target, Association with Courses)\nclass Professor {\n    private int id;\n    private String name;\n    private String specialization;\n    private List<Course> courses;  // Association: doesn't own courses\n    \n    public Professor(int id, String name, String spec) {\n        this.id = id;\n        this.name = name;\n        this.specialization = spec;\n        this.courses = new ArrayList<>();\n        System.out.println(\"  Professor created: \" + name);\n    }\n    \n    public void assignCourse(Course course) {\n        courses.add(course);\n        System.out.println(\"    \" + name + \" assigned to teach \" + course.getName());\n    }\n    \n    public void removeCourse(Course course) {\n        if (courses.remove(course)) {\n            System.out.println(\"    \" + name + \" removed from \" + course.getName());\n        }\n    }\n    \n    public String getName() { return name; }\n    public int getId() { return id; }\n    \n    public void display() {\n        System.out.println(\"    Prof. \" + name + \" (\" + specialization + \")\");\n        if (!courses.isEmpty()) {\n            System.out.println(\"      Teaching:\");\n            for (Course c : courses) {\n                System.out.println(\"        - \" + c.getName());\n            }\n        }\n    }\n}\n\n// Department class (Aggregation with Professors)\nclass Department {\n    private String name;\n    private String building;\n    private List<Professor> professors;  // Aggregation: doesn't own professors\n    \n    public Department(String name, String building) {\n        this.name = name;\n        this.building = building;\n        this.professors = new ArrayList<>();\n        System.out.println(\"  Department created: \" + name);\n    }\n    \n    public void addProfessor(Professor prof) {\n        professors.add(prof);\n        System.out.println(\"    Added \" + prof.getName() + \" to \" + name);\n    }\n    \n    public void removeProfessor(Professor prof) {\n        professors.remove(prof);\n    }\n    \n    public String getName() { return name; }\n    \n    public void display() {\n        System.out.println(\"  Department: \" + name + \" (Building: \" + building + \")\");\n        System.out.println(\"  Professors:\");\n        for (Professor p : professors) {\n            p.display();\n        }\n    }\n    \n    // Clear references (for composition demonstration)\n    public void clear() {\n        professors.clear();\n        System.out.println(\"  Department cleared: \" + name);\n    }\n}\n\n// University class (Composition with Departments)\npublic class University {\n    private String name;\n    private String location;\n    private List<Department> departments;  // Composition: owns departments\n    private static int universityCount = 0;\n    \n    public University(String name, String location) {\n        this.name = name;\n        this.location = location;\n        this.departments = new ArrayList<>();\n        universityCount++;\n        System.out.println(\"University created: \" + name);\n    }\n    \n    // University creates departments (Composition)\n    public Department createDepartment(String name, String building) {\n        Department dept = new Department(name, building);\n        departments.add(dept);\n        return dept;\n    }\n    \n    public static int getUniversityCount() {\n        return universityCount;\n    }\n    \n    // Simulate destruction (Java uses GC)\n    public void shutdown() {\n        System.out.println(\"University shutting down: \" + name);\n        // Composition: clear all owned departments\n        for (Department dept : departments) {\n            dept.clear();\n        }\n        departments.clear();\n        universityCount--;\n        System.out.println(\"University shut down: \" + name);\n    }\n    \n    public void display() {\n        System.out.println(\"\\n========================================\");\n        System.out.println(\"University: \" + name);\n        System.out.println(\"Location: \" + location);\n        System.out.println(\"Departments: \" + departments.size());\n        System.out.println(\"========================================\");\n        for (Department dept : departments) {\n            dept.display();\n            System.out.println();\n        }\n    }\n    \n    public static void main(String[] args) {\n        System.out.println(\"\\n=== Creating University ===\");\n        System.out.println(\"Universities: \" + University.getUniversityCount());\n        \n        // Create university (will own departments)\n        University mit = new University(\"MIT\", \"Cambridge, MA\");\n        \n        System.out.println(\"\\n=== Creating Departments (Composition) ===\");\n        Department csDept = mit.createDepartment(\"Computer Science\", \"Stata Center\");\n        Department mathDept = mit.createDepartment(\"Mathematics\", \"Building 2\");\n        \n        System.out.println(\"\\n=== Creating Professors (Independent) ===\");\n        Professor prof1 = new Professor(1, \"Dr. Smith\", \"AI/ML\");\n        Professor prof2 = new Professor(2, \"Dr. Johnson\", \"Algorithms\");\n        Professor prof3 = new Professor(3, \"Dr. Williams\", \"Pure Mathematics\");\n        \n        System.out.println(\"\\n=== Creating Courses (Independent) ===\");\n        Course cs101 = new Course(\"CS101\", \"Intro to Programming\", 3);\n        Course cs201 = new Course(\"CS201\", \"Data Structures\", 4);\n        Course math101 = new Course(\"MATH101\", \"Calculus I\", 4);\n        \n        System.out.println(\"\\n=== Setting up Relationships ===\");\n        \n        // Aggregation: Add professors to departments\n        csDept.addProfessor(prof1);\n        csDept.addProfessor(prof2);\n        mathDept.addProfessor(prof3);\n        \n        // Association: Assign courses to professors\n        prof1.assignCourse(cs101);\n        prof1.assignCourse(cs201);\n        prof2.assignCourse(cs201);\n        prof3.assignCourse(math101);\n        \n        // Display everything\n        mit.display();\n        \n        System.out.println(\"\\n=== Shutting down University (tests Composition) ===\");\n        mit.shutdown();  // Clears departments but NOT professors/courses\n        \n        System.out.println(\"\\n=== Professors still exist (Aggregation proof) ===\");\n        prof1.display();\n        \n        System.out.println(\"\\nUniversities remaining: \" + University.getUniversityCount());\n        \n        // In Java, we don't manually delete objects\n        // GC will handle cleanup when objects are no longer referenced\n    }\n}"
+          },
+          "tags": ["composition", "aggregation", "association", "relationships", "static"]
+        }
+      ]
+    }
+  },
+  
+  "keyDifferences": [
+    {
+      "title": "Object Creation",
+      "cpp": "Stack: Car c; | Heap: Car* c = new Car();",
+      "java": "Always heap: Car c = new Car();"
+    },
+    {
+      "title": "Memory Management",
+      "cpp": "Manual (delete) or RAII",
+      "java": "Automatic Garbage Collection"
+    },
+    {
+      "title": "this Keyword",
+      "cpp": "Pointer (this->member)",
+      "java": "Reference (this.member)"
+    },
+    {
+      "title": "Multiple Inheritance",
+      "cpp": "Supported directly",
+      "java": "Only through interfaces"
+    },
+    {
+      "title": "Default Access",
+      "cpp": "private for class, public for struct",
+      "java": "package-private"
+    }
+  ],
+  
+  "bestPractices": [
+    "Always use meaningful names for classes, attributes, and methods",
+    "Follow encapsulation - make data private, provide controlled access",
+    "Initialize all members in constructors",
+    "Keep classes focused - Single Responsibility Principle",
+    "Prefer composition over inheritance when possible",
+    "Document public interfaces clearly"
+  ],
+  
+  "commonMistakes": [
+    {
+      "mistake": "Forgetting semicolon after C++ class definition",
+      "correct": "class MyClass { };"
+    },
+    {
+      "mistake": "Trying to access private members directly",
+      "correct": "Use getter/setter methods"
+    },
+    {
+      "mistake": "Memory leaks in C++ (forgetting delete)",
+      "correct": "Use smart pointers or RAII"
+    },
+    {
+      "mistake": "Modifying static members thinking they're per-instance",
+      "correct": "Static members are shared across all instances"
+    }
+  ]
+}
