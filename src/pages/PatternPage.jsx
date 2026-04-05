@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Clock, CheckCircle, ArrowRight } from 'lucide-react'
+import { Clock, CheckCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useProgress } from '../context/ProgressContext'
 import clsx from 'clsx'
 
@@ -26,23 +26,22 @@ const patternDataMap = {
 
 // Section navigation config
 const sections = [
-  { id: 'intuition', label: 'Intuition', icon: '🎯' },
-  { id: 'triggers', label: 'Brain Triggers', icon: '🧠' },
-  { id: 'code', label: 'Code Build', icon: '💻' },
-  { id: 'solid', label: 'SOLID', icon: '🔗' },
-  { id: 'lld', label: 'LLD Problems', icon: '🎯' },
-  { id: 'web', label: 'Pattern Web', icon: '🕸️' },
-  { id: 'antipatterns', label: 'Anti-Patterns', icon: '⚠️' },
-  { id: 'quiz', label: 'Quiz', icon: '📝' },
-  { id: 'practice', label: 'Practice', icon: '🏋️' },
-  { id: 'cheatsheet', label: 'Cheat Sheet', icon: '📋' }
+  { id: 'intuition', label: 'Intuition', icon: '🎯', num: 1 },
+  { id: 'triggers', label: 'Brain Triggers', icon: '🧠', num: 2 },
+  { id: 'code', label: 'Code Build', icon: '💻', num: 3 },
+  { id: 'solid', label: 'SOLID', icon: '🔗', num: 4 },
+  { id: 'lld', label: 'LLD Problems', icon: '🎯', num: 5 },
+  { id: 'web', label: 'Pattern Web', icon: '🕸️', num: 6 },
+  { id: 'antipatterns', label: 'Anti-Patterns', icon: '⚠️', num: 7 },
+  { id: 'quiz', label: 'Quiz', icon: '📝', num: 8 },
+  { id: 'practice', label: 'Practice', icon: '🏋️', num: 9 },
+  { id: 'cheatsheet', label: 'Cheat Sheet', icon: '📋', num: 10 }
 ]
 
 function PatternPage() {
   const { phase, topicId } = useParams()
   const { progress, markTopicComplete, setLastVisited } = useProgress()
   const [activeSection, setActiveSection] = useState('intuition')
-  const sectionRefs = useRef({})
 
   const patternData = patternDataMap[topicId]
 
@@ -52,14 +51,10 @@ function PatternPage() {
     }
   }, [topicId, setLastVisited])
 
-  // Scroll to section when nav clicked
-  const scrollToSection = (sectionId) => {
-    setActiveSection(sectionId)
-    const el = sectionRefs.current[sectionId]
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
+  // Scroll to top when section changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [activeSection])
 
   if (!patternData) {
     return (
@@ -83,6 +78,60 @@ function PatternPage() {
   }
 
   const isCompleted = progress.completedTopics.includes(topicId)
+  const currentIdx = sections.findIndex(s => s.id === activeSection)
+  const prevSection = currentIdx > 0 ? sections[currentIdx - 1] : null
+  const nextSection = currentIdx < sections.length - 1 ? sections[currentIdx + 1] : null
+
+  // Render the active section content
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'intuition':
+        return <PatternHero hook={patternData.hook} />
+      case 'triggers':
+        return <BrainTriggers brainTriggers={patternData.brainTriggers} />
+      case 'code':
+        return <CodeWalkthrough codeImplementation={patternData.codeImplementation} />
+      case 'solid':
+        return <SolidConnections solidConnections={patternData.solidConnections} />
+      case 'lld':
+        return <LLDProblems lldProblems={patternData.lldProblems} />
+      case 'web':
+        return <PatternWeb patternWeb={patternData.patternWeb} />
+      case 'antipatterns':
+        return <AntiPatterns antiPatterns={patternData.antiPatterns} />
+      case 'quiz':
+        return <PatternQuiz quiz={patternData.quiz} />
+      case 'practice':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Practice Questions
+            </h2>
+            {patternData.practiceQuestions && patternData.practiceQuestions.length > 0 ? (
+              <div className="space-y-6">
+                {patternData.practiceQuestions.map((question) => (
+                  <QuestionCard key={question.id} question={question} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                No practice questions yet.
+              </div>
+            )}
+          </div>
+        )
+      case 'cheatsheet':
+        return (
+          <CheatSheet
+            cheatSheet={patternData.cheatSheet}
+            bestPractices={patternData.bestPractices}
+            commonMistakes={patternData.commonMistakes}
+          />
+        )
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="max-w-5xl mx-auto pt-4 pb-16">
@@ -130,17 +179,17 @@ function PatternPage() {
         </div>
       </div>
 
-      {/* Section Navigation */}
+      {/* Tab Navigation */}
       <div className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900 -mx-6 px-6 py-3 mb-8 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-thin">
           {sections.map((section) => (
             <button
               key={section.id}
-              onClick={() => scrollToSection(section.id)}
+              onClick={() => setActiveSection(section.id)}
               className={clsx(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all',
                 activeSection === section.id
-                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                  ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300'
               )}
             >
@@ -149,78 +198,65 @@ function PatternPage() {
             </button>
           ))}
         </div>
+
+        {/* Progress indicator */}
+        <div className="flex gap-0.5 mt-2">
+          {sections.map((section) => (
+            <div
+              key={section.id}
+              className={clsx(
+                'h-1 flex-1 rounded-full transition-colors',
+                sections.findIndex(s => s.id === section.id) <= currentIdx
+                  ? 'bg-primary-500'
+                  : 'bg-gray-200 dark:bg-gray-700'
+              )}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Content Sections */}
-      <div className="space-y-16">
-        {/* 1. The Hook / Intuition */}
-        <section ref={el => sectionRefs.current['intuition'] = el} className="scroll-mt-20">
-          <PatternHero hook={patternData.hook} />
-        </section>
+      {/* Active Section Content */}
+      <div className="animate-fade-in" key={activeSection}>
+        {renderSection()}
+      </div>
 
-        {/* 2. Brain Triggers */}
-        <section ref={el => sectionRefs.current['triggers'] = el} className="scroll-mt-20">
-          <BrainTriggers brainTriggers={patternData.brainTriggers} />
-        </section>
+      {/* Prev / Next Navigation */}
+      <div className="flex items-center justify-between mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
+        {prevSection ? (
+          <button
+            onClick={() => setActiveSection(prevSection.id)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">{prevSection.icon} {prevSection.label}</span>
+            <span className="sm:hidden">{prevSection.icon} Prev</span>
+          </button>
+        ) : (
+          <div />
+        )}
 
-        {/* 3. Code Build */}
-        <section ref={el => sectionRefs.current['code'] = el} className="scroll-mt-20">
-          <CodeWalkthrough codeImplementation={patternData.codeImplementation} />
-        </section>
+        <span className="text-xs text-gray-400 dark:text-gray-500">
+          {currentIdx + 1} / {sections.length}
+        </span>
 
-        {/* 4. SOLID Connections */}
-        <section ref={el => sectionRefs.current['solid'] = el} className="scroll-mt-20">
-          <SolidConnections solidConnections={patternData.solidConnections} />
-        </section>
-
-        {/* 5. LLD Interview Problems */}
-        <section ref={el => sectionRefs.current['lld'] = el} className="scroll-mt-20">
-          <LLDProblems lldProblems={patternData.lldProblems} />
-        </section>
-
-        {/* 6. Pattern Web */}
-        <section ref={el => sectionRefs.current['web'] = el} className="scroll-mt-20">
-          <PatternWeb patternWeb={patternData.patternWeb} />
-        </section>
-
-        {/* 7. Anti-Patterns */}
-        <section ref={el => sectionRefs.current['antipatterns'] = el} className="scroll-mt-20">
-          <AntiPatterns antiPatterns={patternData.antiPatterns} />
-        </section>
-
-        {/* 8. Quiz */}
-        <section ref={el => sectionRefs.current['quiz'] = el} className="scroll-mt-20">
-          <PatternQuiz quiz={patternData.quiz} />
-        </section>
-
-        {/* 9. Practice Questions */}
-        <section ref={el => sectionRefs.current['practice'] = el} className="scroll-mt-20">
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Practice Questions
-            </h2>
-            {patternData.practiceQuestions && patternData.practiceQuestions.length > 0 ? (
-              <div className="space-y-6">
-                {patternData.practiceQuestions.map((question) => (
-                  <QuestionCard key={question.id} question={question} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                No practice questions yet.
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* 10. Cheat Sheet */}
-        <section ref={el => sectionRefs.current['cheatsheet'] = el} className="scroll-mt-20">
-          <CheatSheet
-            cheatSheet={patternData.cheatSheet}
-            bestPractices={patternData.bestPractices}
-            commonMistakes={patternData.commonMistakes}
-          />
-        </section>
+        {nextSection ? (
+          <button
+            onClick={() => setActiveSection(nextSection.id)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+          >
+            <span className="hidden sm:inline">{nextSection.label} {nextSection.icon}</span>
+            <span className="sm:hidden">Next {nextSection.icon}</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            onClick={() => markTopicComplete(topicId)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Complete Pattern
+          </button>
+        )}
       </div>
     </div>
   )
