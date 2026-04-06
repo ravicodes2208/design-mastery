@@ -1,0 +1,38 @@
+{
+  "crux": "Don't create objects yourself -- ask a Factory to create them for you.",
+  "oneLiner": "Move object creation logic into a dedicated place -- a separate Factory class (Simple Factory), a Map of creators (Registry), or an abstract method in a service that subclasses override (Factory Method) -- so adding new types doesn't ripple through your codebase.",
+  "problemStatement": "Imagine a notification system where OrderService, PaymentService, ShippingService, and ReturnService all create notifications. Each service has if-else chains: if email, new EmailNotification(); if SMS, new SMSNotification(); if push, new PushNotification(). Now the PM says 'add WhatsApp.' You touch 10+ files. Constructor of SMSNotification changes? 10+ files again. Testing? Every service is tightly coupled to every notification type.",
+  "analogy": {
+    "title": "The Pizza Restaurant",
+    "description": "You walk into a pizza restaurant and say 'Margherita.' You don't go into the kitchen, grab dough, spread sauce, sprinkle cheese, and fire the oven. The kitchen (Factory) takes your order (input) and hands you back a ready pizza (product). Tomorrow they add Truffle Pizza to the menu -- you don't change how you order. The kitchen handles it.",
+    "mapping": {
+      "You (customer)": "Client code (OrderService)",
+      "Menu item name": "Type enum/string input",
+      "Kitchen": "Factory",
+      "Pizza": "Product (Notification)",
+      "New menu item": "New concrete class (WhatsAppNotification)"
+    }
+  },
+  "participants": [
+    {
+      "name": "Product Interface",
+      "role": "The common contract all created objects share",
+      "example": "Notification"
+    },
+    {
+      "name": "Concrete Products",
+      "role": "The specific implementations that get created",
+      "example": "EmailNotification, SMSNotification, PushNotification"
+    },
+    {
+      "name": "Factory (3 flavors)",
+      "role": "Simple Factory: a separate class with if-else/switch (NotificationFactory). Factory Method: an abstract method inside a service class that subclasses override (NotificationService with createNotification()). Registry: a Map of creators that eliminates if-else entirely.",
+      "example": "Simple: NotificationFactory.create(type) | Method: abstract NotificationService -> EmailNotificationService overrides createNotification() | Registry: Map<Type, Supplier>"
+    },
+    {
+      "name": "Client",
+      "role": "Code that asks for objects without knowing concrete types. In Simple Factory, calls factory.create(type). In Factory Method, holds the abstract service reference.",
+      "example": "OrderService calls factory.create() or holds NotificationService reference"
+    }
+  ]
+}

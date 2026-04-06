@@ -1,0 +1,10 @@
+{
+  "id": "factory",
+  "title": "Factory Pattern",
+  "category": "creational",
+  "phase": "design-patterns",
+  "order": 2,
+  "icon": "🏭",
+  "description": "Centralize object creation so clients don't know which concrete class to instantiate. Three flavors: Simple Factory (separate class with if-else), Registry (Map of creators, zero if-else), and Factory Method (abstract method in service, subclasses decide). 80% of the time Simple Factory wins.",
+  "estimatedTime": "2-3 hours"
+}

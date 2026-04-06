@@ -1,0 +1,163 @@
+[
+  {
+    "id": "dt1",
+    "question": "Products have different constructor parameters (EmailNotification needs SMTP host, SMS needs API key). How does a factory with a single create(type) method handle this?",
+    "answer": "Three approaches: (A) Products self-configure internally -- factory stays clean. (B) Factory takes a generic config object. (C) Use Factory Method so each subclass owns its private creation knowledge. Option A is most common in practice.",
+    "codeExample": "// Option A: Products self-configure (most common)\nclass EmailNotification implements Notification {\n    EmailNotification() {\n        this.config = SmtpConfig.load(); // I load my own config\n    }\n}\n\n// Option B: Factory Method -- each subclass owns its config\nclass EmailNotificationService extends NotificationService {\n    Notification createNotification() {\n        SmtpConfig config = loadSmtpConfig(); // my private knowledge\n        return new EmailNotification(config);\n    }\n}\n\n// Option C: Generic config map\nNotification n = factory.create(type, Map.of(\"host\", \"smtp.gmail.com\"));"
+  },
+  {
+    "id": "dt2",
+    "question": "A Registry/Map factory creates ALL objects at startup. What if some products are expensive to create?",
+    "answer": "Store Supplier<Notification> (lambdas/factories), not instances. The registry holds recipes, not dishes. Objects are created lazily only when requested. This is called Lazy Factory."
+  },
+  {
+    "id": "dt3",
+    "question": "Factory Method mixes creation logic with business logic in the same class. Isn't that violating SRP?",
+    "answer": "It's intentional when creation and business logic are coupled by design (e.g., UPI service needs UPI-specific creation AND UPI-specific retry logic). If they're unrelated (OrderService creating Notifications), use a separate Factory class."
+  },
+  {
+    "id": "dt4",
+    "question": "If Factory Method subclasses decide creation, isn't the creation logic scattered across classes?",
+    "answer": "Yes, and that's justified ONLY when each piece of scattered logic is private knowledge belonging to that class (SMTP config in EmailService, VPA validation in UPIService). If creation is simple new X(), centralize in Simple Factory."
+  },
+  {
+    "id": "dt5",
+    "question": "We still need if-else somewhere to create the concrete creator/service in Factory Method. Isn't this still tight coupling?",
+    "answer": "Factory Method was designed for frameworks where each team directly instantiates their own creator -- no if-else needed. In standalone apps, yes, you need a Simple Factory on top to select the right service. Factory Method alone doesn't solve client-side selection.",
+    "codeExample": "// Framework: each team instantiates their own creator\nPaymentService service = new UPIPaymentService(); // no if-else\n\n// Standalone app: Simple Factory on top to select\nPaymentService service = ServiceFactory.create(\"upi\");\n\n// Spring DI: framework handles everything\n@Autowired Map<String, PaymentService> services;\nPaymentService service = services.get(\"upi\"); // runtime, zero 'new'"
+  },
+  {
+    "id": "dt6",
+    "question": "Factory returns an interface type. But I need type-specific methods like setCC() on EmailNotification. What do I do?",
+    "answer": "Configure DURING creation, not after. Push type-specific configuration into the factory or use Builder before factory. If you need to cast after creation, either your interface is too thin or you shouldn't be using a factory for that use case."
+  },
+  {
+    "id": "dt7",
+    "question": "Is Factory pattern relevant in microservices where you can't 'new' a remote service?",
+    "answer": "MORE relevant. The factory creates HTTP clients, Kafka producers, or gRPC stubs -- proxies to remote services. Client code calls sender.send() without knowing if it's in-memory or remote. Same interface, same factory, different product internals."
+  },
+  {
+    "id": "dt8",
+    "question": "I don't see abstract factory methods in my Spring codebase. Where did Factory go?",
+    "answer": "Spring IS the factory. @Autowired replaces manual factory calls. @Bean methods in @Configuration classes ARE factory methods managed by the framework. The concept lives on; the manual pattern doesn't.",
+    "codeExample": "@Configuration\nclass NotificationConfig {\n    @Bean(\"email\") // THIS is a factory method!\n    Notification email() {\n        return new EmailNotification(loadSmtpConfig());\n    }\n\n    @Bean(\"sms\")\n    Notification sms() {\n        return new SMSNotification(loadApiKey());\n    }\n}\n\n// Client: @Autowired IS the factory call\n@Autowired Map<String, Notification> notifications;\nnotifications.get(\"email\").send(msg); // Spring did the factory work"
+  },
+  {
+    "id": "dt9",
+    "question": "Why not just use constructor overloading instead of a Factory?",
+    "answer": "Constructors can only return their own type (can't return subtypes), can't have meaningful names (createForMarketing vs createForOTP), and cramming all type logic into one class creates a god-class. Factory can return any subtype through the interface."
+  },
+  {
+    "id": "dt10",
+    "question": "Static factory methods in Java (List.of, Optional.empty, Integer.valueOf) -- are they the same as Factory Pattern?",
+    "answer": "No. Joshua Bloch's Static Factory Method is a constructor alternative for the SAME class (naming, caching, readability). GoF Factory Pattern chooses between DIFFERENT implementations at runtime. They share the name 'factory' but solve different problems."
+  },
+  {
+    "id": "dt11",
+    "question": "Static factory makes testing harder because you can't mock static methods. Did Factory pattern just make code HARDER to test?",
+    "answer": "Yes, if the factory is static. Solution: make the factory an injectable interface. Client gets NotificationFactory injected, not a static call. In tests, mock the factory. Never use static factories in code that needs testing."
+  },
+  {
+    "id": "dt12",
+    "question": "Can Factory return Singletons? Is that safe?",
+    "answer": "Safe ONLY for stateless products (no mutable fields). For stateful products, shared mutable state causes race conditions. Rule: stateless = cache and reuse. Stateful = new instance every time."
+  },
+  {
+    "id": "dt13",
+    "question": "Products have a deep inheritance tree (Email -> SecureEmail -> MarketingEmail). Factory explodes with types. How do you handle this?",
+    "answer": "Use hierarchical factories (channel factory picks email/sms, then email factory picks secure/marketing) or a composite key registry with Map<(Channel, Purpose), Supplier>. Never one giant flat factory."
+  },
+  {
+    "id": "dt14",
+    "question": "Where exactly does creation END and configuration BEGIN? Whose job is configuration?",
+    "answer": "Factory creates (WHICH type). Builder configures (HOW to set up). Client gets back a fully ready object. If the client configures after factory returns, something's wrong. Factory + Builder combine naturally."
+  },
+  {
+    "id": "dt15",
+    "question": "When should I say NO to Factory?",
+    "answer": "When: only 1 type, type known at compile time, only 2 stable types, creation is trivial, or you're adding it 'for the future' (YAGNI). The YAGNI test: 3+ types? Runtime choice? Complex/duplicated creation? If NO to all, skip Factory."
+  },
+  {
+    "id": "dt16",
+    "question": "I'm applying Strategy pattern and moving if-else into a factory... but that IS Strategy, right? How are we going towards Factory?",
+    "answer": "Strategy solves HOW to send (swap algorithms). Factory solves WHICH object to create. Strategy gave us the interface + concrete classes. But WHO decides which concrete class to instantiate? That if-else selection is Factory's job. Strategy = behavior swapping. Factory = creation selection. They solve different axes of the same problem.",
+    "codeExample": "// Strategy: WHICH algorithm to run (behavior swapping)\nnotificationService.setStrategy(new EmailStrategy());\nnotificationService.send(msg); // strategy decides HOW to send\n\n// Factory: WHICH object to create (creation selection)\nNotification n = NotificationFactory.create(\"EMAIL\");\nn.send(msg); // factory decided WHICH object to create\n\n// They combine: Factory CREATES the Strategy object\nStrategy s = StrategyFactory.create(userChoice);\ncontext.setStrategy(s);"
+  },
+  {
+    "id": "dt17",
+    "question": "In Factory Method, where is the factory CLASS? I see abstract service with a method... where did the factory go?",
+    "answer": "There IS no separate factory class in Factory Method. The 'factory' is a METHOD (createNotification) inside the abstract service class. That's why it's called Factory METHOD, not Factory Class. Each subclass overrides that one method to decide what to create. The factory lives as a method, not as a standalone class.",
+    "codeExample": "// Simple Factory: factory IS a separate class\nclass NotificationFactory {\n    static Notification create(Type t) {\n        return switch(t) { EMAIL -> new Email(); SMS -> new SMS(); };\n    }\n}\n\n// Factory Method: factory IS a method INSIDE the service\nabstract class NotificationService {\n    abstract Notification createNotification(); // <-- THIS is the \"factory\"\n    void send(String msg) {\n        Notification n = createNotification(); // calls the factory method\n        n.send(msg);\n        log(msg);  // shared orchestration -- the reason this class exists\n    }\n}"
+  },
+  {
+    "id": "dt18",
+    "question": "GoF UML says 'Creator' but real code should be a Service. Why the naming mismatch?",
+    "answer": "GoF used 'Creator' as a generic placeholder name for the pattern explanation. But the UML itself says: 'product creation is NOT the primary responsibility of the creator. Usually, the creator class already has some core business logic related to products.' So even GoF admits it does business logic. In real code it's always NotificationService, PaymentProcessor, ReportGenerator -- named by what it DOES, not by the pattern it implements."
+  },
+  {
+    "id": "dt19",
+    "question": "If send(), log(), retry(), audit() are common, why not put them all in the Notification interface instead of a separate service?",
+    "answer": "Because log, retry, audit are IDENTICAL across all senders -- they'd be duplicated in every implementation. EmailSender copies retry logic, SMSSender copies the same retry logic. The service holds common orchestration ONCE. Notification only owns what varies per channel: HOW to deliver. That's SRP -- service orchestrates, notification delivers."
+  },
+  {
+    "id": "dt20",
+    "question": "If audit() varies per service, do we pull it out into an interface and use another factory method?",
+    "answer": "Yes. Every time something varies per subclass, it becomes an abstract hook. You'd add abstract Auditor createAuditor() alongside createNotification(). The service calls both hooks. This is Factory Method + Template Method working together -- the overall flow stays in the parent, each varying step is a hook subclasses fill in."
+  },
+  {
+    "id": "dt21",
+    "question": "India has credit card, debit card, Visa, AND UPI. Why tight-couple IndiaPaymentFactory with just UPI?",
+    "answer": "Exactly! This is why the Abstract Factory must be designed carefully. IndiaPaymentFactory returning ONLY UPI is WRONG -- it forces false coupling. The correct family is COMPLIANCE: tax rules + receipt format + currency. These MUST be consistent per country (legal requirement). Payment method (UPI, Credit Card, Net Banking) is a SEPARATE axis -- India supports ALL of them. Use Abstract Factory for the compliance family, Simple Factory for payment method. Two axes, two patterns.",
+    "codeExample": "// WRONG: forces India = UPI (false coupling)\nclass IndiaPaymentFactory implements PaymentFactory {\n    PaymentProcessor createProcessor() { return new UPIProcessor(); } // locked!\n}\n\n// RIGHT: family is compliance (tax + receipt + currency)\nclass IndiaComplianceFactory implements RegionalComplianceFactory {\n    TaxCalculator createTaxCalc()     { return new IndiaTaxCalc(); }   // GST\n    ReceiptGenerator createReceipt()  { return new IndiaReceipt(); }   // GST Invoice\n    CurrencyFormatter createCurrency(){ return new IndiaFormatter(); }  // INR\n}\n\n// Payment method is INDEPENDENT -- Simple Factory\nPaymentProcessor p = PaymentProcessorFactory.create(\"UPI\");          // OR\nPaymentProcessor p = PaymentProcessorFactory.create(\"CREDIT_CARD\");  // India supports both!"
+  },
+  {
+    "id": "dt22",
+    "question": "new moved from EmailSender to EmailNotificationCreator. Still new, still tight coupling. How does this make ANY difference?",
+    "answer": "In isolation, it makes no difference. Factory Method earns its place ONLY when the creator has shared business logic around the product (log, retry, audit, validate). That orchestration is written once in the abstract class. Without Factory Method, every client duplicates the orchestration. The value isn't removing 'new' -- it's protecting shared logic while letting subclasses decide the product.",
+    "codeExample": "// WITHOUT Factory Method: coupling + DUPLICATED orchestration\nclass OrderService {\n    void send(String msg) {\n        EmailNotification n = new EmailNotification(loadSmtp()); // coupled\n        n.send(msg);\n        log(msg);   // duplicated in PaymentService, ShippingService...\n        audit();     // duplicated everywhere\n    }\n}\n\n// WITH Factory Method: orchestration written ONCE\nabstract class NotificationService {\n    abstract Notification createNotification(); // hook\n    final void send(String msg) {        // ONCE\n        Notification n = createNotification();\n        n.send(msg);\n        log(msg);    // NOT duplicated\n        audit();     // NOT duplicated\n    }\n}\n// Value isn't removing 'new' -- it's protecting shared logic."
+  },
+  {
+    "id": "dt23",
+    "question": "Client is still hardcoded: new UpiNotificationService(). How can that be dynamic?",
+    "answer": "Factory Method alone doesn't solve client-side selection. It's an INTERNAL pattern. For dynamic client-side selection you ALWAYS need: Simple Factory on top (ServiceFactory.create('upi')), or Registry/Map, or Spring DI (@Autowired Map<String, Service>). Two levels: Simple Factory picks the SERVICE, Factory Method inside the service picks the PRODUCT."
+  },
+  {
+    "id": "dt24",
+    "question": "How does Spring @Autowired handle runtime user selection? It injects at startup, not at click time.",
+    "answer": "@Autowired alone can't. Use @Autowired Map<String, PaymentService> -- Spring populates the map with ALL beans at startup. At runtime when user clicks UPI, you do map.get('upi'). Spring registers beans, map lookup selects at runtime. The map IS a factory -- just framework-managed. No 'new' anywhere in client code.",
+    "codeExample": "@Service(\"upi\")\nclass UPIPaymentService implements PaymentService { ... }\n\n@Service(\"creditcard\")\nclass CreditCardPaymentService implements PaymentService { ... }\n\n// Spring auto-populates Map with ALL PaymentService beans\n@Autowired Map<String, PaymentService> services;\n// Map = {\"upi\": UPIPaymentService, \"creditcard\": CreditCardPaymentService}\n\n@PostMapping(\"/pay\")\nvoid pay(@RequestBody PayRequest req) {\n    // User clicks \"UPI\" -> req.getMethod() = \"upi\"\n    PaymentService svc = services.get(req.getMethod()); // runtime!\n    svc.process(req.getAmount()); // no 'new' anywhere\n}"
+  },
+  {
+    "id": "dt25",
+    "question": "What about C++? Is Factory still relevant there?",
+    "answer": "C++ has no mainstream DI framework. So Factory patterns are very much alive and essential. Key differences: unique_ptr for ownership transfer, virtual destructor is mandatory, std::function for registry lambdas, templates for compile-time factories (zero runtime overhead -- Java can't do this). In C++ you write Factory yourself. That's why understanding it deeply matters even more."
+  },
+  {
+    "id": "dt26",
+    "question": "Simple vs Factory Method vs Abstract Factory -- what EXACTLY is the difference?",
+    "answer": "Simple Factory: ONE class with if-else, creates ONE product type. Use for 80% of cases. Factory Method: Abstract class with hook method, SUBCLASSES decide. Use when creation involves private knowledge per type. Abstract Factory: Interface with MULTIPLE create methods, creates FAMILIES of related products. Use when products must vary together (by country, theme, OS). Each is a separate pattern solving a different problem.",
+    "codeExample": "// Simple Factory: ONE class, switch/if-else, ONE product type\nNotification n = NotificationFactory.create(type); // 80% of cases\n\n// Factory Method: abstract hook in service, subclass creates\nabstract class NotificationService {\n    abstract Notification createNotification(); // hook\n    void send(String msg) { /* shared workflow */ }\n}\nclass EmailService extends NotificationService { /* fills hook */ }\n\n// Abstract Factory: interface with MULTIPLE create methods, FAMILIES\ninterface PaymentFactory {\n    PaymentProcessor createProcessor();  // product 1\n    Receipt createReceipt();              // product 2\n    PaymentValidator createValidator();   // product 3\n}\n// IndiaPaymentFactory returns consistent India family"
+  },
+  {
+    "id": "dt27",
+    "question": "Factory as a separate CLASS vs factory as a METHOD inside the service -- which one and when?",
+    "answer": "Separate class when: multiple classes need to create the same object type (DRY), or creation and business logic are unrelated (OrderService creating Notifications). Method inside service when: only THIS class creates it (no duplication), or creation and business logic are coupled by design (UPI service needs UPI-specific creation AND UPI-specific retry). Test: 'If creation logic changes, does business logic ALSO change?' YES = same class. NO = separate.",
+    "codeExample": "// SEPARATE CLASS: multiple services need creation (DRY)\nclass NotificationFactory { // used by Order, Payment, Shipping...\n    static Notification create(Type t) { ... }\n}\n// Test: \"Does another class also create this?\" YES -> separate class\n\n// METHOD IN SERVICE: only THIS class creates AND uses\nabstract class PaymentService {\n    abstract PaymentProcessor createProcessor(); // only here\n    void process(double amt) {\n        PaymentProcessor p = createProcessor();\n        p.charge(amt);\n        log(); audit(); // shared logic justifies the class\n    }\n}\n// Test: \"If creation changes, does business logic ALSO change?\" YES -> same class"
+  },
+  {
+    "id": "dt28",
+    "question": "Is Factory the same as Singleton? Both use static methods and single access points.",
+    "answer": "No. Singleton controls instance COUNT (exactly one). Factory controls instance TYPE (which subclass). Singleton.getInstance() returns THE SAME object every time. Factory.create(type) returns DIFFERENT objects. They CAN combine: factory itself can be singleton, or factory can return cached singletons for stateless products. But they solve independent problems."
+  },
+  {
+    "id": "dt29",
+    "question": "A factory caches and returns the same EmailNotification every time. Is this a real factory?",
+    "answer": "No. If it's not creating, don't call it a factory -- it's a registry/cache. And if the cached object is mutable (has setCC(), setTemplate()), it's dangerous: Thread 1 sets CC, Thread 2 sends -- OTP goes to the boss. Rule: stateless products = safe to cache. Stateful products = new instance every time. And name it honestly: NotificationRegistry.get(), not NotificationFactory.create()."
+  },
+  {
+    "id": "dt30",
+    "question": "Factory pattern doesn't actually eliminate coupling. What's even the point?",
+    "answer": "Factory MANAGES coupling, not eliminates it. It takes coupling scattered across 10 files and concentrates it into 1 file. The progression: scattered (10 files touch 'new') -> Simple Factory (1 class) -> Registry (1 map) -> DI framework (config file) -> External YAML (zero Java code). Each step pushes 'new' further from business logic. Zero coupling is impossible in OOP -- someone must call 'new'. The goal is coupling in ONE place.",
+    "codeExample": "// Level 0: Scattered -- 'new' in 10 files\nEmailNotification n = new EmailNotification(); // in every service\n\n// Level 1: Simple Factory -- 'new' in 1 file\nNotification n = NotificationFactory.create(type);\n\n// Level 2: Registry -- 'new' in a Map\nNotification n = registry.create(type); // Supplier calls new\n\n// Level 3: DI Framework -- 'new' in config class\n@Autowired Notification notification; // framework calls new\n\n// Level 4: External config -- 'new' driven by YAML\n// application.yml\n// notification.type: email  --> zero Java 'new' in business code"
+  }
+]

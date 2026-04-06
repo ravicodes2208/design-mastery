@@ -1,34 +1,25 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, lazy, Suspense } from 'react'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { Clock, CheckCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useProgress } from '../context/ProgressContext'
+import { loadPattern } from '../data/patterns/loader'
 import clsx from 'clsx'
 
-// Pattern sub-components
-import PatternHero from '../components/pattern/PatternHero'
-import BrainTriggers from '../components/pattern/BrainTriggers'
-import CodeWalkthrough from '../components/pattern/CodeWalkthrough'
-import SolidConnections from '../components/pattern/SolidConnections'
-import LLDProblems from '../components/pattern/LLDProblems'
-import PatternWeb from '../components/pattern/PatternWeb'
-import AntiPatterns from '../components/pattern/AntiPatterns'
-import PatternQuiz from '../components/pattern/PatternQuiz'
-import CheatSheet from '../components/pattern/CheatSheet'
-import PatternExplanation from '../components/pattern/PatternExplanation'
-import QuestionCard from '../components/practice/QuestionCard'
-import CodeBlock from '../components/common/CodeBlock'
-
-// Import pattern data
-import strategyData from '../data/topics/design-patterns/strategy.json'
-import factoryData from '../data/topics/design-patterns/factory.json'
-
-// Pattern data registry
-const patternDataMap = {
-  'strategy': strategyData,
-  'factory': factoryData
+// Lazy-loaded section components (code-split per tab)
+const sectionComponents = {
+  intuition: lazy(() => import('../components/pattern/PatternHero')),
+  triggers: lazy(() => import('../components/pattern/BrainTriggers')),
+  explanation: lazy(() => import('../components/pattern/PatternExplanation')),
+  code: lazy(() => import('../components/pattern/CodeWalkthrough')),
+  solid: lazy(() => import('../components/pattern/SolidConnections')),
+  lld: lazy(() => import('../components/pattern/LLDProblems')),
+  web: lazy(() => import('../components/pattern/PatternWeb')),
+  antipatterns: lazy(() => import('../components/pattern/AntiPatterns')),
+  quiz: lazy(() => import('../components/pattern/PatternQuiz')),
+  cheatsheet: lazy(() => import('../components/pattern/CheatSheet')),
 }
 
-// Base section navigation config
+// Section definitions
 const baseSections = [
   { id: 'intuition', label: 'Intuition', icon: '🎯' },
   { id: 'triggers', label: 'Brain Triggers', icon: '🧠' },
@@ -43,6 +34,32 @@ const baseSections = [
   { id: 'practice', label: 'Practice', icon: '🏋️' },
   { id: 'cheatsheet', label: 'Cheat Sheet', icon: '📋' }
 ]
+
+// Props mapping: section ID -> props extractor from patternData
+const sectionPropsMap = {
+  intuition: (d) => ({ hook: d.hook }),
+  triggers: (d) => ({ brainTriggers: d.brainTriggers }),
+  explanation: (d) => ({ explanation: d.explanation }),
+  code: (d) => ({
+    codeImplementation: d.codeImplementation,
+    codeFactoryMethod: d.codeFactoryMethod,
+    codeAbstractFactory: d.codeAbstractFactory,
+  }),
+  solid: (d) => ({ solidConnections: d.solidConnections }),
+  lld: (d) => ({ lldProblems: d.lldProblems }),
+  web: (d) => ({ patternWeb: d.patternWeb }),
+  antipatterns: (d) => ({ antiPatterns: d.antiPatterns }),
+  quiz: (d) => ({ quiz: d.quiz }),
+  cheatsheet: (d) => ({
+    cheatSheet: d.cheatSheet,
+    bestPractices: d.bestPractices,
+    commonMistakes: d.commonMistakes,
+  }),
+}
+
+// Inline components for sections without their own file
+import CodeBlock from '../components/common/CodeBlock'
+import QuestionCard from '../components/practice/QuestionCard'
 
 function DeepThoughtCard({ question }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -77,12 +94,56 @@ function DeepThoughtCard({ question }) {
   )
 }
 
+// Loading skeleton for tab content
+function SectionSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+      <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+    </div>
+  )
+}
+
 function PatternPage() {
   const { phase, topicId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { progress, markTopicComplete, setLastVisited } = useProgress()
-  const [activeSection, setActiveSection] = useState('intuition')
+  const [patternData, setPatternData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const patternData = patternDataMap[topicId]
+  // Tab state from URL search params (e.g. ?tab=explanation)
+  const activeSection = searchParams.get('tab') || 'intuition'
+  const setActiveSection = (sectionId) => {
+    setSearchParams({ tab: sectionId }, { replace: true })
+  }
+
+  // Dynamic pattern loading
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+
+    loadPattern(topicId)
+      .then((data) => {
+        if (!cancelled) {
+          setPatternData(data)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Failed to load pattern:', err)
+          setError(err.message)
+          setLoading(false)
+        }
+      })
+
+    return () => { cancelled = true }
+  }, [topicId])
 
   useEffect(() => {
     if (topicId) {
@@ -95,15 +156,25 @@ function PatternPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [activeSection])
 
-  if (!patternData) {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto pt-4 pb-16">
+        <SectionSkeleton />
+      </div>
+    )
+  }
+
+  // Error / not found state
+  if (error || !patternData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
         <div className="text-6xl mb-4">🚧</div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Coming Soon!
+          {error ? 'Failed to Load' : 'Coming Soon!'}
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
-          This pattern is under construction. Check back soon!
+          {error || 'This pattern is under construction. Check back soon!'}
         </p>
         <Link
           to="/"
@@ -116,7 +187,7 @@ function PatternPage() {
     )
   }
 
-  // Filter sections based on available data (e.g., hide Deep Thoughts if no questions exist)
+  // Filter sections based on available data
   const sections = baseSections.filter(s => {
     if (!s.requiresData) return true
     const d = patternData[s.requiresData]
@@ -129,31 +200,24 @@ function PatternPage() {
   const prevSection = currentIdx > 0 ? sections[currentIdx - 1] : null
   const nextSection = currentIdx < sections.length - 1 ? sections[currentIdx + 1] : null
 
-  // Render the active section content
+  // Render the active section using component registry
   const renderSection = () => {
+    // Sections with dedicated lazy components + props mapping
+    const LazyComponent = sectionComponents[activeSection]
+    const propsExtractor = sectionPropsMap[activeSection]
+
+    if (LazyComponent && propsExtractor) {
+      const props = propsExtractor(patternData)
+      return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <LazyComponent {...props} />
+        </Suspense>
+      )
+    }
+
+    // Inline sections (deep thoughts, practice) — kept inline because
+    // they're thin wrappers, not worth a separate lazy chunk
     switch (activeSection) {
-      case 'intuition':
-        return <PatternHero hook={patternData.hook} />
-      case 'triggers':
-        return <BrainTriggers brainTriggers={patternData.brainTriggers} />
-      case 'explanation':
-        return <PatternExplanation explanation={patternData.explanation} />
-      case 'code':
-        return (
-          <CodeWalkthrough
-            codeImplementation={patternData.codeImplementation}
-            codeFactoryMethod={patternData.codeFactoryMethod}
-            codeAbstractFactory={patternData.codeAbstractFactory}
-          />
-        )
-      case 'solid':
-        return <SolidConnections solidConnections={patternData.solidConnections} />
-      case 'lld':
-        return <LLDProblems lldProblems={patternData.lldProblems} />
-      case 'web':
-        return <PatternWeb patternWeb={patternData.patternWeb} />
-      case 'antipatterns':
-        return <AntiPatterns antiPatterns={patternData.antiPatterns} />
       case 'deepthoughts':
         return (
           <div className="space-y-6">
@@ -176,8 +240,6 @@ function PatternPage() {
             )}
           </div>
         )
-      case 'quiz':
-        return <PatternQuiz quiz={patternData.quiz} />
       case 'practice':
         return (
           <div className="space-y-6">
@@ -196,14 +258,6 @@ function PatternPage() {
               </div>
             )}
           </div>
-        )
-      case 'cheatsheet':
-        return (
-          <CheatSheet
-            cheatSheet={patternData.cheatSheet}
-            bestPractices={patternData.bestPractices}
-            commonMistakes={patternData.commonMistakes}
-          />
         )
       default:
         return null

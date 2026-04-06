@@ -1,0 +1,143 @@
+[
+  {
+    "id": 1,
+    "problem": "Parking Lot System",
+    "where": "Vehicle creation at entry gate based on sensor data",
+    "context": "EntryGate",
+    "strategyInterface": "Vehicle",
+    "concreteStrategies": [
+      "Car",
+      "Truck",
+      "Motorcycle",
+      "Bus"
+    ],
+    "why": "Sensor gives a type string. Gate doesn't care about vehicle internals -- just needs a Vehicle to find the right spot and calculate rate."
+  },
+  {
+    "id": 2,
+    "problem": "Notification System",
+    "where": "Channel creation based on user preference",
+    "context": "NotificationService",
+    "strategyInterface": "Notification",
+    "concreteStrategies": [
+      "EmailNotification",
+      "SMSNotification",
+      "PushNotification",
+      "WhatsAppNotification"
+    ],
+    "why": "Multiple services send notifications. Factory centralizes creation. Add Telegram? Change factory only."
+  },
+  {
+    "id": 3,
+    "problem": "Payment Gateway",
+    "where": "Processor creation based on payment method selected by user",
+    "context": "CheckoutService",
+    "strategyInterface": "PaymentProcessor",
+    "concreteStrategies": [
+      "CreditCardProcessor",
+      "UPIProcessor",
+      "PayPalProcessor",
+      "NetBankingProcessor"
+    ],
+    "why": "Each processor has different validation and charging logic. Factory picks the right one. Use Factory Method when creation involves private config (API keys, vault credentials)."
+  },
+  {
+    "id": 4,
+    "problem": "Document Editor",
+    "where": "Document creation when user clicks 'New' and selects file type",
+    "context": "EditorApp",
+    "strategyInterface": "Document",
+    "concreteStrategies": [
+      "WordDocument",
+      "Spreadsheet",
+      "Presentation",
+      "PDF"
+    ],
+    "why": "User selects document type at runtime. Factory returns the right document. Adding a new format doesn't change the editor."
+  },
+  {
+    "id": 5,
+    "problem": "Ride-Sharing App (Uber)",
+    "where": "Ride object creation when user selects ride type",
+    "context": "BookingService",
+    "strategyInterface": "Ride",
+    "concreteStrategies": [
+      "UberX",
+      "UberPool",
+      "UberXL",
+      "UberBlack"
+    ],
+    "why": "Different ride types have different capacity, pricing, and matching rules. Factory creates the right Ride object from user selection."
+  },
+  {
+    "id": 6,
+    "problem": "Logging Framework",
+    "where": "Logger creation based on environment configuration",
+    "context": "Application",
+    "strategyInterface": "Logger",
+    "concreteStrategies": [
+      "ConsoleLogger",
+      "FileLogger",
+      "CloudLogger",
+      "DatabaseLogger"
+    ],
+    "why": "Dev uses ConsoleLogger, production uses CloudLogger. Factory reads config and creates the right logger. Switch environments without code changes."
+  },
+  {
+    "id": 7,
+    "problem": "Vending Machine",
+    "where": "Item dispensing based on selection button/code",
+    "context": "VendingMachine",
+    "strategyInterface": "Item",
+    "concreteStrategies": [
+      "Coke",
+      "Pepsi",
+      "Chips",
+      "Candy",
+      "Water"
+    ],
+    "why": "User presses a button, machine creates the right item. Adding new items means adding a class and registering in the factory."
+  },
+  {
+    "id": 8,
+    "problem": "Snake & Ladder",
+    "where": "Special cell creation while building the game board",
+    "context": "BoardBuilder",
+    "strategyInterface": "Cell",
+    "concreteStrategies": [
+      "NormalCell",
+      "SnakeCell",
+      "LadderCell",
+      "PowerUpCell"
+    ],
+    "why": "Board config specifies cell types. Factory creates the right cell object for each position. Adding PowerUpCell doesn't change board setup logic."
+  },
+  {
+    "id": 9,
+    "problem": "E-Commerce / Shopping Cart",
+    "where": "Discount creation based on customer tier or promotion code",
+    "context": "CartService",
+    "strategyInterface": "Discount",
+    "concreteStrategies": [
+      "FlatDiscount",
+      "PercentageDiscount",
+      "BuyOneGetOne",
+      "SeasonalDiscount"
+    ],
+    "why": "Promotions change weekly. Factory creates the right discount from promo code or customer tier. Cart doesn't know discount internals."
+  },
+  {
+    "id": 10,
+    "problem": "Food Delivery (Swiggy/Zomato)",
+    "where": "Restaurant listing strategy based on user region and preferences",
+    "context": "SearchService",
+    "strategyInterface": "RestaurantRanker",
+    "concreteStrategies": [
+      "RatingBasedRanker",
+      "DistanceBasedRanker",
+      "PopularityRanker",
+      "PersonalizedRanker"
+    ],
+    "why": "Ranking algorithm varies by region and A/B test group. Factory creates the right ranker from config. Adding a new ranking algorithm is one class + one factory line."
+  }
+]

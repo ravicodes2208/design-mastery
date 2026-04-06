@@ -1,0 +1,53 @@
+{
+  "description": "When you hear these keywords in a problem statement, your brain should instantly light up with 'Factory pattern!'",
+  "triggers": [
+    {
+      "keyword": "based on type",
+      "example": "Create a vehicle based on type -- car, bike, truck",
+      "isStrategy": true
+    },
+    {
+      "keyword": "depending on input/config",
+      "example": "Generate a report depending on format -- PDF, Excel, CSV",
+      "isStrategy": true
+    },
+    {
+      "keyword": "multiple types of",
+      "example": "The system has multiple types of payments",
+      "isStrategy": true
+    },
+    {
+      "keyword": "dynamically create",
+      "example": "Dynamically create the right handler at runtime",
+      "isStrategy": true
+    },
+    {
+      "keyword": "without knowing the exact class",
+      "example": "Client shouldn't know the exact class being instantiated",
+      "isStrategy": true
+    },
+    {
+      "keyword": "easy to add new types in the future",
+      "example": "Design it so adding a new notification channel is easy",
+      "isStrategy": true
+    }
+  ],
+  "notStrategy": [
+    {
+      "keyword": "swap behavior at runtime on same object",
+      "pattern": "Strategy",
+      "reason": "That's algorithm swapping on an existing object, not creation of new objects"
+    },
+    {
+      "keyword": "complex multi-step object construction",
+      "pattern": "Builder",
+      "reason": "Builder configures HOW to build. Factory decides WHICH type to build."
+    },
+    {
+      "keyword": "families of related objects that must stay consistent",
+      "pattern": "Abstract Factory",
+      "reason": "Abstract Factory creates families. Simple/Method Factory creates one product type."
+    }
+  ],
+  "litmusTest": "If the QUESTION is 'which class should I instantiate?' and the answer depends on runtime input, think Factory."
+}

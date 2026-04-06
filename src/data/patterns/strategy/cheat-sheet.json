@@ -1,0 +1,58 @@
+{
+  "cheatSheet": {
+    "whenToUse": [
+      "Multiple interchangeable algorithms for the same task",
+      "Behavior needs to be swappable at runtime",
+      "Giant if-else/switch deciding which behavior to execute",
+      "You want to add new behaviors without modifying existing code"
+    ],
+    "whenNotToUse": [
+      "Only one algorithm that won't change (YAGNI)",
+      "The behavior change is state-driven, not client-driven (use State)",
+      "The algorithms share 80%+ of their code (use Template Method)",
+      "You need to notify others about changes (use Observer)"
+    ],
+    "structure": {
+      "Context": "Holds Strategy interface reference, delegates calls",
+      "Strategy": "Interface/abstract class defining the contract",
+      "ConcreteStrategy": "Each algorithm in its own class",
+      "Client": "Creates and injects the chosen strategy into Context"
+    },
+    "sixWordSummary": "The Context stays. The Strategy swaps.",
+    "solidPrinciples": [
+      "OCP (primary)",
+      "DIP",
+      "LSP",
+      "SRP (bonus)"
+    ],
+    "codeSmellTrigger": "if-else / switch on type to decide behavior"
+  },
+  "bestPractices": [
+    "Keep the Strategy interface focused -- one method for one algorithm",
+    "Use a Factory to create strategies when selection logic is complex",
+    "Always provide a Null Object default strategy to avoid null crashes",
+    "Never use instanceof or type-checking in the Context",
+    "Apply YAGNI -- only use Strategy when behavior actually varies",
+    "Each concrete strategy should follow SRP -- do one thing well",
+    "Prefer composition (Strategy) over inheritance for interchangeable algorithms",
+    "The Context should be blissfully ignorant of which concrete strategy it holds"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Using instanceof in the Context to check which strategy is set",
+      "correct": "Move logic into the strategy itself -- the Context just delegates"
+    },
+    {
+      "mistake": "Putting validation, logging, and notifications inside the strategy",
+      "correct": "Strategy does ONE thing. Use Decorator for cross-cutting concerns"
+    },
+    {
+      "mistake": "Creating Strategy when there's only one algorithm that won't change",
+      "correct": "Ask YAGNI: will this actually vary? If not, just call the method directly"
+    },
+    {
+      "mistake": "Forgetting to set a strategy before calling the Context method",
+      "correct": "Initialize with a Null Object default: private Strategy s = new NoOpStrategy()"
+    }
+  ]
+}

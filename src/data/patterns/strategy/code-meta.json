@@ -1,0 +1,47 @@
+{
+  "flavors": {
+    "simple": {
+      "label": "Implementation",
+      "icon": "💻",
+      "steps": [
+        {
+          "step": 1,
+          "title": "Define the Strategy Interface",
+          "description": "Create the contract -- one method that every algorithm must implement. Keep it focused: one interface, one job."
+        },
+        {
+          "step": 2,
+          "title": "Create Concrete Strategies",
+          "description": "Each algorithm gets its own class. Each class implements the interface. Each class owns ONLY its logic and data."
+        },
+        {
+          "step": 3,
+          "title": "Build the Context",
+          "description": "The Context holds a reference to the Strategy interface (not concrete class). It delegates work to the strategy. It NEVER knows which concrete strategy it holds."
+        },
+        {
+          "step": 4,
+          "title": "Client Wires It Up",
+          "description": "The client creates the concrete strategy and injects it into the context. The client is the ONLY one who knows which strategy to use."
+        }
+      ],
+      "languages": {
+        "java": {
+          "file": "strategy.java",
+          "title": "Strategy Pattern - Payment System (Java)",
+          "explanation": "Java uses interfaces as the Strategy contract. Each concrete strategy implements the interface. The Context holds a reference to the interface type, enabling runtime swapping. The client injects the desired strategy."
+        },
+        "cpp": {
+          "file": "strategy.cpp",
+          "title": "Strategy Pattern - Payment System (C++)",
+          "explanation": "C++ uses abstract classes with pure virtual functions. Smart pointers (unique_ptr) handle memory via RAII. The 'override' keyword ensures compile-time safety."
+        },
+        "kotlin": {
+          "file": "strategy.kt",
+          "title": "Strategy Pattern - Payment System (Kotlin)",
+          "explanation": "Kotlin combines concise syntax with strong safety. Constructor properties eliminate boilerplate, override is mandatory, lateinit handles deferred initialization, and lambdas can serve as lightweight strategies for simple cases."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "principle": "OCP",
+    "fullName": "Open/Closed Principle",
+    "isPrimary": true,
+    "connection": "Add new strategies without modifying the Context. This is the CORE reason Strategy exists.",
+    "example": "Adding CryptoPayment required ZERO changes to PaymentProcessor. We only ADDED a new class.",
+    "icon": "🔓"
+  },
+  {
+    "principle": "DIP",
+    "fullName": "Dependency Inversion Principle",
+    "isPrimary": true,
+    "connection": "Context depends on the Strategy interface (abstraction), not concrete classes.",
+    "example": "PaymentProcessor holds PaymentStrategy (interface), not CreditCardPayment (concrete).",
+    "icon": "🔄"
+  },
+  {
+    "principle": "LSP",
+    "fullName": "Liskov Substitution Principle",
+    "isPrimary": true,
+    "connection": "Any concrete strategy is substitutable in the Context. Swap CreditCard for PayPal and Context works identically.",
+    "example": "processor.setStrategy(new CreditCardPayment(...)) and processor.setStrategy(new PayPalPayment(...)) -- Context doesn't care which.",
+    "icon": "🔀"
+  },
+  {
+    "principle": "SRP",
+    "fullName": "Single Responsibility Principle",
+    "isPrimary": false,
+    "connection": "Each strategy class has exactly one job -- its own algorithm. CreditCardPayment doesn't know about PayPal.",
+    "example": "Validation logic for credit cards lives ONLY in CreditCardPayment, not spread across the Context.",
+    "icon": "🎯"
+  }
+]

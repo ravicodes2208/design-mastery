@@ -1,0 +1,141 @@
+[
+  {
+    "id": 1,
+    "problem": "Payment System",
+    "where": "Different payment processing algorithms (credit card, PayPal, UPI, crypto)",
+    "context": "PaymentProcessor",
+    "strategyInterface": "PaymentStrategy",
+    "concreteStrategies": [
+      "CreditCardPayment",
+      "PayPalPayment",
+      "UPIPayment",
+      "CryptoPayment"
+    ],
+    "why": "Payment methods are added/removed frequently. Each has completely different processing logic. Client (user) chooses at checkout."
+  },
+  {
+    "id": 2,
+    "problem": "Parking Lot",
+    "where": "Pricing calculation varies by vehicle type, time, and subscription",
+    "context": "ParkingTicket",
+    "strategyInterface": "PricingStrategy",
+    "concreteStrategies": [
+      "HourlyPricing",
+      "DynamicPricing",
+      "SubscriptionPricing",
+      "WeekendPricing"
+    ],
+    "why": "Parking lots constantly change pricing rules. Peak hours, weekends, subscriptions -- each is a separate algorithm. New pricing = new class."
+  },
+  {
+    "id": 3,
+    "problem": "Ride-Sharing (Uber/Ola)",
+    "where": "Fare calculation differs by ride type",
+    "context": "RideContext",
+    "strategyInterface": "FareStrategy",
+    "concreteStrategies": [
+      "PoolFare",
+      "RegularFare",
+      "PremiumFare",
+      "SurgeFare"
+    ],
+    "why": "Fare algorithms change independently. Pool has shared-ride discounts, Premium has base fees. Surge wraps any fare with a multiplier (Strategy + Decorator)."
+  },
+  {
+    "id": 4,
+    "problem": "E-Commerce Discounts",
+    "where": "Discount calculation varies by customer type and promotions",
+    "context": "ShoppingCart",
+    "strategyInterface": "DiscountStrategy",
+    "concreteStrategies": [
+      "PercentageDiscount",
+      "FlatDiscount",
+      "BOGODiscount",
+      "NoDiscount"
+    ],
+    "why": "Promotions change weekly. VIP gets 20% off, employees get flat $50, festivals get BOGO. Each is a separate algorithm chosen at checkout."
+  },
+  {
+    "id": 5,
+    "problem": "Elevator System",
+    "where": "Scheduling algorithm decides which elevator serves which request",
+    "context": "ElevatorController",
+    "strategyInterface": "SchedulingStrategy",
+    "concreteStrategies": [
+      "NearestElevator",
+      "ZoneBasedScheduling",
+      "LoadBalancedScheduling"
+    ],
+    "why": "Buildings have different needs. A hospital needs nearest-first. An office tower needs zone-based. A mall needs load-balanced. Same controller, different algorithm."
+  },
+  {
+    "id": 6,
+    "problem": "Cache System",
+    "where": "Eviction policy decides which entry to remove when cache is full",
+    "context": "Cache",
+    "strategyInterface": "EvictionStrategy",
+    "concreteStrategies": [
+      "LRUEviction",
+      "LFUEviction",
+      "FIFOEviction",
+      "TTLEviction"
+    ],
+    "why": "Different use cases need different eviction. Session cache needs LRU, CDN needs LFU, message queue needs FIFO. The cache itself doesn't change."
+  },
+  {
+    "id": 7,
+    "problem": "Notification System",
+    "where": "Delivery channel varies (email, SMS, push, Slack)",
+    "context": "NotificationService",
+    "strategyInterface": "DeliveryStrategy",
+    "concreteStrategies": [
+      "EmailDelivery",
+      "SMSDelivery",
+      "PushNotification",
+      "SlackDelivery"
+    ],
+    "why": "Users choose their preferred channel. New channels (WhatsApp, Teams) are added without touching existing ones. Client preference drives strategy selection."
+  },
+  {
+    "id": 8,
+    "problem": "File Compression",
+    "where": "Compression algorithm varies (ZIP, GZIP, RAR, LZ4)",
+    "context": "FileCompressor",
+    "strategyInterface": "CompressionStrategy",
+    "concreteStrategies": [
+      "ZipCompression",
+      "GzipCompression",
+      "LZ4Compression",
+      "NoCompression"
+    ],
+    "why": "Different files need different compression. Text compresses well with GZIP, images need LZ4 for speed. The compressor is the same, the algorithm swaps."
+  },
+  {
+    "id": 9,
+    "problem": "Authentication System",
+    "where": "Auth method varies (password, OAuth, SSO, biometric)",
+    "context": "AuthenticationManager",
+    "strategyInterface": "AuthStrategy",
+    "concreteStrategies": [
+      "PasswordAuth",
+      "OAuthAuth",
+      "SSOAuth",
+      "BiometricAuth"
+    ],
+    "why": "Apps support multiple login methods. Enterprise adds SSO, mobile adds biometric. Each auth flow is completely different. Auth manager delegates to the strategy."
+  },
+  {
+    "id": 10,
+    "problem": "Sorting Visualizer",
+    "where": "Sorting algorithm is swappable (bubble, merge, quick, heap)",
+    "context": "SortVisualizer",
+    "strategyInterface": "SortStrategy",
+    "concreteStrategies": [
+      "BubbleSort",
+      "MergeSort",
+      "QuickSort",
+      "HeapSort"
+    ],
+    "why": "The visualizer UI stays the same. User picks the algorithm. Each sort has different time complexity and behavior. Perfect Strategy use case -- the textbook example."
+  }
+]

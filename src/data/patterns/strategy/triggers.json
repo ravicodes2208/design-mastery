@@ -1,0 +1,53 @@
+{
+  "description": "When you hear these keywords in a problem statement, your brain should instantly light up with 'Strategy pattern!'",
+  "triggers": [
+    {
+      "keyword": "multiple ways to...",
+      "example": "Multiple ways to calculate shipping cost",
+      "isStrategy": true
+    },
+    {
+      "keyword": "different algorithms for...",
+      "example": "Different algorithms for sorting data",
+      "isStrategy": true
+    },
+    {
+      "keyword": "switchable at runtime",
+      "example": "User can switch payment method during checkout",
+      "isStrategy": true
+    },
+    {
+      "keyword": "based on type/mode/region",
+      "example": "Pricing varies based on customer type",
+      "isStrategy": true
+    },
+    {
+      "keyword": "pluggable / interchangeable",
+      "example": "Pluggable compression algorithms",
+      "isStrategy": true
+    },
+    {
+      "keyword": "policy/rules that vary",
+      "example": "Discount policy changes for VIP vs regular customers",
+      "isStrategy": true
+    }
+  ],
+  "notStrategy": [
+    {
+      "keyword": "when X happens, notify/alert",
+      "pattern": "Observer",
+      "reason": "That's event-driven notification, not algorithm swapping"
+    },
+    {
+      "keyword": "object changes behavior based on internal state",
+      "pattern": "State",
+      "reason": "State transitions are self-driven, Strategy is client-driven"
+    },
+    {
+      "keyword": "create object without knowing exact type",
+      "pattern": "Factory",
+      "reason": "That's about object creation, not algorithm delegation"
+    }
+  ],
+  "litmusTest": "If the BEHAVIOR changes but the OBJECT using it stays the same, think Strategy."
+}

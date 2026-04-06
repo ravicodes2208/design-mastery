@@ -1,0 +1,39 @@
+{
+  "bestFriends": [
+    {
+      "pattern": "Strategy",
+      "relationship": "Factory creates the right Strategy object. Strategy defines behavior, Factory selects which behavior to inject. They solve orthogonal problems: Factory = WHICH object, Strategy = HOW it behaves.",
+      "example": "NotificationFactory.create('SMS') returns SMSNotification, which is then used as a Strategy by NotificationService"
+    },
+    {
+      "pattern": "Template Method",
+      "relationship": "Factory Method IS Template Method + creation hook. The abstract class defines the workflow, the factory method is the abstract step that subclasses fill in.",
+      "example": "NotificationService.send() defines the flow (create -> send -> log -> audit). createNotification() is the hook subclasses override."
+    },
+    {
+      "pattern": "Builder",
+      "relationship": "Factory decides WHICH type. Builder decides HOW to configure it. They combine when you need to both select a type AND configure it with many options.",
+      "example": "Factory picks EmailNotification. Builder sets subject, CC, BCC, attachments, template, locale."
+    }
+  ],
+  "evilTwin": {
+    "pattern": "Builder",
+    "similarity": "Both are creational patterns that encapsulate object creation details from the client.",
+    "difference": "Factory answers WHICH type to create (one decision, one line). Builder answers HOW to configure a complex object (many steps, fluent API). If you need to choose between types, Factory. If you need step-by-step construction, Builder.",
+    "mnemonic": "Factory = WHICH type. Builder = HOW to build.",
+    "deferredComparison": false,
+    "note": "Factory returns a ready-to-use object in one call. Builder requires multiple configuration steps before build()."
+  },
+  "evolution": [
+    {
+      "pattern": "Abstract Factory",
+      "direction": "Simple Factory evolves into Abstract Factory when you need to create FAMILIES of related objects that must be consistent (e.g., India: UPI + Rupay + GST Receipt).",
+      "when": "If your factory needs multiple create methods for related products that vary together by theme/region/OS."
+    },
+    {
+      "pattern": "Registry/Map Pattern",
+      "direction": "Simple Factory evolves into Registry when you want to eliminate the if-else/switch entirely and make type registration dynamic.",
+      "when": "When new types are added frequently and you don't want to modify the factory at all."
+    }
+  ]
+}

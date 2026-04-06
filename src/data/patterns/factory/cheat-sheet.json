@@ -1,0 +1,68 @@
+{
+  "cheatSheet": {
+    "whenToUse": [
+      "3+ types implementing the same interface",
+      "Type chosen at runtime from user input, config, or environment",
+      "Creation logic duplicated across multiple classes",
+      "You want to add new types without touching existing client code",
+      "Building a library/SDK that others extend with their own types"
+    ],
+    "whenNotToUse": [
+      "Only 1 type that won't change (YAGNI)",
+      "Type is known at compile time and is stable",
+      "Only 2 stable types -- simple if-else is fine",
+      "Creation is trivial (just new X() with no logic)",
+      "You're adding it 'for the future' that may never come"
+    ],
+    "structure": {
+      "Product Interface": "Common contract all products share (Notification)",
+      "Concrete Products": "Specific implementations (EmailNotification, SMSNotification)",
+      "Factory": "One place that creates the right product (NotificationFactory)",
+      "Client": "Uses products through interface, never touches concrete classes"
+    },
+    "sixWordSummary": "Ask Factory. Don't new it yourself.",
+    "solidPrinciples": [
+      "SRP (primary)",
+      "OCP (primary)",
+      "DIP (primary)",
+      "LSP (bonus)"
+    ],
+    "codeSmellTrigger": "if-else / switch on type to decide which object to new"
+  },
+  "bestPractices": [
+    "Use enums for factory keys -- compile-time safety, no typo crashes",
+    "Simple Factory for 80% of cases -- don't over-engineer with Factory Method unless creation is complex",
+    "Factory Method only when creation involves private knowledge per type (config loading, key management)",
+    "Store Supplier/lambdas in registry, not instances -- lazy creation avoids resource waste",
+    "Products should be self-sufficient when possible -- factory stays clean",
+    "Make factory injectable (interface, not static) for testability",
+    "Return new instances for stateful products -- never cache mutable objects",
+    "Parse strings to enums at system boundaries -- enums travel through business logic"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Creating a Factory for only 1 type that won't change",
+      "correct": "Just use 'new' directly. Add Factory when you actually have 3+ types chosen at runtime."
+    },
+    {
+      "mistake": "Factory knows private details of every product (SMTP config, API keys, tokens)",
+      "correct": "Products self-configure, or use Factory Method so each subclass owns its private knowledge."
+    },
+    {
+      "mistake": "Using raw strings as factory keys -- typos crash at runtime",
+      "correct": "Use enums. Parse strings to enums at API/config boundaries only."
+    },
+    {
+      "mistake": "Returning cached mutable objects from factory -- thread-unsafe shared state",
+      "correct": "New instance for stateful products. Cache only stateless/immutable products."
+    },
+    {
+      "mistake": "Using Factory Method when there's no shared orchestration in the abstract class",
+      "correct": "If the abstract class only has createProduct() and nothing else, Simple Factory is cleaner."
+    },
+    {
+      "mistake": "Confusing Factory (WHICH type to create) with Builder (HOW to configure complex object)",
+      "correct": "Factory picks the type in one call. Builder configures step-by-step. Combine when you need both."
+    }
+  ]
+}

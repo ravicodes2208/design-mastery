@@ -1,0 +1,47 @@
+[
+  {
+    "id": "factory-for-one-type",
+    "trap": "Factory for ONE type -- YAGNI",
+    "description": "Don't create a factory when there's only one implementation that won't change. Over-engineering with patterns is as bad as under-engineering without them.",
+    "badCode": "class LoggerFactory {\n    static Logger create() {\n        return new ConsoleLogger(); // only one type... why factory?\n    }\n}",
+    "goodCode": "// Just use it directly\nLogger logger = new ConsoleLogger();",
+    "severity": "warning",
+    "fix": "Ask: Do I have 3+ types? Is the type chosen at runtime? Is creation logic duplicated? If NO to all, skip the factory."
+  },
+  {
+    "id": "god-factory",
+    "trap": "God Factory -- knows everyone's private details",
+    "description": "A factory that loads SMTP config for email, API keys for SMS, and device tokens for push knows too much. It violates SRP by owning private knowledge of every product type.",
+    "badCode": "class NotificationFactory {\n    static Notification create(String type) {\n        if (type.equals(\"email\")) {\n            SmtpConfig c = loadSmtpConfig(); // email's private knowledge\n            return new EmailNotification(c);\n        } else if (type.equals(\"sms\")) {\n            SmsApiKey k = loadApiKey(); // sms's private knowledge\n            return new SMSNotification(k);\n        }\n    }\n}",
+    "goodCode": "// Products self-configure (Simple Factory stays clean)\nclass EmailNotification implements Notification {\n    public EmailNotification() {\n        this.config = SmtpConfig.load(); // I load my own config\n    }\n}\n// OR use Factory Method when creation is genuinely complex\nclass EmailNotificationService extends NotificationService {\n    Notification createNotification() {\n        SmtpConfig config = loadSmtpConfig(); // my private knowledge\n        return new EmailNotification(config);\n    }\n}",
+    "severity": "critical",
+    "fix": "Either let products self-configure (Option A) or use Factory Method so each subclass owns its private creation logic (Option B)."
+  },
+  {
+    "id": "string-keys",
+    "trap": "String keys without validation -- runtime typo bombs",
+    "description": "Using raw strings as factory keys means typos compile fine but crash at runtime. 'emal' compiles, but factory.create('emal') throws at runtime.",
+    "badCode": "Notification n = factory.create(\"emal\"); // typo! compiles fine, crashes at runtime",
+    "goodCode": "// Use enums -- typos caught at COMPILE time\nenum NotificationType { EMAIL, SMS, PUSH }\nNotification n = factory.create(NotificationType.EMAIL); // safe",
+    "severity": "warning",
+    "fix": "Use enums for factory keys. Parse strings to enums at system boundaries (API, config). Strings never travel deep into code."
+  },
+  {
+    "id": "mutable-singleton-products",
+    "trap": "Caching mutable products -- thread safety nightmare",
+    "description": "Returning the same mutable object from a factory creates shared state. Thread 1 sets CC, Thread 2 sends -- OTP goes to the boss.",
+    "badCode": "private static final EmailNotification EMAIL = new EmailNotification();\nstatic Notification create(String type) {\n    return EMAIL; // same mutable object returned every time!\n}",
+    "goodCode": "// Return NEW instance for stateful products\nstatic Notification create(String type) {\n    return new EmailNotification(); // fresh instance, no shared state\n}\n// Cache ONLY stateless products (no mutable fields)",
+    "severity": "critical",
+    "fix": "New instance for stateful products. Cache only stateless products. Use Supplier/lambda in registry for lazy creation."
+  },
+  {
+    "id": "factory-method-no-shared-logic",
+    "trap": "Factory Method when there's no shared orchestration",
+    "description": "If the abstract class only has createProduct() and nothing else, the subclass hierarchy is pointless. Simple Factory would be cleaner.",
+    "badCode": "abstract class NotificationCreator {\n    abstract Notification create(); // only method -- no shared logic\n}\nclass EmailCreator extends NotificationCreator {\n    Notification create() { return new EmailNotification(); } // pointless wrapper\n}",
+    "goodCode": "// Simple Factory is cleaner when there's no shared behavior\nclass NotificationFactory {\n    static Notification create(String type) {\n        return switch(type) { ... };\n    }\n}",
+    "severity": "warning",
+    "fix": "Factory Method is justified ONLY when the abstract class has shared orchestration (log, retry, audit) around the created product. No shared logic = use Simple Factory."
+  }
+]

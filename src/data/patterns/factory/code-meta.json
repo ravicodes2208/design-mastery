@@ -1,0 +1,123 @@
+{
+  "flavors": {
+    "simple": {
+      "label": "Simple Factory + Registry",
+      "icon": "🏭",
+      "steps": [
+        {
+          "step": 1,
+          "title": "Define the Product Interface",
+          "description": "Create the contract -- the common interface all products share. Every product type implements this. Client code only ever sees this interface."
+        },
+        {
+          "step": 2,
+          "title": "Create Concrete Products",
+          "description": "Each product type gets its own class implementing the interface. EmailNotification handles email, SMSNotification handles SMS. Each owns ONLY its logic."
+        },
+        {
+          "step": 3,
+          "title": "Choose Your Factory Flavor",
+          "description": "Simple Factory (80% of cases): A separate class with switch/if-else on type enum. Quick, centralized, practical. Registry Factory: A Map<Type, Supplier> that eliminates if-else entirely. New types register themselves. Factory Method (20%): An abstract method inside a service class. Subclasses override it to create the product. Use ONLY when creation involves private knowledge per type (config loading, API keys) AND the service has shared business logic (log, retry, audit) around the product."
+        },
+        {
+          "step": 4,
+          "title": "Client Uses the Factory",
+          "description": "Simple Factory: client calls NotificationFactory.create(type). Factory Method: client holds an abstract NotificationService reference -- the subclass decides what to create internally. In both cases, client only knows the Product Interface. Adding a new type NEVER changes client code."
+        }
+      ],
+      "languages": {
+        "java": {
+          "file": "simple-factory.java",
+          "title": "Factory Pattern - Notification System (Java)",
+          "explanation": "Java uses interfaces as the Product contract. Simple Factory uses switch/enum for compile-time safety. Registry Factory uses Map<Enum, Supplier> for zero if-else extensibility. Client only knows the Notification interface -- adding WhatsApp touched only the factory, not any service."
+        },
+        "cpp": {
+          "file": "simple-factory.cpp",
+          "title": "Factory Pattern - Notification System (C++)",
+          "explanation": "C++ uses abstract classes with pure virtual functions. Smart pointers (unique_ptr) handle ownership via RAII -- no manual delete. Registry uses std::function to store creation lambdas. Virtual destructor is mandatory for safe polymorphic deletion."
+        },
+        "kotlin": {
+          "file": "simple-factory.kt",
+          "title": "Factory Pattern - Notification System (Kotlin)",
+          "explanation": "Kotlin's 'object' keyword creates a singleton factory naturally. 'when' expressions are exhaustive with enums -- compiler warns if you miss a case. Constructor references (::EmailNotification) serve as factory lambdas. Clean, concise, safe."
+        }
+      }
+    },
+    "factory-method": {
+      "label": "Factory Method",
+      "icon": "🔧",
+      "steps": [
+        {
+          "step": 1,
+          "title": "Define Product Interface",
+          "description": "Same Notification interface. Products now accept private config via constructor (SMTP host, API key) -- Simple Factory can't know all these without becoming a God Factory."
+        },
+        {
+          "step": 2,
+          "title": "Products Need Private Config",
+          "description": "EmailNotification needs SMTP host. SMSNotification needs API key. Each product's creation requires private knowledge only its channel owns."
+        },
+        {
+          "step": 3,
+          "title": "Abstract Service + Factory Method",
+          "description": "NotificationService is ABSTRACT. createNotification() is the HOOK (factory method). sendNotification() is shared orchestration (template method): validate -> create -> send -> log -> audit -- written ONCE."
+        },
+        {
+          "step": 4,
+          "title": "Subclasses Fill the Hook",
+          "description": "EmailNotificationService overrides createNotification() to load SMTP config and return EmailNotification. Each subclass owns ONLY its private creation knowledge. No God Factory."
+        },
+        {
+          "step": 5,
+          "title": "Client Uses Abstract Service",
+          "description": "Client holds NotificationService reference. Subclass decides internally what to create. Shared orchestration (log, audit, retry) never gets duplicated across services."
+        }
+      ],
+      "languages": {
+        "java": {
+          "file": "factory-method.java",
+          "title": "Factory Method - Notification System (Java)",
+          "explanation": "Factory Method = Template Method + creation hook. The abstract NotificationService defines the workflow (validate -> create -> send -> log -> audit) and leaves createNotification() as a hook for subclasses. Each subclass fills in the hook with its PRIVATE creation knowledge. Use ONLY when: (1) creation involves private config per type, AND (2) shared orchestration exists. No shared logic? Use Simple Factory."
+        }
+      }
+    },
+    "abstract-factory": {
+      "label": "Abstract Factory",
+      "icon": "🏗️",
+      "steps": [
+        {
+          "step": 1,
+          "title": "Identify the REAL Family",
+          "description": "Ask: what TRULY varies together? Payment method is NOT a family (India has UPI AND Credit Card). Tax rules + receipt format + currency ARE a family -- they MUST be consistent per country. Mixing GST tax with US receipt is illegal."
+        },
+        {
+          "step": 2,
+          "title": "Product Family Interfaces",
+          "description": "TaxCalculator, ReceiptGenerator, CurrencyFormatter -- three interfaces that form the compliance family. Each country implements all three consistently."
+        },
+        {
+          "step": 3,
+          "title": "Country-Specific Families",
+          "description": "IndiaComplianceFactory returns IndiaTaxCalculator (GST) + IndiaReceiptGenerator (GST Invoice) + IndiaCurrencyFormatter (INR). They're legally required to be consistent."
+        },
+        {
+          "step": 4,
+          "title": "Payment Method = Separate Axis",
+          "description": "PaymentProcessor (UPI, CreditCard, PayPal) is handled by Simple Factory, NOT the abstract factory. India can use UPI OR CreditCard -- it's not locked to one method."
+        },
+        {
+          "step": 5,
+          "title": "Client Combines Both",
+          "description": "CheckoutService takes RegionalComplianceFactory (abstract factory) and uses PaymentProcessorFactory (simple factory) for method selection. Two patterns, two axes of variation, zero false coupling."
+        }
+      ],
+      "languages": {
+        "java": {
+          "file": "abstract-factory.java",
+          "title": "Abstract Factory - Regional Compliance System (Java)",
+          "explanation": "The key insight: identify what TRULY varies together as a family. Payment method (UPI, Credit Card) is NOT a family -- India uses both. What IS a family: TaxCalculator + ReceiptGenerator + CurrencyFormatter -- these MUST be consistent per country (GST + Indian receipt + INR always together). Payment method is a separate axis handled by Simple Factory. Two patterns working together: Abstract Factory for compliance families, Simple Factory for payment method selection."
+        }
+      }
+    }
+  }
+}

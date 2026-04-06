@@ -1,0 +1,38 @@
+[
+  {
+    "id": "instanceof-in-context",
+    "trap": "instanceof / type-checking in Context",
+    "description": "If the Context checks which concrete strategy it holds (instanceof, getClass, typeof), you've broken the pattern. The Context should be blissfully ignorant.",
+    "badCode": "if (strategy instanceof CreditCardPayment) {\n    // credit card specific logic\n} else if (strategy instanceof PayPalPayment) {\n    // paypal specific logic\n}",
+    "goodCode": "// Move ALL logic into the strategy itself\nstrategy.pay(amount); // Context just delegates",
+    "severity": "critical",
+    "fix": "Move the logic INTO the strategy. If the Context needs to behave differently per strategy, the strategy interface is too narrow -- add methods to it."
+  },
+  {
+    "id": "yagni-overengineering",
+    "trap": "YAGNI -- Strategy when you don't need it",
+    "description": "Don't use Strategy when you only have ONE algorithm that won't change. Over-engineering with patterns is just as bad as under-engineering without them.",
+    "badCode": "// Only one compression algorithm exists in the system\ninterface CompressionStrategy { ... }\nclass GzipOnly implements CompressionStrategy { ... }\n// No other implementations... ever",
+    "goodCode": "// Just call the method directly\nGzipCompressor.compress(data);",
+    "severity": "warning",
+    "fix": "Ask: will this behavior ACTUALLY vary? If yes, Strategy. If not, just call the method. You can always refactor later."
+  },
+  {
+    "id": "fat-strategy",
+    "trap": "Fat Strategy -- SRP violation inside strategies",
+    "description": "A strategy doing validation, logging, notifications, AND the algorithm violates SRP. Strategy does ONE thing -- the algorithm.",
+    "badCode": "@Override\npublic void pay(double amount) {\n    validateCard();           // Not my job\n    logTransaction(amount);   // Not my job\n    processPayment(amount);   // THIS is my job\n    sendReceipt();            // Not my job\n    notifyFraudSystem();      // Not my job\n}",
+    "goodCode": "@Override\npublic void pay(double amount) {\n    // Strategy does ONE thing: process the payment\n    String masked = maskCard(cardNumber);\n    gateway.charge(masked, amount);\n}\n// Validation = separate validator\n// Logging = Decorator around strategy\n// Notifications = Observer pattern",
+    "severity": "critical",
+    "fix": "Strategy does the algorithm. Use Decorator for cross-cutting concerns (logging, timing). Use Observer for notifications. Use a separate Validator."
+  },
+  {
+    "id": "null-strategy-crash",
+    "trap": "No default strategy -- NullPointerException",
+    "description": "Forgetting to set a strategy before calling the Context method causes a NullPointerException / segfault at runtime.",
+    "badCode": "PaymentProcessor processor = new PaymentProcessor();\n// Forgot to set strategy!\nprocessor.processPayment(100); // BOOM: NullPointerException",
+    "goodCode": "// Use Null Object pattern as default\nprivate PaymentStrategy strategy = new NoOpPayment();\n\nclass NoOpPayment implements PaymentStrategy {\n    public void pay(double amount) {\n        System.out.println(\"No payment method set.\");\n    }\n}",
+    "severity": "warning",
+    "fix": "Initialize with a Null Object default strategy. Never leave the strategy field as null."
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "q1",
+    "type": "recognition",
+    "question": "A class has a switch statement that decides whether to encrypt data using AES, RSA, or Blowfish. What pattern should you use to refactor this?",
+    "options": [
+      "Strategy",
+      "Observer",
+      "Factory",
+      "Singleton"
+    ],
+    "correctAnswer": 0,
+    "explanation": "'Different algorithms for encryption' + 'switchable' = Strategy. The EncryptionContext stays stable, the EncryptionStrategy swaps."
+  },
+  {
+    "id": "q2",
+    "type": "debugging",
+    "question": "A developer's Context class has: if (strategy instanceof AESEncryption) { ... }. What's wrong?",
+    "options": [
+      "instanceof in Context breaks the pattern -- Context should be ignorant of concrete types",
+      "Nothing wrong, instanceof is needed for type safety",
+      "Should use getClass() instead of instanceof",
+      "Strategy pattern doesn't support encryption"
+    ],
+    "correctAnswer": 0,
+    "explanation": "If the Context type-checks the strategy, you've broken the pattern. Move the differing logic INTO the strategy itself."
+  },
+  {
+    "id": "q3",
+    "type": "design",
+    "question": "In a ride-sharing app, the user picks between Pool, Regular, and Premium rides. Who should be the CLIENT that chooses the strategy?",
+    "options": [
+      "The controller/UI layer that handles user selection",
+      "The RideContext itself based on internal logic",
+      "The FareStrategy decides which type it is",
+      "A global configuration file"
+    ],
+    "correctAnswer": 0,
+    "explanation": "In Strategy, the CLIENT (controller/UI) decides which strategy to inject. The Context just delegates. If the object decides itself, that's the State pattern."
+  },
+  {
+    "id": "q4",
+    "type": "solid",
+    "question": "Which SOLID principle is the PRIMARY reason Strategy exists?",
+    "options": [
+      "OCP -- extend behavior without modifying existing code",
+      "SRP -- each class has one responsibility",
+      "DIP -- depend on abstractions, not concretions",
+      "ISP -- don't force implementations of unused methods"
+    ],
+    "correctAnswer": 0,
+    "explanation": "OCP is the core driver. Strategy exists so you can ADD new algorithms (extend) without MODIFYING the Context (closed). DIP and LSP are important supporters, but OCP is the WHY."
+  },
+  {
+    "id": "q5",
+    "type": "comparison",
+    "question": "Strategy and State have identical class structures. What's the KEY difference?",
+    "options": [
+      "In Strategy the CLIENT chooses the algorithm; in State the OBJECT transitions itself",
+      "Strategy uses interfaces; State uses abstract classes",
+      "Strategy is behavioral; State is structural",
+      "There is no real difference"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Strategy = YOU choose (client injects). State = IT changes itself (object transitions based on internal state). Same structure, different intent."
+  },
+  {
+    "id": "q6",
+    "type": "application",
+    "question": "A payment strategy's pay() method validates the card, logs the transaction, processes the payment, and sends a receipt. What's the problem?",
+    "options": [
+      "Fat Strategy -- violates SRP. Strategy should only process the payment. Use Decorator for logging, Observer for notifications.",
+      "Nothing wrong -- a strategy should be self-contained",
+      "Should use Template Method instead",
+      "The pay() method needs more parameters"
+    ],
+    "correctAnswer": 0,
+    "explanation": "A strategy should do ONE thing: its algorithm. Validation, logging, and notifications are cross-cutting concerns. Use Decorator for logging, Observer for notifications, and a separate Validator."
+  }
+]

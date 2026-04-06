@@ -1,0 +1,80 @@
+[
+  {
+    "id": "q1",
+    "type": "recognition",
+    "question": "A logistics system needs to create shipments via Air, Ground, or Sea based on package priority. What pattern fits best?",
+    "options": [
+      "Factory -- create the right Shipment based on priority",
+      "Strategy -- swap shipment algorithm at runtime",
+      "Observer -- notify when shipment is created",
+      "Builder -- construct shipment step-by-step"
+    ],
+    "correctAnswer": 0,
+    "explanation": "'Based on priority' = runtime type selection. 'Create shipments' = object creation. That's Factory. Strategy would be for swapping how a shipment calculates delivery time."
+  },
+  {
+    "id": "q2",
+    "type": "comparison",
+    "question": "What's the key difference between Factory and Strategy?",
+    "options": [
+      "Factory decides WHICH object to create. Strategy decides WHICH algorithm to run.",
+      "Factory is creational, Strategy is structural.",
+      "Factory uses interfaces, Strategy uses abstract classes.",
+      "There is no real difference."
+    ],
+    "correctAnswer": 0,
+    "explanation": "Factory = WHICH object (creation). Strategy = WHICH behavior (algorithm). They're orthogonal -- Factory can create Strategy objects."
+  },
+  {
+    "id": "q3",
+    "type": "debugging",
+    "question": "A factory loads SMTP config for email, API keys for SMS, and device tokens for push -- all inside one method. What's the problem?",
+    "options": [
+      "God Factory -- it knows private details of every product type, violating SRP",
+      "Nothing wrong -- factories should know how to create everything",
+      "Should use Builder pattern instead",
+      "The factory needs more methods"
+    ],
+    "correctAnswer": 0,
+    "explanation": "The factory is a God class. Products should self-configure, or use Factory Method so each subclass owns its private creation logic."
+  },
+  {
+    "id": "q4",
+    "type": "design",
+    "question": "When should you choose Simple Factory over Factory Method?",
+    "options": [
+      "When creation is simple (just 'new X()') and you own all the code",
+      "Always -- Factory Method is outdated",
+      "When you have more than 5 product types",
+      "When products need to be cached"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Simple Factory for simple creation. Factory Method when creation involves complex private knowledge per type, or when others extend your framework."
+  },
+  {
+    "id": "q5",
+    "type": "application",
+    "question": "A factory uses String keys: factory.create('emal'). The typo compiles fine but crashes at runtime. How do you fix this?",
+    "options": [
+      "Use enums instead of strings -- NotificationType.EMAIL catches typos at compile time",
+      "Add more try-catch blocks",
+      "Use Factory Method instead of Simple Factory",
+      "Add validation to check string spelling"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Enums provide compile-time safety. IDE autocompletes them. Typos are impossible. Parse strings to enums at system boundaries only."
+  },
+  {
+    "id": "q6",
+    "type": "deep-thought",
+    "question": "Does Factory pattern eliminate tight coupling?",
+    "options": [
+      "No -- it MANAGES coupling by centralizing it from N places to 1 place. Someone must still call 'new'.",
+      "Yes -- Factory completely eliminates coupling between client and products",
+      "Only Factory Method eliminates coupling, Simple Factory doesn't",
+      "Coupling is eliminated when combined with Singleton"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Factory doesn't eliminate 'new' -- it centralizes it. The progression: scattered (10 files) -> Factory (1 file) -> DI framework (config). Zero coupling is impossible in OOP."
+  }
+]

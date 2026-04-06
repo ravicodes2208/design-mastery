@@ -1,0 +1,34 @@
+{
+  "bestFriends": [
+    {
+      "pattern": "Factory",
+      "relationship": "Creates the right strategy based on conditions. Instead of the client doing if-else to pick a strategy, the Factory encapsulates that logic.",
+      "example": "DiscountFactory.create('VIP') returns PercentageDiscount(20)"
+    },
+    {
+      "pattern": "Observer",
+      "relationship": "Notifies listeners when strategy changes. Useful for logging, analytics, or UI updates when the algorithm switches.",
+      "example": "When payment strategy changes, notify the analytics service"
+    },
+    {
+      "pattern": "Decorator",
+      "relationship": "Wraps a strategy with extra behavior (logging, timing, caching) without modifying the strategy itself.",
+      "example": "SurgeFare wraps any FareStrategy with a multiplier"
+    }
+  ],
+  "evilTwin": {
+    "pattern": "State",
+    "similarity": "Identical class structure -- Context holds interface, concrete classes implement it.",
+    "difference": "In Strategy, the CLIENT chooses which algorithm to use. In State, the OBJECT ITSELF changes its behavior based on internal state transitions.",
+    "mnemonic": "Strategy = YOU choose. State = IT changes itself.",
+    "deferredComparison": true,
+    "note": "Full comparison will be added after learning the State pattern."
+  },
+  "evolution": [
+    {
+      "pattern": "Template Method",
+      "direction": "Strategy evolves into Template Method when algorithms share a common skeleton but differ in specific steps.",
+      "when": "If 80% of your strategies share the same code, extract the skeleton into a base class."
+    }
+  ]
+}

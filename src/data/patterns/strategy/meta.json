@@ -1,0 +1,10 @@
+{
+  "id": "strategy",
+  "title": "Strategy Pattern",
+  "category": "behavioral",
+  "phase": "design-patterns",
+  "order": 1,
+  "icon": "♟️",
+  "description": "Define a family of interchangeable algorithms and let the client choose which one to use at runtime.",
+  "estimatedTime": "2-3 hours"
+}

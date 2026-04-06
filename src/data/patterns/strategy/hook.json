@@ -1,0 +1,38 @@
+{
+  "crux": "The Context stays. The Strategy swaps.",
+  "oneLiner": "Extract each algorithm into its own class, make them all implement the same interface, and let the context delegate to whichever one is plugged in.",
+  "problemStatement": "Imagine a checkout system that starts with credit card payments. Then PayPal is added, then UPI, then crypto. Each time, you crack open the same class and add another if-else branch. The class grows to 500+ lines. A junior dev accidentally breaks credit cards while adding crypto. Testing becomes a nightmare because everything is coupled together.",
+  "analogy": {
+    "title": "The Power Drill",
+    "description": "A power drill (Context) stays the same forever. You never rebuild the drill. The drill bit (Strategy) is what you swap -- Phillips head for Phillips screws, flat head for flat screws, drill bit for making holes. Same drill, different bit, different result.",
+    "mapping": {
+      "Drill": "Context (PaymentProcessor)",
+      "Drill Bit": "Strategy Interface (PaymentStrategy)",
+      "Phillips Bit": "Concrete Strategy (CreditCardPayment)",
+      "Flat Bit": "Concrete Strategy (PayPalPayment)",
+      "You (choosing the bit)": "Client code"
+    }
+  },
+  "participants": [
+    {
+      "name": "Context",
+      "role": "The stable class that USES a strategy but doesn't know which one",
+      "example": "PaymentProcessor"
+    },
+    {
+      "name": "Strategy Interface",
+      "role": "The contract all algorithms must follow",
+      "example": "PaymentStrategy"
+    },
+    {
+      "name": "Concrete Strategies",
+      "role": "The interchangeable algorithm implementations",
+      "example": "CreditCardPayment, PayPalPayment"
+    },
+    {
+      "name": "Client",
+      "role": "The code that decides which strategy to plug into the context",
+      "example": "main() / Controller"
+    }
+  ]
+}

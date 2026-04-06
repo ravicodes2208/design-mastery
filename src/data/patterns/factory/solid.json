@@ -1,0 +1,34 @@
+[
+  {
+    "principle": "SRP",
+    "fullName": "Single Responsibility Principle",
+    "isPrimary": true,
+    "connection": "OrderService no longer has the responsibility of creating notifications. Factory owns creation. Service owns business logic. Each class has one reason to change.",
+    "example": "Before: OrderService creates + sends notifications. After: Factory creates, OrderService just uses them.",
+    "icon": "🎯"
+  },
+  {
+    "principle": "OCP",
+    "fullName": "Open/Closed Principle",
+    "isPrimary": true,
+    "connection": "Add WhatsApp? Create a new class + add one line in factory. OrderService, PaymentService, ShippingService stay CLOSED for modification.",
+    "example": "10 services use NotificationFactory.create(). Adding WhatsApp changes only the factory. 10 services untouched.",
+    "icon": "🔓"
+  },
+  {
+    "principle": "DIP",
+    "fullName": "Dependency Inversion Principle",
+    "isPrimary": true,
+    "connection": "Client depends on Notification (abstraction), not EmailNotification (concretion). The factory provides the right object without the client knowing the concrete class.",
+    "example": "OrderService holds Notification (interface). Factory decides the concrete type. OrderService is decoupled from all implementations.",
+    "icon": "🔄"
+  },
+  {
+    "principle": "LSP",
+    "fullName": "Liskov Substitution Principle",
+    "isPrimary": false,
+    "connection": "All products returned by the factory are substitutable through the interface. Email, SMS, Push all satisfy the Notification contract.",
+    "example": "NotificationFactory.create(EMAIL) and NotificationFactory.create(SMS) both return Notification -- client uses them identically.",
+    "icon": "🔀"
+  }
+]
