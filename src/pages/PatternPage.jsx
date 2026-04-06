@@ -18,6 +18,7 @@ const sectionComponents = {
   challenge:    lazy(() => import('../components/pattern/RefactoringChallenge')),
   interview:    lazy(() => import('../components/pattern/InterviewPrep')),
   flashcards:   lazy(() => import('../components/pattern/Flashcards')),
+  sandbox:      lazy(() => import('../components/pattern/CodeSandbox')),
   solid:        lazy(() => import('../components/pattern/SolidConnections')),
   lld:          lazy(() => import('../components/pattern/LLDProblems')),
   web:          lazy(() => import('../components/pattern/PatternWeb')),
@@ -51,6 +52,7 @@ const sectionGroups = [
       { id: 'challenge', label: 'Refactor Challenge', icon: '⚔️', requiresData: 'challenge' },
       { id: 'interview', label: 'Interview Prep', icon: '🎤', requiresData: 'interview' },
       { id: 'flashcards', label: 'Flashcards', icon: '🃏', requiresData: 'flashcards' },
+      { id: 'sandbox', label: 'Code Sandbox', icon: '🧪', requiresData: 'sandbox' },
       { id: 'quiz', label: 'Quiz', icon: '📝' },
       { id: 'practice', label: 'Practice', icon: '🏋️' },
     ]
@@ -83,6 +85,7 @@ const sectionPropsMap = {
   challenge:    (d) => ({ challenge: d.challenge }),
   interview:    (d) => ({ interview: d.interview }),
   flashcards:   (d) => ({ flashcards: d.flashcards }),
+  sandbox:      (d) => ({ sandbox: d.sandbox }),
   solid:        (d) => ({ solidConnections: d.solidConnections }),
   lld:          (d) => ({ lldProblems: d.lldProblems }),
   web:          (d) => ({ patternWeb: d.patternWeb }),

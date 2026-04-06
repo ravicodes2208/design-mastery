@@ -1,57 +1,165 @@
 {
   "title": "Interview Prep",
-  "subtitle": "Walk through a real design scenario as you would in an interview",
+  "subtitle": "Simulate a real design interview. Write your answer, rate yourself, get scored.",
   "scenarios": [
     {
       "id": "notification-system",
       "title": "Design a Notification System",
-      "context": "You're in a system design interview. The interviewer says:",
+      "context": "You're in a system design interview at a tech company. The interviewer says:",
       "interviewerPrompt": "Design a notification system for an e-commerce platform. It needs to send emails, SMS, push notifications, and Slack messages. The system should be extensible — we plan to add WhatsApp, Telegram, and Teams soon. Walk me through your design.",
       "steps": [
         {
-          "id": "step-1",
+          "id": "ns-1",
           "phase": "Clarify Requirements",
           "interviewer": "What kinds of notifications does the system need to support?",
-          "goodAnswer": "Currently email, SMS, push, and Slack. You mentioned extensibility — so the design must make adding new channels trivial. I'll also ask: is this about the creation/routing of notifications, or the delivery infrastructure? I'll focus on the creation and routing layer.",
+          "goodAnswer": "Currently email, SMS, push, and Slack. You mentioned extensibility — so the design must make adding new channels trivial. I'll also ask: is this about the creation/routing of notifications, or the delivery infrastructure? I'll focus on the creation and routing layer. Also — should notifications support templates? Can a user receive the same notification on multiple channels simultaneously?",
           "keyInsight": "Always clarify scope. Factory pattern is about CREATION, not delivery.",
-          "redFlag": "Jumping straight to implementation without asking questions."
+          "redFlag": "Jumping straight to implementation without asking questions.",
+          "followUps": [
+            {
+              "probe": "Good question about scope. Yes, focus on creation/routing. And yes, multi-channel is needed.",
+              "strongResponse": "Perfect — multi-channel means I might need a Composite pattern alongside Factory. I'll keep that in mind as I design."
+            },
+            {
+              "probe": "How would you estimate the scale? Millions of notifications per day?",
+              "strongResponse": "Scale affects whether we need async processing (message queues), but the Factory pattern applies regardless. I'll design the creation layer clean, and it can sit behind a queue like SQS or Kafka for scale."
+            }
+          ]
         },
         {
-          "id": "step-2",
+          "id": "ns-2",
           "phase": "Identify the Pattern",
           "interviewer": "How would you structure the code so adding a new notification type doesn't require changing existing services?",
-          "goodAnswer": "This screams Factory pattern. Multiple services (OrderService, PaymentService, ShippingService) all need to create notifications. If each service creates them directly, adding WhatsApp means touching every service. I'd introduce a NotificationFactory that centralizes creation. Clients call factory.create(type) and get back a Notification interface.",
+          "goodAnswer": "This screams Factory pattern. Multiple services (OrderService, PaymentService, ShippingService) all need to create notifications. If each service creates them directly, adding WhatsApp means touching every service. I'd introduce a NotificationFactory that centralizes creation. Clients call factory.create(type) and get back a Notification interface. I'd specifically use the Registry variant — a Map<String, Supplier<Notification>> — so adding a new type is just one registration line, no switch modification.",
           "keyInsight": "Name the pattern explicitly. Interviewers love hearing 'This is the Factory pattern because...'",
-          "code": "interface Notification {\n    void send(String message, String recipient);\n    boolean validate();\n}\n\nclass NotificationFactory {\n    private static final Map<String, Supplier<Notification>> registry = new HashMap<>();\n\n    static { /* register known types */ }\n\n    public static Notification create(String type) {\n        return registry.get(type).get();\n    }\n}",
-          "redFlag": "Using if-else chains or creating notifications directly in services."
+          "code": "interface Notification {\n    void send(String message, String recipient);\n    boolean validate();\n    NotificationType getType();\n}\n\nclass NotificationFactory {\n    private static final Map<String, Supplier<Notification>> registry\n        = new HashMap<>();\n\n    static {\n        register(\"email\", EmailNotification::new);\n        register(\"sms\", SMSNotification::new);\n        register(\"push\", PushNotification::new);\n        register(\"slack\", SlackNotification::new);\n    }\n\n    public static void register(String type, Supplier<Notification> creator) {\n        registry.put(type.toLowerCase(), creator);\n    }\n\n    public static Notification create(String type) {\n        Supplier<Notification> creator = registry.get(type.toLowerCase());\n        if (creator == null)\n            throw new IllegalArgumentException(\n                \"Unknown: \" + type + \". Available: \" + registry.keySet());\n        return creator.get();\n    }\n}",
+          "redFlag": "Using if-else chains or creating notifications directly in services.",
+          "followUps": [
+            {
+              "probe": "Why Registry over a simple switch?",
+              "strongResponse": "Switch violates Open/Closed Principle — adding a type means modifying the Factory class. Registry is open for extension: call register() and you're done. In Spring, @Component auto-registration achieves this. It also enables runtime registration — plugins or external modules can register their own types."
+            },
+            {
+              "probe": "What if the Notification constructors need different parameters?",
+              "strongResponse": "Great edge case. If constructors vary, I'd use a Map<String, Function<Config, Notification>> instead of Supplier, where Config is a generic properties object. Or use a Builder pattern inside each concrete class. The Factory returns the interface — the constructor complexity is hidden inside."
+            }
+          ]
         },
         {
-          "id": "step-3",
+          "id": "ns-3",
           "phase": "Discuss Trade-offs",
-          "interviewer": "Why a Factory and not just dependency injection?",
-          "goodAnswer": "Great question. Factory is useful when the TYPE of object is decided at RUNTIME based on data (user preferences, config). DI is great when you know at startup time. In practice, I'd use BOTH: Spring DI injects the Factory, and the Factory creates the right notification based on runtime data. They're complementary, not competing.",
+          "interviewer": "Why a Factory and not just dependency injection? Isn't Spring enough?",
+          "goodAnswer": "Great question. They solve different problems. DI resolves dependencies at STARTUP time — Spring knows at boot which beans to wire. Factory resolves at RUNTIME based on dynamic data (user preference stored in DB, config from API call). In practice, I use BOTH: Spring DI injects the NotificationFactory bean into services, and the Factory creates the right notification based on runtime data. They're complementary layers, not competing approaches.",
           "keyInsight": "Showing you understand Factory + DI together is a senior-level signal.",
-          "redFlag": "Saying Factory replaces DI or vice versa."
+          "redFlag": "Saying Factory replaces DI or vice versa.",
+          "followUps": [
+            {
+              "probe": "Can you show me how Spring and Factory work together?",
+              "strongResponse": "@Service class OrderService { @Autowired NotificationFactory factory; void notify(String type, String msg) { factory.create(type).send(msg, recipient); } } — Spring injects the Factory, Factory creates per-request objects. Two layers, clean separation."
+            },
+            {
+              "probe": "When would you NOT use Factory?",
+              "strongResponse": "If there's only ONE concrete type and it won't grow, Factory is over-engineering. Also if the type is known at compile time, just use DI directly. Factory earns its keep when: (a) multiple types, (b) type chosen at runtime, (c) adding types should not touch existing code."
+            }
+          ]
         },
         {
-          "id": "step-4",
+          "id": "ns-4",
           "phase": "Handle Edge Cases",
-          "interviewer": "What happens when a notification type isn't registered? What about multi-channel notifications?",
-          "goodAnswer": "For unknown types: fail fast with a clear error message that includes available types. For multi-channel: the Factory creates individual notifications, and I'd add a CompositeNotification (Composite pattern) that holds a list and sends to all. Factory creates the composite: factory.createMulti(['email', 'sms']).",
-          "keyInsight": "Combining patterns (Factory + Composite) shows depth.",
-          "code": "class CompositeNotification implements Notification {\n    private final List<Notification> channels;\n\n    CompositeNotification(List<Notification> channels) {\n        this.channels = channels;\n    }\n\n    void send(String msg, String recipient) {\n        channels.forEach(ch -> ch.send(msg, recipient));\n    }\n}\n\n// Factory creates composites too:\nstatic Notification createMulti(List<String> types) {\n    List<Notification> channels = types.stream()\n        .map(NotificationFactory::create)\n        .toList();\n    return new CompositeNotification(channels);\n}",
-          "redFlag": "Not thinking about error handling or edge cases."
+          "interviewer": "What about multi-channel notifications? And error handling when a channel fails?",
+          "goodAnswer": "Multi-channel: I'd combine Factory with Composite pattern. A CompositeNotification holds a List<Notification> and sends to all. The Factory creates the composite: factory.createMulti(Arrays.asList('email', 'sms')). For error handling: each Notification.send() can throw, so I'd use a try-catch per channel in Composite — if email fails, SMS still sends. I'd also add a retry mechanism with exponential backoff, and a dead-letter queue for persistent failures.",
+          "keyInsight": "Combining patterns (Factory + Composite + Strategy for retry) shows depth.",
+          "code": "class CompositeNotification implements Notification {\n    private final List<Notification> channels;\n    private final RetryStrategy retry;  // Strategy pattern!\n\n    void send(String msg, String recipient) {\n        List<String> failures = new ArrayList<>();\n        for (Notification ch : channels) {\n            try {\n                retry.execute(() -> ch.send(msg, recipient));\n            } catch (Exception e) {\n                failures.add(ch.getType() + \": \" + e.getMessage());\n            }\n        }\n        if (!failures.isEmpty())\n            log.warn(\"Partial failure: \" + failures);\n    }\n}\n\n// Factory creates composites:\npublic static Notification createMulti(List<String> types) {\n    List<Notification> channels = types.stream()\n        .map(NotificationFactory::create)\n        .toList();\n    return new CompositeNotification(channels, new ExponentialBackoff());\n}",
+          "redFlag": "Not thinking about partial failures in multi-channel scenarios.",
+          "followUps": [
+            {
+              "probe": "What if we need guaranteed delivery — at-least-once semantics?",
+              "strongResponse": "Push notification creation to a message queue (SQS/Kafka). Each message = one notification intent. A consumer service picks up the message, uses Factory to create the notification, sends it, and only acknowledges on success. Failure = message stays in queue for retry. Dead-letter queue after N retries."
+            }
+          ]
         },
         {
-          "id": "step-5",
+          "id": "ns-5",
           "phase": "Scale & Evolution",
-          "interviewer": "How would this evolve if we need different notification behavior per region?",
-          "goodAnswer": "That's when I'd introduce Abstract Factory. Each region (India, US, EU) has its own compliance rules — different templates, different formatting, different legal disclaimers. I'd create a RegionalNotificationFactory interface with concrete factories per region. The checkout service gets the right factory based on the user's region. The family of notification + template + formatter varies together.",
+          "interviewer": "How would this evolve if we expand to India and need different notification templates per region?",
+          "goodAnswer": "That's when I level up from Simple Factory to Abstract Factory. Each region has compliance rules — India needs GST info on receipts, Hindi templates, ₹ formatting. US needs different legal disclaimers, English templates, $ formatting. The FAMILY of (notification template + formatter + compliance validator) must vary TOGETHER per region. I'd create a RegionalNotificationFactory interface with IndiaFactory and USFactory implementations. Each factory creates the full family. The checkout service gets the right factory based on user's region.",
           "keyInsight": "Showing the EVOLUTION from Simple Factory → Abstract Factory demonstrates mastery.",
-          "redFlag": "Not recognizing when to level up from Simple Factory to Abstract Factory."
+          "redFlag": "Not recognizing when to level up from Simple Factory to Abstract Factory.",
+          "followUps": [
+            {
+              "probe": "How do you decide at runtime which regional factory to use?",
+              "strongResponse": "A FactoryProducer (factory of factories) or a simple Map<Region, RegionalFactory>. In Spring, I'd use @ConditionalOnProperty or a @Configuration class that reads the region from user context and returns the right factory bean. The selection is at the edges — deep business logic never knows which region it's in."
+            }
+          ]
         }
       ],
-      "summary": "You demonstrated: pattern recognition, trade-off analysis, composition of patterns, error handling, and evolution from simple to abstract. That's a Strong Hire signal."
+      "summary": "You demonstrated: pattern recognition (Factory), variant selection (Registry), trade-off analysis (Factory vs DI), composition of patterns (Composite + Strategy for retry), error resilience, and evolution path (Simple → Abstract Factory). That's a Strong Hire signal."
+    },
+    {
+      "id": "document-export",
+      "title": "Design a Document Export System",
+      "context": "You're interviewing at a SaaS company. The interviewer presents a whiteboard scenario:",
+      "interviewerPrompt": "Our platform lets users create reports. Users need to export these reports as PDF, CSV, Excel, and HTML. Each format has different rendering logic, headers, and styling. We're adding PowerPoint and Markdown next quarter. Design the export system.",
+      "steps": [
+        {
+          "id": "de-1",
+          "phase": "Recognize the Pattern",
+          "interviewer": "What design approach would you take for the export system?",
+          "goodAnswer": "This is textbook Factory. We have a Product interface (Exporter), concrete implementations (PDFExporter, CSVExporter, ExcelExporter, HTMLExporter), and clients that need to create the right exporter based on user's format selection at runtime. I'd also note that each exporter might need different configuration — PDF needs page size and margins, CSV needs delimiter and encoding. So the Factory might need to accept a config object.",
+          "keyInsight": "Recognizing Factory even when the domain is different shows pattern thinking, not just memorization.",
+          "redFlag": "Proposing a giant switch statement in the controller.",
+          "followUps": [
+            {
+              "probe": "Some formats are much more complex than others. PDF needs a rendering engine, CSV is just string joining. How does that affect the design?",
+              "strongResponse": "Doesn't matter to the Factory. The Exporter interface is the same: export(Report, OutputStream). The COMPLEXITY lives inside each concrete class. PDFExporter might use Apache PDFBox internally, CSVExporter might use OpenCSV. The client and Factory don't know or care — that's the beauty of abstraction."
+            }
+          ]
+        },
+        {
+          "id": "de-2",
+          "phase": "Design the Interface",
+          "interviewer": "Show me the code structure.",
+          "goodAnswer": "I'll define the Exporter interface with lifecycle methods, a configuration object, and the Factory. Key insight: I'll make the interface rich enough that NO caller ever needs to downcast.",
+          "code": "interface Exporter {\n    void configure(ExportConfig config);  // margins, headers, etc.\n    byte[] export(Report report);          // the actual export\n    String getContentType();               // \"application/pdf\"\n    String getFileExtension();             // \".pdf\"\n}\n\nclass ExporterFactory {\n    private static final Map<String, Function<ExportConfig, Exporter>> registry\n        = new HashMap<>();\n\n    static {\n        register(\"pdf\",   cfg -> new PDFExporter(cfg));\n        register(\"csv\",   cfg -> new CSVExporter(cfg));\n        register(\"excel\", cfg -> new ExcelExporter(cfg));\n        register(\"html\",  cfg -> new HTMLExporter(cfg));\n    }\n\n    public static Exporter create(String format, ExportConfig config) {\n        var creator = registry.get(format.toLowerCase());\n        if (creator == null) throw new UnsupportedFormatException(format, registry.keySet());\n        return creator.apply(config);\n    }\n}",
+          "keyInsight": "A rich interface (contentType, fileExtension, configure) prevents downcasting. That's professional API design.",
+          "redFlag": "Creating an interface with only one method, then needing instanceof checks later.",
+          "followUps": [
+            {
+              "probe": "Why Function<ExportConfig, Exporter> instead of Supplier<Exporter>?",
+              "strongResponse": "Because exporters need configuration at creation time. PDF needs page size, CSV needs delimiter. Passing config to the factory method lets each exporter initialize properly. Supplier would mean creating an unconfigured object and calling configure() separately — that's temporal coupling."
+            }
+          ]
+        },
+        {
+          "id": "de-3",
+          "phase": "Handle Complexity",
+          "interviewer": "What if we need export presets? Like 'financial-pdf' with specific headers and legal footers?",
+          "goodAnswer": "I'd layer a Preset system on top of Factory. Presets are named configurations: a Map<String, ExportConfig>. The flow becomes: (1) resolve preset to config, (2) Factory creates exporter with that config. I could also use Decorator pattern — a LegalFooterDecorator wraps any Exporter and appends legal text. This way 'financial-pdf' = PDFExporter wrapped in LegalFooterDecorator wrapped in CompanyHeaderDecorator. The Factory assembles the decorator chain.",
+          "keyInsight": "Factory + Decorator = configurable pipeline. This is how real export systems work.",
+          "redFlag": "Hardcoding presets as separate classes (FinancialPDFExporter, MarketingCSVExporter, etc.)",
+          "followUps": [
+            {
+              "probe": "How many classes is too many? When does this become over-engineered?",
+              "strongResponse": "Rule of thumb: if you have 3+ formats and they're growing, Factory is right. If presets multiply (10+ presets), use configuration objects, not classes. If you only have PDF and CSV and nothing else is planned, a simple if-else in the controller is fine. Patterns earn their complexity — don't pay upfront for growth that may never come."
+            }
+          ]
+        },
+        {
+          "id": "de-4",
+          "phase": "Production Concerns",
+          "interviewer": "Any production considerations? This handles financial reports for compliance-regulated industries.",
+          "goodAnswer": "Several. (1) Audit trail — Factory should log which exporter was created, by whom, with what config. Decorator pattern for logging wrapping. (2) Exporter pooling — PDFExporter might be expensive to create (loading fonts). Factory can maintain a pool or use prototype pattern. (3) Async — large reports should export asynchronously. Factory creates the exporter, but execution happens in a worker thread with progress tracking. (4) Validation — Factory should validate the config before creating. Fail fast with clear error messages.",
+          "keyInsight": "Production-grade Factory = logging + pooling + validation + async awareness.",
+          "redFlag": "Ignoring non-functional requirements like audit trails and performance.",
+          "followUps": [
+            {
+              "probe": "How would you handle versioning? V1 PDF vs V2 PDF with a new layout?",
+              "strongResponse": "Version becomes part of the factory key: register('pdf-v1', ...) and register('pdf-v2', ...). Or a separate VersionedExporterFactory that delegates to the right sub-factory based on version. In Spring, use @Qualifier('pdf-v2'). The client specifies format + version, Factory resolves."
+            }
+          ]
+        }
+      ],
+      "summary": "You demonstrated: pattern application to a new domain, rich interface design, layered architecture (Factory + Decorator), production awareness (audit, pooling, async), and pragmatic engineering judgment on when NOT to use patterns."
     }
   ]
 }

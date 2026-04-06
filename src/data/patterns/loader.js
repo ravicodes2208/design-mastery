@@ -76,7 +76,8 @@ export async function loadPattern(patternId) {
     challenge,
     interview,
     realworld,
-    flashcards
+    flashcards,
+    sandbox
   ] = await Promise.all([
     loadJsonFile(patternId, 'hook.json'),
     loadJsonFile(patternId, 'triggers.json'),
@@ -95,7 +96,8 @@ export async function loadPattern(patternId) {
     loadJsonFile(patternId, 'challenge.json'),
     loadJsonFile(patternId, 'interview.json'),
     loadJsonFile(patternId, 'realworld.json'),
-    loadJsonFile(patternId, 'flashcards.json')
+    loadJsonFile(patternId, 'flashcards.json'),
+    loadJsonFile(patternId, 'sandbox.json')
   ])
 
   // Load all code files and assemble into the shape CodeWalkthrough expects:
@@ -168,6 +170,7 @@ export async function loadPattern(patternId) {
     interview,
     realworld,
     flashcards,
+    sandbox,
   }
 
   return result

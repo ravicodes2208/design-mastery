@@ -1,0 +1,158 @@
+{
+  "title": "Code Sandbox",
+  "subtitle": "Write, run, and experiment with Factory pattern code. Tests validate your implementation.",
+  "templates": [
+    {
+      "id": "simple-factory",
+      "label": "Simple Factory",
+      "icon": "🏭",
+      "description": "Build a NotificationFactory that creates Email, SMS, and Push notifications. Run the code to see it work, then try the experiments.",
+      "starterCode": {
+        "java": "// Simple Factory — Notification System\n// Edit this code, hit Run, and watch the tests pass!\n\ninterface Notification {\n    void send(String message);\n    String getType();\n}\n\nclass EmailNotification implements Notification {\n    public void send(String message) {\n        System.out.println(\"[EMAIL] Sending: \" + message);\n    }\n    public String getType() { return \"email\"; }\n}\n\nclass SMSNotification implements Notification {\n    public void send(String message) {\n        System.out.println(\"[SMS] Sending: \" + message);\n    }\n    public String getType() { return \"sms\"; }\n}\n\nclass PushNotification implements Notification {\n    public void send(String message) {\n        System.out.println(\"[PUSH] Sending: \" + message);\n    }\n    public String getType() { return \"push\"; }\n}\n\nclass NotificationFactory {\n    public static Notification create(String type) {\n        switch (type.toLowerCase()) {\n            case \"email\": return new EmailNotification();\n            case \"sms\":   return new SMSNotification();\n            case \"push\":  return new PushNotification();\n            default: throw new IllegalArgumentException(\"Unknown type: \" + type);\n        }\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // Test 1: Create each type\n        Notification email = NotificationFactory.create(\"email\");\n        Notification sms = NotificationFactory.create(\"sms\");\n        Notification push = NotificationFactory.create(\"push\");\n\n        // Test 2: Send messages\n        email.send(\"Order confirmed!\");\n        sms.send(\"Your OTP is 4829\");\n        push.send(\"Flash sale starts now!\");\n\n        // Test 3: Verify types\n        System.out.println(\"Type: \" + email.getType());\n        System.out.println(\"Type: \" + sms.getType());\n        System.out.println(\"Type: \" + push.getType());\n\n        System.out.println(\"ALL TESTS PASSED\");\n    }\n}"
+      },
+      "testCases": [
+        {
+          "name": "Email notification sends",
+          "description": "Factory creates EmailNotification that outputs [EMAIL]",
+          "expectedOutput": "[EMAIL] Sending: Order confirmed!"
+        },
+        {
+          "name": "SMS notification sends",
+          "description": "Factory creates SMSNotification that outputs [SMS]",
+          "expectedOutput": "[SMS] Sending: Your OTP is 4829"
+        },
+        {
+          "name": "Push notification sends",
+          "description": "Factory creates PushNotification that outputs [PUSH]",
+          "expectedOutput": "[PUSH] Sending: Flash sale starts now!"
+        },
+        {
+          "name": "Types are correct",
+          "description": "getType() returns the right string for each",
+          "expectedOutput": "ALL TESTS PASSED"
+        }
+      ],
+      "experiments": [
+        {
+          "icon": "📱",
+          "title": "Add WhatsApp",
+          "prompt": "Add a WhatsAppNotification class and register it in the Factory. How many files would you change?",
+          "hint": "Create class WhatsAppNotification implements Notification, add a case in the switch, and test with NotificationFactory.create(\"whatsapp\"). Answer: just 1 file (the Factory). That's the point!"
+        },
+        {
+          "icon": "💥",
+          "title": "Test Unknown Type",
+          "prompt": "What happens if you call NotificationFactory.create(\"telegram\")? Add a try-catch to handle it gracefully.",
+          "hint": "Wrap in try-catch(IllegalArgumentException e). The Factory should fail fast with a clear message telling you what types ARE available."
+        },
+        {
+          "icon": "🔧",
+          "title": "Convert to Registry",
+          "prompt": "Replace the switch statement with a Map<String, Supplier<Notification>>. Zero switch, zero if-else.",
+          "hint": "Use Map<String, Supplier<Notification>> registry = new HashMap<>(); and register() method. create() becomes: registry.get(type).get();"
+        }
+      ]
+    },
+    {
+      "id": "registry-factory",
+      "label": "Registry Pattern",
+      "icon": "📋",
+      "description": "Zero switch statements. A Map<String, Supplier> handles creation. Register types dynamically — even at runtime.",
+      "starterCode": {
+        "java": "// Registry Factory — Zero switch, zero if-else\nimport java.util.*;\nimport java.util.function.Supplier;\n\ninterface Notification {\n    void send(String message);\n    String getType();\n}\n\nclass EmailNotification implements Notification {\n    public void send(String message) {\n        System.out.println(\"[EMAIL] \" + message);\n    }\n    public String getType() { return \"email\"; }\n}\n\nclass SMSNotification implements Notification {\n    public void send(String message) {\n        System.out.println(\"[SMS] \" + message);\n    }\n    public String getType() { return \"sms\"; }\n}\n\nclass PushNotification implements Notification {\n    public void send(String message) {\n        System.out.println(\"[PUSH] \" + message);\n    }\n    public String getType() { return \"push\"; }\n}\n\nclass NotificationFactory {\n    private static final Map<String, Supplier<Notification>> registry\n        = new HashMap<>();\n\n    static {\n        register(\"email\", EmailNotification::new);\n        register(\"sms\", SMSNotification::new);\n        register(\"push\", PushNotification::new);\n    }\n\n    public static void register(String type, Supplier<Notification> creator) {\n        registry.put(type.toLowerCase(), creator);\n    }\n\n    public static Notification create(String type) {\n        Supplier<Notification> creator = registry.get(type.toLowerCase());\n        if (creator == null) {\n            throw new IllegalArgumentException(\n                \"Unknown type: \" + type + \". Available: \" + registry.keySet());\n        }\n        return creator.get();\n    }\n\n    public static Set<String> getRegisteredTypes() {\n        return Collections.unmodifiableSet(registry.keySet());\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // Test existing types\n        NotificationFactory.create(\"email\").send(\"Welcome!\");\n        NotificationFactory.create(\"sms\").send(\"OTP: 1234\");\n        NotificationFactory.create(\"push\").send(\"New message\");\n\n        // Show registered types\n        System.out.println(\"Registered: \" + NotificationFactory.getRegisteredTypes());\n\n        // RUNTIME registration — no Factory code changes!\n        NotificationFactory.register(\"whatsapp\", () -> new Notification() {\n            public void send(String msg) { System.out.println(\"[WHATSAPP] \" + msg); }\n            public String getType() { return \"whatsapp\"; }\n        });\n\n        NotificationFactory.create(\"whatsapp\").send(\"Runtime registration works!\");\n        System.out.println(\"After registration: \" + NotificationFactory.getRegisteredTypes());\n\n        System.out.println(\"REGISTRY TESTS PASSED\");\n    }\n}"
+      },
+      "testCases": [
+        {
+          "name": "Email via registry",
+          "description": "Registry creates and sends email",
+          "expectedOutput": "[EMAIL] Welcome!"
+        },
+        {
+          "name": "SMS via registry",
+          "description": "Registry creates and sends SMS",
+          "expectedOutput": "[SMS] OTP: 1234"
+        },
+        {
+          "name": "Runtime registration",
+          "description": "WhatsApp added at runtime without modifying Factory",
+          "expectedOutput": "[WHATSAPP] Runtime registration works!"
+        },
+        {
+          "name": "All tests pass",
+          "description": "Complete registry validation",
+          "expectedOutput": "REGISTRY TESTS PASSED"
+        }
+      ],
+      "experiments": [
+        {
+          "icon": "🔌",
+          "title": "Plugin System",
+          "prompt": "Imagine each Notification type is a JAR plugin. How would plugins register themselves? (Think: static initializer blocks)",
+          "hint": "Each plugin JAR has a class with: static { NotificationFactory.register(\"mytype\", MyNotification::new); } — Just adding the JAR to classpath registers it. Zero code changes. This is how JDBC drivers work!"
+        },
+        {
+          "icon": "🛡️",
+          "title": "Prevent Override",
+          "prompt": "What if someone calls register('email', MaliciousNotification::new)? Add protection against overwriting existing registrations.",
+          "hint": "Add: if (registry.containsKey(type)) throw new IllegalStateException(\"Type '\" + type + \"' already registered\"); Or use registry.putIfAbsent()."
+        }
+      ]
+    },
+    {
+      "id": "abstract-factory",
+      "label": "Abstract Factory",
+      "icon": "🏗️",
+      "description": "Create families of related objects. Regional compliance: India needs GST + ₹ + Hindi receipt. US needs Sales Tax + $ + English receipt. The family must vary TOGETHER.",
+      "starterCode": {
+        "java": "// Abstract Factory — Regional Compliance Families\nimport java.util.*;\n\n// Product interfaces — the FAMILY\ninterface TaxCalculator {\n    double calculate(double amount);\n    String getDescription();\n}\n\ninterface CurrencyFormatter {\n    String format(double amount);\n}\n\ninterface ReceiptGenerator {\n    String generate(List<String> items, double total, double tax);\n}\n\n// India family\nclass GSTCalculator implements TaxCalculator {\n    public double calculate(double amount) { return amount * 0.18; }\n    public String getDescription() { return \"GST 18%\"; }\n}\n\nclass RupeeFormatter implements CurrencyFormatter {\n    public String format(double amount) {\n        return String.format(\"Rs. %.2f\", amount);\n    }\n}\n\nclass IndiaReceiptGenerator implements ReceiptGenerator {\n    public String generate(List<String> items, double total, double tax) {\n        return \"=== INDIAN TAX INVOICE ===\\n\"\n            + \"Items: \" + items + \"\\n\"\n            + \"Subtotal: Rs. \" + String.format(\"%.2f\", total) + \"\\n\"\n            + \"GST (18%): Rs. \" + String.format(\"%.2f\", tax) + \"\\n\"\n            + \"Total: Rs. \" + String.format(\"%.2f\", total + tax) + \"\\n\"\n            + \"GSTIN: 27AABCU9603R1ZJ\";\n    }\n}\n\n// US family\nclass SalesTaxCalculator implements TaxCalculator {\n    public double calculate(double amount) { return amount * 0.0825; }\n    public String getDescription() { return \"Sales Tax 8.25%\"; }\n}\n\nclass DollarFormatter implements CurrencyFormatter {\n    public String format(double amount) {\n        return String.format(\"$%.2f\", amount);\n    }\n}\n\nclass USReceiptGenerator implements ReceiptGenerator {\n    public String generate(List<String> items, double total, double tax) {\n        return \"=== US RECEIPT ===\\n\"\n            + \"Items: \" + items + \"\\n\"\n            + \"Subtotal: $\" + String.format(\"%.2f\", total) + \"\\n\"\n            + \"Tax (8.25%): $\" + String.format(\"%.2f\", tax) + \"\\n\"\n            + \"Total: $\" + String.format(\"%.2f\", total + tax);\n    }\n}\n\n// Abstract Factory\ninterface RegionalComplianceFactory {\n    TaxCalculator createTaxCalculator();\n    CurrencyFormatter createCurrencyFormatter();\n    ReceiptGenerator createReceiptGenerator();\n}\n\nclass IndiaComplianceFactory implements RegionalComplianceFactory {\n    public TaxCalculator createTaxCalculator() { return new GSTCalculator(); }\n    public CurrencyFormatter createCurrencyFormatter() { return new RupeeFormatter(); }\n    public ReceiptGenerator createReceiptGenerator() { return new IndiaReceiptGenerator(); }\n}\n\nclass USComplianceFactory implements RegionalComplianceFactory {\n    public TaxCalculator createTaxCalculator() { return new SalesTaxCalculator(); }\n    public CurrencyFormatter createCurrencyFormatter() { return new DollarFormatter(); }\n    public ReceiptGenerator createReceiptGenerator() { return new USReceiptGenerator(); }\n}\n\n// Client — knows NOTHING about India or US\nclass CheckoutService {\n    private final TaxCalculator tax;\n    private final CurrencyFormatter currency;\n    private final ReceiptGenerator receipt;\n\n    CheckoutService(RegionalComplianceFactory factory) {\n        this.tax = factory.createTaxCalculator();\n        this.currency = factory.createCurrencyFormatter();\n        this.receipt = factory.createReceiptGenerator();\n    }\n\n    void checkout(List<String> items, double subtotal) {\n        double taxAmount = tax.calculate(subtotal);\n        String total = currency.format(subtotal + taxAmount);\n        System.out.println(receipt.generate(items, subtotal, taxAmount));\n        System.out.println(\"Charged: \" + total);\n        System.out.println(\"Tax type: \" + tax.getDescription());\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        List<String> items = Arrays.asList(\"Laptop\", \"Mouse\", \"Keyboard\");\n\n        System.out.println(\"--- INDIA ORDER ---\");\n        CheckoutService indiaCheckout = new CheckoutService(new IndiaComplianceFactory());\n        indiaCheckout.checkout(items, 1000.00);\n\n        System.out.println();\n\n        System.out.println(\"--- US ORDER ---\");\n        CheckoutService usCheckout = new CheckoutService(new USComplianceFactory());\n        usCheckout.checkout(items, 1000.00);\n\n        System.out.println(\"\\nABSTRACT FACTORY TESTS PASSED\");\n    }\n}"
+      },
+      "testCases": [
+        {
+          "name": "India uses GST",
+          "description": "India checkout applies 18% GST",
+          "expectedOutput": "GST (18%): Rs. 180.00"
+        },
+        {
+          "name": "India uses Rupee",
+          "description": "India formats in Rupees",
+          "expectedOutput": "Charged: Rs. 1180.00"
+        },
+        {
+          "name": "US uses Sales Tax",
+          "description": "US checkout applies 8.25% tax",
+          "expectedOutput": "Tax (8.25%): $82.50"
+        },
+        {
+          "name": "US uses Dollar",
+          "description": "US formats in Dollars",
+          "expectedOutput": "Charged: $1082.50"
+        },
+        {
+          "name": "All tests pass",
+          "description": "Both regional families work correctly",
+          "expectedOutput": "ABSTRACT FACTORY TESTS PASSED"
+        }
+      ],
+      "experiments": [
+        {
+          "icon": "🇪🇺",
+          "title": "Add EU Region",
+          "prompt": "Add EUComplianceFactory with 20% VAT, Euro formatter (€), and EU receipt with VAT number. How many existing classes change?",
+          "hint": "Create 3 new concrete products (VATCalculator, EuroFormatter, EUReceiptGenerator) + 1 new factory (EUComplianceFactory). ZERO existing classes change. That's Abstract Factory's superpower."
+        },
+        {
+          "icon": "🔀",
+          "title": "Mix Families (Bug!)",
+          "prompt": "What happens if you accidentally use GSTCalculator with DollarFormatter? Why is this dangerous?",
+          "hint": "You'd show GST tax in dollars — legally wrong! Abstract Factory PREVENTS this by only creating matching families. You can't get an India tax calculator from a US factory."
+        },
+        {
+          "icon": "🏭",
+          "title": "Factory of Factories",
+          "prompt": "Add a static method: RegionalComplianceFactory getFactory(String region) that returns the right factory based on 'india' or 'us'.",
+          "hint": "Use a Map<String, Supplier<RegionalComplianceFactory>> — yes, it's a Factory for Factories! This is common in real systems. Spring does this with @Profile."
+        }
+      ]
+    }
+  ]
+}
