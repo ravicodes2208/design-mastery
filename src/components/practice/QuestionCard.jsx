@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { ChevronDown, ChevronUp, Lightbulb, Eye, EyeOff, Tag } from 'lucide-react'
-import CodeBlock from '../content/CodeBlock'
+import { useState, lazy, Suspense } from 'react'
+import { ChevronDown, ChevronUp, Lightbulb, Eye, EyeOff, Tag, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
+
+// Lazy-load InteractiveEditor since it pulls in Monaco (~2MB)
+const InteractiveEditor = lazy(() => import('../pattern/InteractiveEditor'))
 
 const difficultyColors = {
   basic: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -9,10 +11,21 @@ const difficultyColors = {
   advanced: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
 }
 
+const languages = [
+  { id: 'java', label: 'Java', color: 'bg-java' },
+  { id: 'cpp', label: 'C++', color: 'bg-cpp' },
+  { id: 'kotlin', label: 'Kotlin', color: 'bg-purple-600' }
+]
+
+const langLabel = { java: 'Java', cpp: 'C++', kotlin: 'Kotlin' }
+
 function QuestionCard({ question }) {
   const [showHints, setShowHints] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
-  const [solutionLanguage, setSolutionLanguage] = useState('cpp')
+  const [solutionLanguage, setSolutionLanguage] = useState('java')
+
+  // Figure out which languages have solutions
+  const availableLangs = languages.filter(l => question.solutions?.[l.id])
 
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
@@ -71,7 +84,7 @@ function QuestionCard({ question }) {
                   className="flex gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
                 >
                   <span className="text-yellow-600 dark:text-yellow-400 text-sm font-medium">
-                    💡 Hint {index + 1}:
+                    Hint {index + 1}:
                   </span>
                   <span className="text-sm text-yellow-800 dark:text-yellow-300">
                     {hint}
@@ -108,37 +121,41 @@ function QuestionCard({ question }) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">Solution in:</span>
               <div className="flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
-                <button
-                  onClick={() => setSolutionLanguage('cpp')}
-                  className={clsx(
-                    'px-3 py-1 text-sm rounded-md transition-colors',
-                    solutionLanguage === 'cpp'
-                      ? 'bg-cpp text-white'
-                      : 'text-gray-600 dark:text-gray-400'
-                  )}
-                >
-                  C++
-                </button>
-                <button
-                  onClick={() => setSolutionLanguage('java')}
-                  className={clsx(
-                    'px-3 py-1 text-sm rounded-md transition-colors',
-                    solutionLanguage === 'java'
-                      ? 'bg-java text-white'
-                      : 'text-gray-600 dark:text-gray-400'
-                  )}
-                >
-                  Java
-                </button>
+                {availableLangs.map((lang) => (
+                  <button
+                    key={lang.id}
+                    onClick={() => setSolutionLanguage(lang.id)}
+                    className={clsx(
+                      'px-3 py-1 text-sm rounded-md transition-colors font-medium',
+                      solutionLanguage === lang.id
+                        ? `${lang.color} text-white`
+                        : 'text-gray-600 dark:text-gray-400'
+                    )}
+                  >
+                    {lang.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Code Solution */}
-            <CodeBlock
-              code={question.solutions[solutionLanguage]}
-              language={solutionLanguage}
-              title={`${solutionLanguage === 'cpp' ? 'C++' : 'Java'} Solution`}
-            />
+            {/* Interactive Code Editor */}
+            {question.solutions[solutionLanguage] && (
+              <Suspense
+                fallback={
+                  <div className="h-[300px] flex items-center justify-center bg-gray-900 rounded-lg text-gray-400 text-sm">
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    Loading editor...
+                  </div>
+                }
+              >
+                <InteractiveEditor
+                  key={`${question.id}-${solutionLanguage}`}
+                  code={question.solutions[solutionLanguage]}
+                  language={solutionLanguage}
+                  title={`${langLabel[solutionLanguage]} Solution`}
+                />
+              </Suspense>
+            )}
           </div>
         )}
       </div>
