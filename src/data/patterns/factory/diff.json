@@ -1,0 +1,83 @@
+{
+  "title": "Before vs After",
+  "subtitle": "See exactly what changes when you apply Factory Pattern",
+  "scenarios": [
+    {
+      "id": "scattered-creation",
+      "title": "Object Creation — Scattered vs Centralized",
+      "description": "Every service creates notifications directly. Adding WhatsApp means touching ALL services.",
+      "before": {
+        "label": "Scattered Creation (5 services, same if-else)",
+        "language": "java",
+        "highlights": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "code": "class OrderService {\n    void placeOrder(Order order) {\n        // Notification creation DUPLICATED in every service\n        Notification n;\n        if (type.equals(\"email\"))\n            n = new EmailNotification();\n        else if (type.equals(\"sms\"))\n            n = new SMSNotification();\n        else if (type.equals(\"push\"))\n            n = new PushNotification();\n        // Add WhatsApp? Change THIS file + 4 more\n        n.send(order.getMessage());\n    }\n}\n\n// Same if-else in PaymentService, ShippingService,\n// ReturnService, InventoryService... 5 files!"
+      },
+      "after": {
+        "label": "Factory — One Place, One Change",
+        "language": "java",
+        "highlights": [
+          3,
+          4
+        ],
+        "code": "class OrderService {\n    void placeOrder(Order order) {\n        // One line. No if-else. No concrete classes.\n        Notification n = NotificationFactory.create(type);\n        n.send(order.getMessage());\n    }\n}\n\n// Add WhatsApp? Change ONLY the Factory.\n// Zero changes to OrderService, PaymentService, etc."
+      },
+      "insight": "5 files → 1 file. The Factory absorbs ALL creation complexity."
+    },
+    {
+      "id": "constructor-coupling",
+      "title": "Constructor Coupling — Direct vs Decoupled",
+      "description": "Client knows every constructor signature. Constructor changes = cascade of breakage.",
+      "before": {
+        "label": "Direct Constructor Coupling",
+        "language": "java",
+        "highlights": [
+          3,
+          6,
+          9
+        ],
+        "code": "class ReportGenerator {\n    void generate(String format) {\n        // Client KNOWS every constructor signature\n        if (format.equals(\"pdf\"))\n            return new PDFExporter(\"A4\", 300, true);\n        // DPI changed from int to enum? BREAK\n        else if (format.equals(\"csv\"))\n            return new CSVExporter(\",\", \"UTF-8\", true);\n        // Encoding param added? BREAK\n        else if (format.equals(\"excel\"))\n            return new ExcelExporter(\".xlsx\", true, 5);\n        // Max sheets param added? BREAK\n    }\n}"
+      },
+      "after": {
+        "label": "Factory Hides Constructor Details",
+        "language": "java",
+        "highlights": [
+          3
+        ],
+        "code": "class ReportGenerator {\n    void generate(String format) {\n        // Client knows NOTHING about constructors\n        Exporter exporter = ExporterFactory.create(format);\n        exporter.export(data);\n    }\n}\n\n// Constructor signature changed? Only Factory changes.\n// New format added? Only Factory changes.\n// Client code: ZERO changes. Ever."
+      },
+      "insight": "Constructor details are an IMPLEMENTATION SECRET. Factory keeps that secret."
+    },
+    {
+      "id": "testing-isolation",
+      "title": "Testing — Untestable vs Mockable",
+      "description": "Direct instantiation makes unit testing impossible. Factory enables mock injection.",
+      "before": {
+        "label": "Untestable — Hardcoded Dependencies",
+        "language": "java",
+        "highlights": [
+          4,
+          5
+        ],
+        "code": "class PaymentService {\n    void process(Payment payment) {\n        // HARDCODED. In tests, this hits REAL payment gateway\n        PaymentGateway gateway = new StripeGateway(apiKey);\n        gateway.charge(payment.getAmount());\n        // Can't mock. Can't isolate. Can't unit test.\n        // Tests are slow (network), flaky, and expensive.\n    }\n}\n\n// \"But I can use PowerMock!\" — No. That's a code smell detector,\n// not a solution. If you need PowerMock, your design is wrong."
+      },
+      "after": {
+        "label": "Testable — Factory + Interface Injection",
+        "language": "java",
+        "highlights": [
+          2,
+          3,
+          4
+        ],
+        "code": "class PaymentService {\n    private final PaymentGateway gateway;\n\n    // Factory creates the right gateway; tests inject mock\n    PaymentService(PaymentGateway gateway) {\n        this.gateway = gateway;\n    }\n\n    void process(Payment payment) {\n        gateway.charge(payment.getAmount());\n    }\n}\n\n// Test: new PaymentService(new MockGateway()) ← instant, no network\n// Prod: new PaymentService(GatewayFactory.create(\"stripe\"))"
+      },
+      "insight": "Factory doesn't just organize creation — it makes your code TESTABLE."
+    }
+  ]
+}

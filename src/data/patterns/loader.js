@@ -1,3 +1,5 @@
+
+
 /**
  * Pattern Data Loader
  *
@@ -67,7 +69,14 @@ export async function loadPattern(patternId) {
     cheatSheetData,
     practiceQuestions,
     deepThoughtQuestions,
-    explanation
+    explanation,
+    diff,
+    evolution,
+    diagrams,
+    challenge,
+    interview,
+    realworld,
+    flashcards
   ] = await Promise.all([
     loadJsonFile(patternId, 'hook.json'),
     loadJsonFile(patternId, 'triggers.json'),
@@ -79,7 +88,14 @@ export async function loadPattern(patternId) {
     loadJsonFile(patternId, 'cheat-sheet.json'),
     loadJsonFile(patternId, 'practice.json'),
     loadJsonFile(patternId, 'deep-thoughts.json'),
-    loadJsonFile(patternId, 'explanation.json')
+    loadJsonFile(patternId, 'explanation.json'),
+    loadJsonFile(patternId, 'diff.json'),
+    loadJsonFile(patternId, 'evolution.json'),
+    loadJsonFile(patternId, 'diagrams.json'),
+    loadJsonFile(patternId, 'challenge.json'),
+    loadJsonFile(patternId, 'interview.json'),
+    loadJsonFile(patternId, 'realworld.json'),
+    loadJsonFile(patternId, 'flashcards.json')
   ])
 
   // Load all code files and assemble into the shape CodeWalkthrough expects:
@@ -144,6 +160,14 @@ export async function loadPattern(patternId) {
     codeImplementation: codeImplementations['simple'] || null,
     codeFactoryMethod: codeImplementations['factory-method'] || null,
     codeAbstractFactory: codeImplementations['abstract-factory'] || null,
+    // New interactive features
+    diff,
+    evolution,
+    diagrams,
+    challenge,
+    interview,
+    realworld,
+    flashcards,
   }
 
   return result

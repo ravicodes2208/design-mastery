@@ -28,3 +28,6 @@ bin/
 
 ### Mac OS ###
 .DS_Storelearning-platform/
+
+node_modules/
+learning-platform/

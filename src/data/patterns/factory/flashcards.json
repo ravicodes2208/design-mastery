@@ -1,0 +1,136 @@
+{
+  "title": "Flashcards",
+  "subtitle": "Spaced repetition for long-term retention",
+  "decks": [
+    {
+      "id": "core-concepts",
+      "title": "Core Concepts",
+      "icon": "🎯",
+      "cards": [
+        {
+          "id": "fc-1",
+          "front": "What is the ONE sentence definition of Factory Pattern?",
+          "back": "Move object creation into a dedicated place so clients don't know which concrete class is instantiated.",
+          "difficulty": "easy"
+        },
+        {
+          "id": "fc-2",
+          "front": "What are the 3 flavors of Factory?",
+          "back": "1. Simple Factory — separate class with switch/if-else\n2. Registry — Map<Type, Supplier> (zero if-else)\n3. Factory Method — abstract method in base class, subclasses override",
+          "difficulty": "easy"
+        },
+        {
+          "id": "fc-3",
+          "front": "When should you use Simple Factory vs Factory Method?",
+          "back": "Simple Factory: when ONE place decides (80% of cases). Factory Method: when SUBCLASSES need to decide what to create — the creator is polymorphic.",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-4",
+          "front": "What triggers Abstract Factory? (vs Simple Factory)",
+          "back": "When objects form a FAMILY that must vary TOGETHER. Tax + Receipt + Currency per region. Simple Factory creates ONE product, Abstract Factory creates a FAMILY.",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-5",
+          "front": "How does Factory enable testability?",
+          "back": "Factory creates via interface → in tests, inject mock factory that returns stub objects. No real network calls, no real databases. Instant, isolated unit tests.",
+          "difficulty": "medium"
+        }
+      ]
+    },
+    {
+      "id": "brain-triggers",
+      "title": "Pattern Recognition",
+      "icon": "🧠",
+      "cards": [
+        {
+          "id": "fc-6",
+          "front": "You see 'new ConcreteClass()' in 5 different service files. Pattern?",
+          "back": "Factory (Simple). Centralize creation so adding new types = ONE file change.",
+          "difficulty": "easy"
+        },
+        {
+          "id": "fc-7",
+          "front": "A base class defines an algorithm but defers object creation to subclasses. Pattern?",
+          "back": "Factory Method. The base class has a template method that calls an abstract createX() method. Subclasses override createX() to return their specific product.",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-8",
+          "front": "Indian orders need GST + ₹ formatter + Indian receipt. US orders need Sales Tax + $ formatter + US receipt. Pattern?",
+          "back": "Abstract Factory. The family (tax + formatter + receipt) must vary TOGETHER per region. One factory per region creates the whole family.",
+          "difficulty": "hard"
+        },
+        {
+          "id": "fc-9",
+          "front": "switch(type) { case A: return new A(); case B: return new B(); ... } — How to eliminate the switch?",
+          "back": "Registry pattern: Map<String, Supplier<Product>>. Register creators in a map, create() becomes map.get(type).get(). Adding type = adding one registration line.",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-10",
+          "front": "You need to create objects at RUNTIME based on user input or config. Is DI enough?",
+          "back": "No. DI resolves at STARTUP. Factory resolves at RUNTIME. Use BOTH: DI injects the Factory bean, Factory creates the right object based on runtime data.",
+          "difficulty": "hard"
+        }
+      ]
+    },
+    {
+      "id": "anti-patterns",
+      "title": "Anti-Patterns & Traps",
+      "icon": "⚠️",
+      "cards": [
+        {
+          "id": "fc-11",
+          "front": "What is a 'God Factory' anti-pattern?",
+          "back": "A Factory that creates EVERYTHING — notifications, payments, users, orders. It becomes a 2000-line switch statement. Fix: one Factory per product family (SRP).",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-12",
+          "front": "What's wrong with Factory Method when you only have one creator?",
+          "back": "Over-engineering. If there's only ONE subclass, there's no polymorphism. Use Simple Factory instead. Factory Method shines with 3+ subclasses that need different creation logic.",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-13",
+          "front": "Client calls factory.create() then immediately casts to concrete type. Is this OK?",
+          "back": "NO. This defeats the purpose. If client knows the concrete type, it doesn't need a factory. Fix: make the interface rich enough that casting is never needed.",
+          "difficulty": "hard"
+        },
+        {
+          "id": "fc-14",
+          "front": "Abstract Factory where one factory creates unrelated objects (User + Payment + Logger). Is this right?",
+          "back": "NO. Abstract Factory is for objects that form a FAMILY — they MUST be used together. User, Payment, Logger are independent. Use separate Simple Factories.",
+          "difficulty": "hard"
+        }
+      ]
+    },
+    {
+      "id": "solid-connections",
+      "title": "SOLID Connections",
+      "icon": "🔗",
+      "cards": [
+        {
+          "id": "fc-15",
+          "front": "How does Factory relate to SRP (Single Responsibility)?",
+          "back": "Factory extracts creation responsibility OUT of business services. OrderService's job is processing orders, not creating notifications. Factory gives creation its own class.",
+          "difficulty": "easy"
+        },
+        {
+          "id": "fc-16",
+          "front": "How does Registry pattern satisfy OCP (Open/Closed)?",
+          "back": "Adding new type = register() call. NO modification to Factory class. The class is CLOSED for modification but OPEN for extension via registration.",
+          "difficulty": "medium"
+        },
+        {
+          "id": "fc-17",
+          "front": "How does Factory relate to DIP (Dependency Inversion)?",
+          "back": "Client depends on Notification interface, not EmailNotification class. High-level modules (services) depend on abstractions (interfaces), not low-level modules (concrete classes).",
+          "difficulty": "medium"
+        }
+      ]
+    }
+  ]
+}

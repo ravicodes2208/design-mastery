@@ -1,0 +1,67 @@
+{
+  "title": "Real-World Gallery",
+  "subtitle": "Factory pattern in production code you use every day",
+  "examples": [
+    {
+      "id": "java-calendar",
+      "title": "Java Calendar.getInstance()",
+      "source": "java.util.Calendar",
+      "sourceUrl": "https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html",
+      "icon": "☕",
+      "category": "JDK",
+      "description": "Returns a GregorianCalendar, JapaneseImperialCalendar, or BuddhistCalendar based on locale. You never call 'new GregorianCalendar()' directly.",
+      "code": "// You write this:\nCalendar cal = Calendar.getInstance();          // default locale\nCalendar jpCal = Calendar.getInstance(japan);   // Japanese locale\n\n// Under the hood, Calendar.getInstance() is a Factory:\n// - Locale is Japan → JapaneseImperialCalendar\n// - Locale is Thailand → BuddhistCalendar\n// - Everything else → GregorianCalendar\n\n// You never know (or care) which concrete class you got.",
+      "lesson": "Even the JDK uses Factory to hide which Calendar implementation you get."
+    },
+    {
+      "id": "java-number-format",
+      "title": "NumberFormat.getInstance()",
+      "source": "java.text.NumberFormat",
+      "icon": "🔢",
+      "category": "JDK",
+      "description": "Returns DecimalFormat, CompactNumberFormat, or other formatters based on locale and style. Same Factory pattern.",
+      "code": "// Factory decides the formatter based on locale + style\nNumberFormat nf = NumberFormat.getCurrencyInstance(Locale.US);\nSystem.out.println(nf.format(1234.56)); // $1,234.56\n\nNumberFormat inr = NumberFormat.getCurrencyInstance(new Locale(\"en\", \"IN\"));\nSystem.out.println(inr.format(1234.56)); // ₹1,234.56\n\n// Same interface, different behavior based on creation input.\n// This IS the Factory pattern.",
+      "lesson": "Factory + Locale = automatic regional behavior without if-else."
+    },
+    {
+      "id": "spring-bean-factory",
+      "title": "Spring BeanFactory & ApplicationContext",
+      "source": "org.springframework.beans.factory.BeanFactory",
+      "icon": "🌱",
+      "category": "Framework",
+      "description": "Spring's entire IoC container IS a massive Factory. getBean() is create(). @Component is registration. Autowiring is injection.",
+      "code": "// Spring's BeanFactory IS a Factory pattern:\nApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);\n\n// getBean() = Factory.create()\nPaymentService svc = ctx.getBean(PaymentService.class);\n\n// Behind the scenes:\n// 1. Spring scans @Component classes (registration)\n// 2. Creates instances (factory creation)\n// 3. Injects dependencies (wiring)\n// 4. Returns the configured bean\n\n// Your @Service, @Repository, @Controller?\n// All managed by Spring's Factory.",
+      "lesson": "If you've used Spring, you've used Factory pattern every day."
+    },
+    {
+      "id": "slf4j-logger",
+      "title": "SLF4J LoggerFactory",
+      "source": "org.slf4j.LoggerFactory",
+      "icon": "📝",
+      "category": "Library",
+      "description": "LoggerFactory.getLogger() returns Logback, Log4j2, or JUL logger based on classpath. Classic Factory.",
+      "code": "// You write:\nLogger log = LoggerFactory.getLogger(MyService.class);\n\n// SLF4J discovers which logging framework is on classpath:\n// - Logback present → LogbackLogger\n// - Log4j2 present → Log4j2Logger\n// - Neither → JUL (java.util.logging)\n\n// You code against SLF4J interface.\n// Swap Logback for Log4j2? Change POM, not code.\n// This is Factory pattern providing RUNTIME flexibility.",
+      "lesson": "Factory enables framework-agnostic code. Your app doesn't know which logger it uses."
+    },
+    {
+      "id": "jdbc-driver",
+      "title": "JDBC DriverManager",
+      "source": "java.sql.DriverManager",
+      "icon": "🗄️",
+      "category": "JDK",
+      "description": "DriverManager.getConnection() returns MySQL, PostgreSQL, or Oracle connection based on URL. Pure Factory with Registry pattern.",
+      "code": "// Factory + Registry in the JDK itself\nConnection conn = DriverManager.getConnection(\n    \"jdbc:mysql://localhost:3306/mydb\", \"user\", \"pass\"\n);\n\n// How it works:\n// 1. MySQL driver JAR registers itself: DriverManager.registerDriver(new MySQLDriver())\n// 2. PostgreSQL driver JAR registers itself: DriverManager.registerDriver(new PGDriver())\n// 3. getConnection() iterates registered drivers\n// 4. First driver that accepts the URL creates the Connection\n\n// This is the REGISTRY PATTERN inside the JDK.\n// Adding a new database = add JAR to classpath. Zero code changes.",
+      "lesson": "JDBC DriverManager is a Registry-based Factory. Add a JAR = new database support."
+    },
+    {
+      "id": "react-create-element",
+      "title": "React.createElement()",
+      "source": "react",
+      "icon": "⚛️",
+      "category": "Frontend",
+      "description": "JSX compiles to React.createElement(). React decides whether to create a DOM element, function component, or class component. Factory pattern in the frontend.",
+      "code": "// JSX:\n<Button onClick={handleClick}>Submit</Button>\n\n// Compiles to:\nReact.createElement(Button, { onClick: handleClick }, \"Submit\")\n\n// React.createElement IS a Factory:\n// - String tag (\"div\") → creates DOM element\n// - Function → calls it as function component\n// - Class → instantiates with new + calls render()\n// - Fragment → creates fragment container\n\n// You never call new DOMElement() or new FunctionComponent()\n// React's createElement Factory decides what to create.",
+      "lesson": "Even React's JSX is Factory pattern. createElement() is the ultimate frontend Factory."
+    }
+  ]
+}

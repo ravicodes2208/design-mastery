@@ -1,0 +1,57 @@
+{
+  "title": "Interview Prep",
+  "subtitle": "Walk through a real design scenario as you would in an interview",
+  "scenarios": [
+    {
+      "id": "notification-system",
+      "title": "Design a Notification System",
+      "context": "You're in a system design interview. The interviewer says:",
+      "interviewerPrompt": "Design a notification system for an e-commerce platform. It needs to send emails, SMS, push notifications, and Slack messages. The system should be extensible — we plan to add WhatsApp, Telegram, and Teams soon. Walk me through your design.",
+      "steps": [
+        {
+          "id": "step-1",
+          "phase": "Clarify Requirements",
+          "interviewer": "What kinds of notifications does the system need to support?",
+          "goodAnswer": "Currently email, SMS, push, and Slack. You mentioned extensibility — so the design must make adding new channels trivial. I'll also ask: is this about the creation/routing of notifications, or the delivery infrastructure? I'll focus on the creation and routing layer.",
+          "keyInsight": "Always clarify scope. Factory pattern is about CREATION, not delivery.",
+          "redFlag": "Jumping straight to implementation without asking questions."
+        },
+        {
+          "id": "step-2",
+          "phase": "Identify the Pattern",
+          "interviewer": "How would you structure the code so adding a new notification type doesn't require changing existing services?",
+          "goodAnswer": "This screams Factory pattern. Multiple services (OrderService, PaymentService, ShippingService) all need to create notifications. If each service creates them directly, adding WhatsApp means touching every service. I'd introduce a NotificationFactory that centralizes creation. Clients call factory.create(type) and get back a Notification interface.",
+          "keyInsight": "Name the pattern explicitly. Interviewers love hearing 'This is the Factory pattern because...'",
+          "code": "interface Notification {\n    void send(String message, String recipient);\n    boolean validate();\n}\n\nclass NotificationFactory {\n    private static final Map<String, Supplier<Notification>> registry = new HashMap<>();\n\n    static { /* register known types */ }\n\n    public static Notification create(String type) {\n        return registry.get(type).get();\n    }\n}",
+          "redFlag": "Using if-else chains or creating notifications directly in services."
+        },
+        {
+          "id": "step-3",
+          "phase": "Discuss Trade-offs",
+          "interviewer": "Why a Factory and not just dependency injection?",
+          "goodAnswer": "Great question. Factory is useful when the TYPE of object is decided at RUNTIME based on data (user preferences, config). DI is great when you know at startup time. In practice, I'd use BOTH: Spring DI injects the Factory, and the Factory creates the right notification based on runtime data. They're complementary, not competing.",
+          "keyInsight": "Showing you understand Factory + DI together is a senior-level signal.",
+          "redFlag": "Saying Factory replaces DI or vice versa."
+        },
+        {
+          "id": "step-4",
+          "phase": "Handle Edge Cases",
+          "interviewer": "What happens when a notification type isn't registered? What about multi-channel notifications?",
+          "goodAnswer": "For unknown types: fail fast with a clear error message that includes available types. For multi-channel: the Factory creates individual notifications, and I'd add a CompositeNotification (Composite pattern) that holds a list and sends to all. Factory creates the composite: factory.createMulti(['email', 'sms']).",
+          "keyInsight": "Combining patterns (Factory + Composite) shows depth.",
+          "code": "class CompositeNotification implements Notification {\n    private final List<Notification> channels;\n\n    CompositeNotification(List<Notification> channels) {\n        this.channels = channels;\n    }\n\n    void send(String msg, String recipient) {\n        channels.forEach(ch -> ch.send(msg, recipient));\n    }\n}\n\n// Factory creates composites too:\nstatic Notification createMulti(List<String> types) {\n    List<Notification> channels = types.stream()\n        .map(NotificationFactory::create)\n        .toList();\n    return new CompositeNotification(channels);\n}",
+          "redFlag": "Not thinking about error handling or edge cases."
+        },
+        {
+          "id": "step-5",
+          "phase": "Scale & Evolution",
+          "interviewer": "How would this evolve if we need different notification behavior per region?",
+          "goodAnswer": "That's when I'd introduce Abstract Factory. Each region (India, US, EU) has its own compliance rules — different templates, different formatting, different legal disclaimers. I'd create a RegionalNotificationFactory interface with concrete factories per region. The checkout service gets the right factory based on the user's region. The family of notification + template + formatter varies together.",
+          "keyInsight": "Showing the EVOLUTION from Simple Factory → Abstract Factory demonstrates mastery.",
+          "redFlag": "Not recognizing when to level up from Simple Factory to Abstract Factory."
+        }
+      ],
+      "summary": "You demonstrated: pattern recognition, trade-off analysis, composition of patterns, error handling, and evolution from simple to abstract. That's a Strong Hire signal."
+    }
+  ]
+}

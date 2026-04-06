@@ -1,0 +1,89 @@
+{
+  "title": "UML Diagrams",
+  "subtitle": "Interactive diagrams that build step-by-step",
+  "diagrams": [
+    {
+      "id": "simple-factory-class",
+      "title": "Simple Factory — Class Diagram",
+      "description": "Clients call Factory.create(type). Factory returns the right Notification subclass.",
+      "steps": [
+        {
+          "label": "Product Interface",
+          "description": "The common contract all created objects share",
+          "diagram": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(message: String) void\n        +validate() boolean\n    }\n    note for Notification \"The common contract\\nall products share\""
+        },
+        {
+          "label": "+ Concrete Products",
+          "description": "Each notification type implements the interface",
+          "diagram": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(message: String) void\n        +validate() boolean\n    }\n    class EmailNotification {\n        -smtpHost: String\n        -port: int\n        +send(message: String) void\n    }\n    class SMSNotification {\n        -apiKey: String\n        -provider: String\n        +send(message: String) void\n    }\n    class PushNotification {\n        -fcmKey: String\n        -priority: String\n        +send(message: String) void\n    }\n    Notification <|.. EmailNotification\n    Notification <|.. SMSNotification\n    Notification <|.. PushNotification"
+        },
+        {
+          "label": "+ Factory",
+          "description": "The Factory class encapsulates creation logic",
+          "diagram": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(message: String) void\n        +validate() boolean\n    }\n    class EmailNotification {\n        -smtpHost: String\n        -port: int\n        +send(message: String) void\n    }\n    class SMSNotification {\n        -apiKey: String\n        -provider: String\n        +send(message: String) void\n    }\n    class PushNotification {\n        -fcmKey: String\n        -priority: String\n        +send(message: String) void\n    }\n    class NotificationFactory {\n        +create(type: String) Notification$\n    }\n    Notification <|.. EmailNotification\n    Notification <|.. SMSNotification\n    Notification <|.. PushNotification\n    NotificationFactory ..> Notification : creates\n    NotificationFactory ..> EmailNotification : instantiates\n    NotificationFactory ..> SMSNotification : instantiates\n    NotificationFactory ..> PushNotification : instantiates"
+        },
+        {
+          "label": "+ Client",
+          "description": "Client only knows Factory + Interface, never concrete classes",
+          "diagram": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(message: String) void\n        +validate() boolean\n    }\n    class EmailNotification {\n        -smtpHost: String\n        -port: int\n        +send(message: String) void\n    }\n    class SMSNotification {\n        -apiKey: String\n        -provider: String\n        +send(message: String) void\n    }\n    class PushNotification {\n        -fcmKey: String\n        -priority: String\n        +send(message: String) void\n    }\n    class NotificationFactory {\n        +create(type: String) Notification$\n    }\n    class OrderService {\n        -factory: NotificationFactory\n        +notifyUser(type: String, msg: String) void\n    }\n    Notification <|.. EmailNotification\n    Notification <|.. SMSNotification\n    Notification <|.. PushNotification\n    NotificationFactory ..> Notification : creates\n    OrderService --> NotificationFactory : uses\n    OrderService --> Notification : depends on interface"
+        }
+      ]
+    },
+    {
+      "id": "factory-method-class",
+      "title": "Factory Method — Class Diagram",
+      "description": "Abstract creator defines the skeleton. Subclasses override the factory method to decide WHAT to create.",
+      "steps": [
+        {
+          "label": "Abstract Creator",
+          "description": "Defines the template with a deferred factory method",
+          "diagram": "classDiagram\n    class NotificationService {\n        <<abstract>>\n        #createNotification()* Notification\n        +notifyUser(msg: String) void\n    }\n    note for NotificationService \"Template Method calls\\ncreateNotification()\\nSubclasses decide WHAT\""
+        },
+        {
+          "label": "+ Concrete Creators",
+          "description": "Each subclass overrides createNotification() with its own product",
+          "diagram": "classDiagram\n    class NotificationService {\n        <<abstract>>\n        #createNotification()* Notification\n        +notifyUser(msg: String) void\n    }\n    class EmailNotificationService {\n        #createNotification() Notification\n    }\n    class SMSNotificationService {\n        #createNotification() Notification\n    }\n    NotificationService <|-- EmailNotificationService\n    NotificationService <|-- SMSNotificationService"
+        },
+        {
+          "label": "+ Products",
+          "description": "Complete picture: creators produce matching products",
+          "diagram": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(msg: String) void\n    }\n    class EmailNotification {\n        +send(msg: String) void\n    }\n    class SMSNotification {\n        +send(msg: String) void\n    }\n    class NotificationService {\n        <<abstract>>\n        #createNotification()* Notification\n        +notifyUser(msg: String) void\n    }\n    class EmailNotificationService {\n        #createNotification() Notification\n    }\n    class SMSNotificationService {\n        #createNotification() Notification\n    }\n    Notification <|.. EmailNotification\n    Notification <|.. SMSNotification\n    NotificationService <|-- EmailNotificationService\n    NotificationService <|-- SMSNotificationService\n    EmailNotificationService ..> EmailNotification : creates\n    SMSNotificationService ..> SMSNotification : creates\n    NotificationService ..> Notification : uses"
+        }
+      ]
+    },
+    {
+      "id": "abstract-factory-class",
+      "title": "Abstract Factory — Class Diagram",
+      "description": "Creates FAMILIES of related objects. Regional compliance: tax + receipt + currency must vary TOGETHER.",
+      "steps": [
+        {
+          "label": "Product Families",
+          "description": "Three product interfaces that form a family",
+          "diagram": "classDiagram\n    class TaxCalculator {\n        <<interface>>\n        +calculate(amount: double) double\n    }\n    class ReceiptGenerator {\n        <<interface>>\n        +generate(items: List) Receipt\n    }\n    class CurrencyFormatter {\n        <<interface>>\n        +format(amount: double) String\n    }\n    note for TaxCalculator \"These THREE must\\nvary TOGETHER\\nper region\""
+        },
+        {
+          "label": "+ Abstract Factory",
+          "description": "One factory creates the entire family",
+          "diagram": "classDiagram\n    class TaxCalculator {\n        <<interface>>\n        +calculate(amount: double) double\n    }\n    class ReceiptGenerator {\n        <<interface>>\n        +generate(items: List) Receipt\n    }\n    class CurrencyFormatter {\n        <<interface>>\n        +format(amount: double) String\n    }\n    class RegionalComplianceFactory {\n        <<interface>>\n        +createTaxCalculator() TaxCalculator\n        +createReceiptGenerator() ReceiptGenerator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    RegionalComplianceFactory ..> TaxCalculator\n    RegionalComplianceFactory ..> ReceiptGenerator\n    RegionalComplianceFactory ..> CurrencyFormatter"
+        },
+        {
+          "label": "+ Concrete Families",
+          "description": "India factory creates Indian family, US factory creates US family",
+          "diagram": "classDiagram\n    class RegionalComplianceFactory {\n        <<interface>>\n        +createTaxCalculator() TaxCalculator\n        +createReceiptGenerator() ReceiptGenerator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    class IndiaComplianceFactory {\n        +createTaxCalculator() TaxCalculator\n        +createReceiptGenerator() ReceiptGenerator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    class USComplianceFactory {\n        +createTaxCalculator() TaxCalculator\n        +createReceiptGenerator() ReceiptGenerator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    RegionalComplianceFactory <|.. IndiaComplianceFactory\n    RegionalComplianceFactory <|.. USComplianceFactory\n    IndiaComplianceFactory ..> GSTCalculator : creates\n    IndiaComplianceFactory ..> IndiaReceiptGenerator : creates\n    IndiaComplianceFactory ..> RupeeFormatter : creates\n    USComplianceFactory ..> USTaxCalculator : creates\n    USComplianceFactory ..> USReceiptGenerator : creates\n    USComplianceFactory ..> DollarFormatter : creates"
+        }
+      ]
+    },
+    {
+      "id": "creation-flow",
+      "title": "Factory Flow — Sequence Diagram",
+      "description": "What happens at runtime when OrderService needs a notification",
+      "steps": [
+        {
+          "label": "Full Flow",
+          "description": "Client → Factory → Product — the runtime sequence",
+          "diagram": "sequenceDiagram\n    participant C as OrderService\n    participant F as NotificationFactory\n    participant N as EmailNotification\n\n    C->>F: create(\"email\")\n    activate F\n    F->>F: lookup registry\n    F->>N: new EmailNotification()\n    activate N\n    N-->>F: instance\n    deactivate N\n    F-->>C: Notification (interface ref)\n    deactivate F\n    C->>N: send(\"Order confirmed\")\n    activate N\n    N->>N: validate()\n    N->>N: dispatch via SMTP\n    N-->>C: success\n    deactivate N\n    Note over C: Client never knew it was Email.\\nSwap to SMS = change Factory config only."
+        }
+      ]
+    }
+  ]
+}

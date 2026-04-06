@@ -1,0 +1,74 @@
+{
+  "title": "Refactoring Challenge",
+  "subtitle": "Apply the Factory pattern yourself. Fix the bad code.",
+  "challenges": [
+    {
+      "id": "extract-simple-factory",
+      "difficulty": "Easy",
+      "difficultyColor": "green",
+      "title": "Extract a Simple Factory",
+      "description": "This NotificationService creates objects directly with a massive switch statement. Extract a NotificationFactory class so the service only calls factory.create(type).",
+      "timeEstimate": "5-10 minutes",
+      "hints": [
+        "Create a new class called NotificationFactory",
+        "Move the switch statement into a static create() method",
+        "The service should only have: Notification n = NotificationFactory.create(type)"
+      ],
+      "starterCode": "// REFACTOR THIS: Extract creation into a Factory\nclass NotificationService {\n    private final Logger logger = Logger.getLogger(\"NotificationService\");\n\n    void send(String type, String message, String recipient) {\n        Notification notification;\n\n        // This switch is the PROBLEM — duplicated in 5 services\n        switch (type) {\n            case \"email\":\n                notification = new EmailNotification(\"smtp.company.com\", 587, true);\n                break;\n            case \"sms\":\n                notification = new SMSNotification(\"TWILIO_KEY\", \"us-east-1\");\n                break;\n            case \"push\":\n                notification = new PushNotification(\"FCM_SERVER_KEY\", Priority.HIGH);\n                break;\n            case \"slack\":\n                notification = new SlackNotification(\"xoxb-token\", \"#general\");\n                break;\n            default:\n                throw new IllegalArgumentException(\"Unknown type: \" + type);\n        }\n\n        notification.setRecipient(recipient);\n        notification.send(message);\n        logger.info(\"Sent \" + type + \" to \" + recipient);\n    }\n}",
+      "solutionCode": "// SOLUTION: Factory extracts all creation logic\nclass NotificationFactory {\n    static Notification create(String type) {\n        switch (type) {\n            case \"email\":  return new EmailNotification(\"smtp.company.com\", 587, true);\n            case \"sms\":    return new SMSNotification(\"TWILIO_KEY\", \"us-east-1\");\n            case \"push\":   return new PushNotification(\"FCM_SERVER_KEY\", Priority.HIGH);\n            case \"slack\":  return new SlackNotification(\"xoxb-token\", \"#general\");\n            default:       throw new IllegalArgumentException(\"Unknown type: \" + type);\n        }\n    }\n}\n\nclass NotificationService {\n    private final Logger logger = Logger.getLogger(\"NotificationService\");\n\n    void send(String type, String message, String recipient) {\n        Notification notification = NotificationFactory.create(type);\n        notification.setRecipient(recipient);\n        notification.send(message);\n        logger.info(\"Sent \" + type + \" to \" + recipient);\n    }\n}",
+      "validationChecks": [
+        "NotificationFactory class exists",
+        "create() method is static",
+        "NotificationService uses factory.create()",
+        "No switch/if-else in NotificationService"
+      ]
+    },
+    {
+      "id": "upgrade-to-registry",
+      "difficulty": "Medium",
+      "difficultyColor": "yellow",
+      "title": "Upgrade Switch to Registry",
+      "description": "The Simple Factory works but still has a switch statement. Convert it to a Registry pattern using Map<String, Supplier<Notification>> to eliminate all if-else logic.",
+      "timeEstimate": "10-15 minutes",
+      "hints": [
+        "Use a Map<String, Supplier<Notification>> as the registry",
+        "Initialize it in a static block or static method",
+        "The create() method becomes a single map.get() + null check",
+        "Add a public register() method for extensibility"
+      ],
+      "starterCode": "// REFACTOR THIS: Replace switch with a Registry Map\nclass NotificationFactory {\n    // This switch STILL violates OCP.\n    // Adding a type = MODIFYING this class.\n    static Notification create(String type) {\n        switch (type) {\n            case \"email\":  return new EmailNotification(\"smtp.company.com\", 587);\n            case \"sms\":    return new SMSNotification(\"TWILIO_KEY\");\n            case \"push\":   return new PushNotification(\"FCM_KEY\");\n            case \"slack\":  return new SlackNotification(\"xoxb-token\");\n            default:       throw new IllegalArgumentException(\"Unknown: \" + type);\n        }\n    }\n}\n\n// Goal: Adding \"whatsapp\" should NOT modify the Factory class.\n// It should be: NotificationFactory.register(\"whatsapp\", () -> new WhatsApp...)",
+      "solutionCode": "// SOLUTION: Registry pattern — zero switch, zero if-else\nclass NotificationFactory {\n    private static final Map<String, Supplier<Notification>> registry\n        = new HashMap<>();\n\n    static {\n        register(\"email\",  () -> new EmailNotification(\"smtp.company.com\", 587));\n        register(\"sms\",    () -> new SMSNotification(\"TWILIO_KEY\"));\n        register(\"push\",   () -> new PushNotification(\"FCM_KEY\"));\n        register(\"slack\",  () -> new SlackNotification(\"xoxb-token\"));\n    }\n\n    public static void register(String type, Supplier<Notification> creator) {\n        registry.put(type.toLowerCase(), creator);\n    }\n\n    public static Notification create(String type) {\n        Supplier<Notification> creator = registry.get(type.toLowerCase());\n        if (creator == null) {\n            throw new IllegalArgumentException(\n                \"Unknown type: \" + type + \". Registered: \" + registry.keySet()\n            );\n        }\n        return creator.get();\n    }\n}\n\n// Adding WhatsApp — NO modification to Factory class:\n// NotificationFactory.register(\"whatsapp\", () -> new WhatsAppNotification(apiKey));",
+      "validationChecks": [
+        "Map or HashMap is used for registry",
+        "Supplier<Notification> or similar functional interface",
+        "register() method exists and is public",
+        "No switch or if-else in create()",
+        "create() uses registry.get()"
+      ]
+    },
+    {
+      "id": "apply-abstract-factory",
+      "difficulty": "Hard",
+      "difficultyColor": "red",
+      "title": "Design an Abstract Factory",
+      "description": "A payment system processes orders for India and US regions. Each region needs its OWN tax calculator, receipt generator, and currency formatter that must be used TOGETHER. Design the Abstract Factory.",
+      "timeEstimate": "15-20 minutes",
+      "hints": [
+        "Identify the FAMILY: TaxCalculator + ReceiptGenerator + CurrencyFormatter",
+        "Create an interface RegionalComplianceFactory with three create methods",
+        "IndiaComplianceFactory returns GST + Indian receipt + Rupee formatter",
+        "USComplianceFactory returns US tax + US receipt + Dollar formatter",
+        "The client only depends on the abstract factory interface"
+      ],
+      "starterCode": "// DESIGN THIS: Abstract Factory for regional compliance\n// The FAMILY that must vary together:\n//   - TaxCalculator    (GST for India, Sales Tax for US)\n//   - ReceiptGenerator (Indian format vs US format)\n//   - CurrencyFormatter (₹ vs $)\n\n// Step 1: Define the product interfaces\ninterface TaxCalculator {\n    double calculate(double amount);\n}\n\ninterface ReceiptGenerator {\n    String generate(List<String> items, double total);\n}\n\ninterface CurrencyFormatter {\n    String format(double amount);\n}\n\n// Step 2: Create the Abstract Factory interface\n// YOUR CODE HERE: RegionalComplianceFactory interface\n\n// Step 3: Create IndiaComplianceFactory\n// YOUR CODE HERE\n\n// Step 4: Create USComplianceFactory\n// YOUR CODE HERE\n\n// Step 5: Client code that uses the factory\nclass CheckoutService {\n    // YOUR CODE HERE: use the abstract factory\n    void checkout(List<String> items, double amount) {\n        // Calculate tax, format currency, generate receipt\n    }\n}",
+      "solutionCode": "// SOLUTION: Abstract Factory for regional compliance\ninterface TaxCalculator { double calculate(double amount); }\ninterface ReceiptGenerator { String generate(List<String> items, double total); }\ninterface CurrencyFormatter { String format(double amount); }\n\n// Abstract Factory — creates the WHOLE family\ninterface RegionalComplianceFactory {\n    TaxCalculator createTaxCalculator();\n    ReceiptGenerator createReceiptGenerator();\n    CurrencyFormatter createCurrencyFormatter();\n}\n\n// India family — GST + Indian receipt + Rupee\nclass IndiaComplianceFactory implements RegionalComplianceFactory {\n    public TaxCalculator createTaxCalculator()       { return new GSTCalculator(); }\n    public ReceiptGenerator createReceiptGenerator()  { return new IndiaReceiptGen(); }\n    public CurrencyFormatter createCurrencyFormatter(){ return new RupeeFormatter(); }\n}\n\n// US family — Sales Tax + US receipt + Dollar\nclass USComplianceFactory implements RegionalComplianceFactory {\n    public TaxCalculator createTaxCalculator()       { return new SalesTaxCalculator(); }\n    public ReceiptGenerator createReceiptGenerator()  { return new USReceiptGen(); }\n    public CurrencyFormatter createCurrencyFormatter(){ return new DollarFormatter(); }\n}\n\n// Client — only knows the abstract factory\nclass CheckoutService {\n    private final TaxCalculator tax;\n    private final ReceiptGenerator receipt;\n    private final CurrencyFormatter currency;\n\n    CheckoutService(RegionalComplianceFactory factory) {\n        this.tax = factory.createTaxCalculator();\n        this.receipt = factory.createReceiptGenerator();\n        this.currency = factory.createCurrencyFormatter();\n    }\n\n    void checkout(List<String> items, double amount) {\n        double total = tax.calculate(amount);\n        String formatted = currency.format(total);\n        String doc = receipt.generate(items, total);\n        System.out.println(\"Total: \" + formatted + \"\\n\" + doc);\n    }\n}",
+      "validationChecks": [
+        "RegionalComplianceFactory interface with 3 create methods",
+        "IndiaComplianceFactory implements the interface",
+        "USComplianceFactory implements the interface",
+        "CheckoutService takes factory in constructor",
+        "CheckoutService never references concrete factories"
+      ]
+    }
+  ]
+}

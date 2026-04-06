@@ -1,0 +1,70 @@
+{
+  "title": "Code Evolution",
+  "subtitle": "Watch code transform from chaos to clean architecture",
+  "stages": [
+    {
+      "id": "scattered",
+      "label": "Scattered",
+      "shortLabel": "Mess",
+      "icon": "💥",
+      "description": "Every service creates objects directly. if-else chains everywhere. Adding a type = touching 10+ files.",
+      "problems": [
+        "Duplicated creation logic in 5+ services",
+        "Adding new type touches 10+ files",
+        "Constructor changes cascade everywhere",
+        "Impossible to unit test"
+      ],
+      "code": "// OrderService.java\nclass OrderService {\n    void notify(String type, String msg) {\n        Notification n;\n        if (type.equals(\"email\"))\n            n = new EmailNotification(\"smtp.gmail.com\", 587);\n        else if (type.equals(\"sms\"))\n            n = new SMSNotification(\"+1-API-KEY\", \"twilio\");\n        else if (type.equals(\"push\"))\n            n = new PushNotification(\"FCM-KEY\", \"high\");\n        else throw new IllegalArgumentException(\"Unknown: \" + type);\n        n.send(msg);\n    }\n}\n\n// PaymentService.java — SAME if-else block copy-pasted\n// ShippingService.java — SAME if-else block copy-pasted\n// ReturnService.java — SAME if-else block copy-pasted\n// InventoryService.java — SAME if-else block copy-pasted\n// PM says \"Add WhatsApp\" → touch ALL 5 files"
+    },
+    {
+      "id": "simple-factory",
+      "label": "Simple Factory",
+      "shortLabel": "Factory",
+      "icon": "🏭",
+      "description": "Extract creation into a single class. Clients call factory.create(). One file to change when adding types.",
+      "problems": [
+        "Switch/if-else still exists (in Factory)",
+        "Adding type = modify Factory class (OCP violation)",
+        "But only ONE file now, not 10"
+      ],
+      "code": "// NotificationFactory.java — the ONE place\nclass NotificationFactory {\n    static Notification create(String type) {\n        switch (type) {\n            case \"email\": return new EmailNotification(\"smtp.gmail.com\", 587);\n            case \"sms\":   return new SMSNotification(\"+1-API-KEY\", \"twilio\");\n            case \"push\":  return new PushNotification(\"FCM-KEY\", \"high\");\n            default:      throw new IllegalArgumentException(\"Unknown: \" + type);\n        }\n    }\n}\n\n// OrderService.java — CLEAN now\nclass OrderService {\n    void notify(String type, String msg) {\n        Notification n = NotificationFactory.create(type);\n        n.send(msg);\n    }\n}\n// Add WhatsApp? Change ONLY NotificationFactory. Done."
+    },
+    {
+      "id": "registry",
+      "label": "Registry",
+      "shortLabel": "Registry",
+      "icon": "📋",
+      "description": "Replace switch with a Map<String, Supplier>. Adding a type = one line registration. Zero modification to existing code.",
+      "problems": [
+        "Still a central registry (single point of config)",
+        "But fully OCP compliant — adding = registering, not modifying"
+      ],
+      "code": "// NotificationFactory.java — zero switch, zero if-else\nclass NotificationFactory {\n    private static final Map<String, Supplier<Notification>> registry\n        = new HashMap<>();\n\n    static {\n        register(\"email\", () -> new EmailNotification(\"smtp.gmail.com\", 587));\n        register(\"sms\",   () -> new SMSNotification(\"+1-API-KEY\", \"twilio\"));\n        register(\"push\",  () -> new PushNotification(\"FCM-KEY\", \"high\"));\n    }\n\n    static void register(String type, Supplier<Notification> creator) {\n        registry.put(type, creator);\n    }\n\n    static Notification create(String type) {\n        Supplier<Notification> creator = registry.get(type);\n        if (creator == null) throw new IllegalArgumentException(\"Unknown: \" + type);\n        return creator.get();\n    }\n}\n// Add WhatsApp? Just: register(\"whatsapp\", () -> new WhatsAppNotification(...))"
+    },
+    {
+      "id": "factory-method",
+      "label": "Factory Method",
+      "shortLabel": "Method",
+      "icon": "🔧",
+      "description": "Each service subclass decides which object to create. Framework defines the skeleton, subclasses customize creation.",
+      "problems": [
+        "Class explosion — one subclass per variant",
+        "Use when you need polymorphic creation per service type"
+      ],
+      "code": "// Abstract service — defines the algorithm skeleton\nabstract class NotificationService {\n    // Factory Method — subclasses decide WHAT to create\n    protected abstract Notification createNotification();\n\n    // Template method — uses the factory method\n    void notifyUser(String msg) {\n        Notification n = createNotification();  // subclass decides\n        n.validate();\n        n.send(msg);\n        n.log();\n    }\n}\n\n// Each subclass overrides ONLY the creation part\nclass EmailNotificationService extends NotificationService {\n    protected Notification createNotification() {\n        return new EmailNotification(\"smtp.gmail.com\", 587);\n    }\n}\n\nclass SMSNotificationService extends NotificationService {\n    protected Notification createNotification() {\n        return new SMSNotification(\"+1-API-KEY\", \"twilio\");\n    }\n}\n// Add WhatsApp? Create WhatsAppNotificationService. Zero existing code touched."
+    },
+    {
+      "id": "spring-di",
+      "label": "Spring DI",
+      "shortLabel": "Spring",
+      "icon": "🌱",
+      "description": "Spring's BeanFactory IS a Factory. @Component + @Qualifier replaces all manual creation. The container is the ultimate Factory.",
+      "problems": [
+        "Framework dependency",
+        "Magic annotations — harder to trace for beginners",
+        "But this is how 90% of real Java apps work"
+      ],
+      "code": "// Spring scans, creates, and injects — Factory on steroids\n@Component(\"email\")\nclass EmailNotification implements Notification {\n    void send(String msg) { /* ... */ }\n}\n\n@Component(\"sms\")\nclass SMSNotification implements Notification {\n    void send(String msg) { /* ... */ }\n}\n\n// Client — Spring injects the right implementation\n@Service\nclass OrderService {\n    private final Map<String, Notification> notifications;\n\n    // Spring auto-discovers ALL Notification beans by name\n    OrderService(Map<String, Notification> notifications) {\n        this.notifications = notifications;\n    }\n\n    void notify(String type, String msg) {\n        notifications.get(type).send(msg);\n    }\n}\n// Add WhatsApp? Create class + @Component(\"whatsapp\"). NOTHING else changes."
+    }
+  ]
+}
