@@ -7,7 +7,6 @@
   "icon": "🏭",
   "description": "Centralize object creation so clients don't know which concrete class to instantiate. Three flavors: Simple Factory (separate class with if-else), Registry (Map of creators, zero if-else), and Factory Method (abstract method in service, subclasses decide). 80% of the time Simple Factory wins.",
   "estimatedTime": "2-3 hours",
-
   "hook": {
     "crux": "Don't create objects yourself -- ask a Factory to create them for you.",
     "oneLiner": "Move object creation logic into a dedicated place -- a separate Factory class (Simple Factory), a Map of creators (Registry), or an abstract method in a service that subclasses override (Factory Method) -- so adding new types doesn't ripple through your codebase.",
@@ -24,37 +23,103 @@
       }
     },
     "participants": [
-      { "name": "Product Interface", "role": "The common contract all created objects share", "example": "Notification" },
-      { "name": "Concrete Products", "role": "The specific implementations that get created", "example": "EmailNotification, SMSNotification, PushNotification" },
-      { "name": "Factory (3 flavors)", "role": "Simple Factory: a separate class with if-else/switch (NotificationFactory). Factory Method: an abstract method inside a service class that subclasses override (NotificationService with createNotification()). Registry: a Map of creators that eliminates if-else entirely.", "example": "Simple: NotificationFactory.create(type) | Method: abstract NotificationService -> EmailNotificationService overrides createNotification() | Registry: Map<Type, Supplier>" },
-      { "name": "Client", "role": "Code that asks for objects without knowing concrete types. In Simple Factory, calls factory.create(type). In Factory Method, holds the abstract service reference.", "example": "OrderService calls factory.create() or holds NotificationService reference" }
+      {
+        "name": "Product Interface",
+        "role": "The common contract all created objects share",
+        "example": "Notification"
+      },
+      {
+        "name": "Concrete Products",
+        "role": "The specific implementations that get created",
+        "example": "EmailNotification, SMSNotification, PushNotification"
+      },
+      {
+        "name": "Factory (3 flavors)",
+        "role": "Simple Factory: a separate class with if-else/switch (NotificationFactory). Factory Method: an abstract method inside a service class that subclasses override (NotificationService with createNotification()). Registry: a Map of creators that eliminates if-else entirely.",
+        "example": "Simple: NotificationFactory.create(type) | Method: abstract NotificationService -> EmailNotificationService overrides createNotification() | Registry: Map<Type, Supplier>"
+      },
+      {
+        "name": "Client",
+        "role": "Code that asks for objects without knowing concrete types. In Simple Factory, calls factory.create(type). In Factory Method, holds the abstract service reference.",
+        "example": "OrderService calls factory.create() or holds NotificationService reference"
+      }
     ]
   },
-
   "brainTriggers": {
     "description": "When you hear these keywords in a problem statement, your brain should instantly light up with 'Factory pattern!'",
     "triggers": [
-      { "keyword": "based on type", "example": "Create a vehicle based on type -- car, bike, truck", "isStrategy": true },
-      { "keyword": "depending on input/config", "example": "Generate a report depending on format -- PDF, Excel, CSV", "isStrategy": true },
-      { "keyword": "multiple types of", "example": "The system has multiple types of payments", "isStrategy": true },
-      { "keyword": "dynamically create", "example": "Dynamically create the right handler at runtime", "isStrategy": true },
-      { "keyword": "without knowing the exact class", "example": "Client shouldn't know the exact class being instantiated", "isStrategy": true },
-      { "keyword": "easy to add new types in the future", "example": "Design it so adding a new notification channel is easy", "isStrategy": true }
+      {
+        "keyword": "based on type",
+        "example": "Create a vehicle based on type -- car, bike, truck",
+        "isStrategy": true
+      },
+      {
+        "keyword": "depending on input/config",
+        "example": "Generate a report depending on format -- PDF, Excel, CSV",
+        "isStrategy": true
+      },
+      {
+        "keyword": "multiple types of",
+        "example": "The system has multiple types of payments",
+        "isStrategy": true
+      },
+      {
+        "keyword": "dynamically create",
+        "example": "Dynamically create the right handler at runtime",
+        "isStrategy": true
+      },
+      {
+        "keyword": "without knowing the exact class",
+        "example": "Client shouldn't know the exact class being instantiated",
+        "isStrategy": true
+      },
+      {
+        "keyword": "easy to add new types in the future",
+        "example": "Design it so adding a new notification channel is easy",
+        "isStrategy": true
+      }
     ],
     "notStrategy": [
-      { "keyword": "swap behavior at runtime on same object", "pattern": "Strategy", "reason": "That's algorithm swapping on an existing object, not creation of new objects" },
-      { "keyword": "complex multi-step object construction", "pattern": "Builder", "reason": "Builder configures HOW to build. Factory decides WHICH type to build." },
-      { "keyword": "families of related objects that must stay consistent", "pattern": "Abstract Factory", "reason": "Abstract Factory creates families. Simple/Method Factory creates one product type." }
+      {
+        "keyword": "swap behavior at runtime on same object",
+        "pattern": "Strategy",
+        "reason": "That's algorithm swapping on an existing object, not creation of new objects"
+      },
+      {
+        "keyword": "complex multi-step object construction",
+        "pattern": "Builder",
+        "reason": "Builder configures HOW to build. Factory decides WHICH type to build."
+      },
+      {
+        "keyword": "families of related objects that must stay consistent",
+        "pattern": "Abstract Factory",
+        "reason": "Abstract Factory creates families. Simple/Method Factory creates one product type."
+      }
     ],
     "litmusTest": "If the QUESTION is 'which class should I instantiate?' and the answer depends on runtime input, think Factory."
   },
-
   "codeImplementation": {
     "steps": [
-      { "step": 1, "title": "Define the Product Interface", "description": "Create the contract -- the common interface all products share. Every product type implements this. Client code only ever sees this interface." },
-      { "step": 2, "title": "Create Concrete Products", "description": "Each product type gets its own class implementing the interface. EmailNotification handles email, SMSNotification handles SMS. Each owns ONLY its logic." },
-      { "step": 3, "title": "Choose Your Factory Flavor", "description": "Simple Factory (80% of cases): A separate class with switch/if-else on type enum. Quick, centralized, practical. Registry Factory: A Map<Type, Supplier> that eliminates if-else entirely. New types register themselves. Factory Method (20%): An abstract method inside a service class. Subclasses override it to create the product. Use ONLY when creation involves private knowledge per type (config loading, API keys) AND the service has shared business logic (log, retry, audit) around the product." },
-      { "step": 4, "title": "Client Uses the Factory", "description": "Simple Factory: client calls NotificationFactory.create(type). Factory Method: client holds an abstract NotificationService reference -- the subclass decides what to create internally. In both cases, client only knows the Product Interface. Adding a new type NEVER changes client code." }
+      {
+        "step": 1,
+        "title": "Define the Product Interface",
+        "description": "Create the contract -- the common interface all products share. Every product type implements this. Client code only ever sees this interface."
+      },
+      {
+        "step": 2,
+        "title": "Create Concrete Products",
+        "description": "Each product type gets its own class implementing the interface. EmailNotification handles email, SMSNotification handles SMS. Each owns ONLY its logic."
+      },
+      {
+        "step": 3,
+        "title": "Choose Your Factory Flavor",
+        "description": "Simple Factory (80% of cases): A separate class with switch/if-else on type enum. Quick, centralized, practical. Registry Factory: A Map<Type, Supplier> that eliminates if-else entirely. New types register themselves. Factory Method (20%): An abstract method inside a service class. Subclasses override it to create the product. Use ONLY when creation involves private knowledge per type (config loading, API keys) AND the service has shared business logic (log, retry, audit) around the product."
+      },
+      {
+        "step": 4,
+        "title": "Client Uses the Factory",
+        "description": "Simple Factory: client calls NotificationFactory.create(type). Factory Method: client holds an abstract NotificationService reference -- the subclass decides what to create internally. In both cases, client only knows the Product Interface. Adding a new type NEVER changes client code."
+      }
     ],
     "java": {
       "title": "Factory Pattern - Notification System (Java)",
@@ -72,7 +137,6 @@
       "explanation": "Kotlin's 'object' keyword creates a singleton factory naturally. 'when' expressions are exhaustive with enums -- compiler warns if you miss a case. Constructor references (::EmailNotification) serve as factory lambdas. Clean, concise, safe."
     }
   },
-
   "solidConnections": [
     {
       "principle": "SRP",
@@ -107,7 +171,6 @@
       "icon": "🔀"
     }
   ],
-
   "lldProblems": [
     {
       "id": 1,
@@ -115,7 +178,12 @@
       "where": "Vehicle creation at entry gate based on sensor data",
       "context": "EntryGate",
       "strategyInterface": "Vehicle",
-      "concreteStrategies": ["Car", "Truck", "Motorcycle", "Bus"],
+      "concreteStrategies": [
+        "Car",
+        "Truck",
+        "Motorcycle",
+        "Bus"
+      ],
       "why": "Sensor gives a type string. Gate doesn't care about vehicle internals -- just needs a Vehicle to find the right spot and calculate rate."
     },
     {
@@ -124,7 +192,12 @@
       "where": "Channel creation based on user preference",
       "context": "NotificationService",
       "strategyInterface": "Notification",
-      "concreteStrategies": ["EmailNotification", "SMSNotification", "PushNotification", "WhatsAppNotification"],
+      "concreteStrategies": [
+        "EmailNotification",
+        "SMSNotification",
+        "PushNotification",
+        "WhatsAppNotification"
+      ],
       "why": "Multiple services send notifications. Factory centralizes creation. Add Telegram? Change factory only."
     },
     {
@@ -133,7 +206,12 @@
       "where": "Processor creation based on payment method selected by user",
       "context": "CheckoutService",
       "strategyInterface": "PaymentProcessor",
-      "concreteStrategies": ["CreditCardProcessor", "UPIProcessor", "PayPalProcessor", "NetBankingProcessor"],
+      "concreteStrategies": [
+        "CreditCardProcessor",
+        "UPIProcessor",
+        "PayPalProcessor",
+        "NetBankingProcessor"
+      ],
       "why": "Each processor has different validation and charging logic. Factory picks the right one. Use Factory Method when creation involves private config (API keys, vault credentials)."
     },
     {
@@ -142,7 +220,12 @@
       "where": "Document creation when user clicks 'New' and selects file type",
       "context": "EditorApp",
       "strategyInterface": "Document",
-      "concreteStrategies": ["WordDocument", "Spreadsheet", "Presentation", "PDF"],
+      "concreteStrategies": [
+        "WordDocument",
+        "Spreadsheet",
+        "Presentation",
+        "PDF"
+      ],
       "why": "User selects document type at runtime. Factory returns the right document. Adding a new format doesn't change the editor."
     },
     {
@@ -151,7 +234,12 @@
       "where": "Ride object creation when user selects ride type",
       "context": "BookingService",
       "strategyInterface": "Ride",
-      "concreteStrategies": ["UberX", "UberPool", "UberXL", "UberBlack"],
+      "concreteStrategies": [
+        "UberX",
+        "UberPool",
+        "UberXL",
+        "UberBlack"
+      ],
       "why": "Different ride types have different capacity, pricing, and matching rules. Factory creates the right Ride object from user selection."
     },
     {
@@ -160,7 +248,12 @@
       "where": "Logger creation based on environment configuration",
       "context": "Application",
       "strategyInterface": "Logger",
-      "concreteStrategies": ["ConsoleLogger", "FileLogger", "CloudLogger", "DatabaseLogger"],
+      "concreteStrategies": [
+        "ConsoleLogger",
+        "FileLogger",
+        "CloudLogger",
+        "DatabaseLogger"
+      ],
       "why": "Dev uses ConsoleLogger, production uses CloudLogger. Factory reads config and creates the right logger. Switch environments without code changes."
     },
     {
@@ -169,7 +262,13 @@
       "where": "Item dispensing based on selection button/code",
       "context": "VendingMachine",
       "strategyInterface": "Item",
-      "concreteStrategies": ["Coke", "Pepsi", "Chips", "Candy", "Water"],
+      "concreteStrategies": [
+        "Coke",
+        "Pepsi",
+        "Chips",
+        "Candy",
+        "Water"
+      ],
       "why": "User presses a button, machine creates the right item. Adding new items means adding a class and registering in the factory."
     },
     {
@@ -178,7 +277,12 @@
       "where": "Special cell creation while building the game board",
       "context": "BoardBuilder",
       "strategyInterface": "Cell",
-      "concreteStrategies": ["NormalCell", "SnakeCell", "LadderCell", "PowerUpCell"],
+      "concreteStrategies": [
+        "NormalCell",
+        "SnakeCell",
+        "LadderCell",
+        "PowerUpCell"
+      ],
       "why": "Board config specifies cell types. Factory creates the right cell object for each position. Adding PowerUpCell doesn't change board setup logic."
     },
     {
@@ -187,7 +291,12 @@
       "where": "Discount creation based on customer tier or promotion code",
       "context": "CartService",
       "strategyInterface": "Discount",
-      "concreteStrategies": ["FlatDiscount", "PercentageDiscount", "BuyOneGetOne", "SeasonalDiscount"],
+      "concreteStrategies": [
+        "FlatDiscount",
+        "PercentageDiscount",
+        "BuyOneGetOne",
+        "SeasonalDiscount"
+      ],
       "why": "Promotions change weekly. Factory creates the right discount from promo code or customer tier. Cart doesn't know discount internals."
     },
     {
@@ -196,11 +305,15 @@
       "where": "Restaurant listing strategy based on user region and preferences",
       "context": "SearchService",
       "strategyInterface": "RestaurantRanker",
-      "concreteStrategies": ["RatingBasedRanker", "DistanceBasedRanker", "PopularityRanker", "PersonalizedRanker"],
+      "concreteStrategies": [
+        "RatingBasedRanker",
+        "DistanceBasedRanker",
+        "PopularityRanker",
+        "PersonalizedRanker"
+      ],
       "why": "Ranking algorithm varies by region and A/B test group. Factory creates the right ranker from config. Adding a new ranking algorithm is one class + one factory line."
     }
   ],
-
   "patternWeb": {
     "bestFriends": [
       {
@@ -240,7 +353,6 @@
       }
     ]
   },
-
   "antiPatterns": [
     {
       "id": "factory-for-one-type",
@@ -288,13 +400,17 @@
       "fix": "Factory Method is justified ONLY when the abstract class has shared orchestration (log, retry, audit) around the created product. No shared logic = use Simple Factory."
     }
   ],
-
   "quiz": [
     {
       "id": "q1",
       "type": "recognition",
       "question": "A logistics system needs to create shipments via Air, Ground, or Sea based on package priority. What pattern fits best?",
-      "options": ["Factory -- create the right Shipment based on priority", "Strategy -- swap shipment algorithm at runtime", "Observer -- notify when shipment is created", "Builder -- construct shipment step-by-step"],
+      "options": [
+        "Factory -- create the right Shipment based on priority",
+        "Strategy -- swap shipment algorithm at runtime",
+        "Observer -- notify when shipment is created",
+        "Builder -- construct shipment step-by-step"
+      ],
       "correctAnswer": 0,
       "explanation": "'Based on priority' = runtime type selection. 'Create shipments' = object creation. That's Factory. Strategy would be for swapping how a shipment calculates delivery time."
     },
@@ -364,12 +480,12 @@
       "explanation": "Factory doesn't eliminate 'new' -- it centralizes it. The progression: scattered (10 files) -> Factory (1 file) -> DI framework (config). Zero coupling is impossible in OOP."
     }
   ],
-
   "deepThoughtQuestions": [
     {
       "id": "dt1",
       "question": "Products have different constructor parameters (EmailNotification needs SMTP host, SMS needs API key). How does a factory with a single create(type) method handle this?",
-      "answer": "Three approaches: (A) Products self-configure internally -- factory stays clean. (B) Factory takes a generic config object. (C) Use Factory Method so each subclass owns its private creation knowledge. Option A is most common in practice."
+      "answer": "Three approaches: (A) Products self-configure internally -- factory stays clean. (B) Factory takes a generic config object. (C) Use Factory Method so each subclass owns its private creation knowledge. Option A is most common in practice.",
+      "codeExample": "// Option A: Products self-configure (most common)\nclass EmailNotification implements Notification {\n    EmailNotification() {\n        this.config = SmtpConfig.load(); // I load my own config\n    }\n}\n\n// Option B: Factory Method -- each subclass owns its config\nclass EmailNotificationService extends NotificationService {\n    Notification createNotification() {\n        SmtpConfig config = loadSmtpConfig(); // my private knowledge\n        return new EmailNotification(config);\n    }\n}\n\n// Option C: Generic config map\nNotification n = factory.create(type, Map.of(\"host\", \"smtp.gmail.com\"));"
     },
     {
       "id": "dt2",
@@ -389,7 +505,8 @@
     {
       "id": "dt5",
       "question": "We still need if-else somewhere to create the concrete creator/service in Factory Method. Isn't this still tight coupling?",
-      "answer": "Factory Method was designed for frameworks where each team directly instantiates their own creator -- no if-else needed. In standalone apps, yes, you need a Simple Factory on top to select the right service. Factory Method alone doesn't solve client-side selection."
+      "answer": "Factory Method was designed for frameworks where each team directly instantiates their own creator -- no if-else needed. In standalone apps, yes, you need a Simple Factory on top to select the right service. Factory Method alone doesn't solve client-side selection.",
+      "codeExample": "// Framework: each team instantiates their own creator\nPaymentService service = new UPIPaymentService(); // no if-else\n\n// Standalone app: Simple Factory on top to select\nPaymentService service = ServiceFactory.create(\"upi\");\n\n// Spring DI: framework handles everything\n@Autowired Map<String, PaymentService> services;\nPaymentService service = services.get(\"upi\"); // runtime, zero 'new'"
     },
     {
       "id": "dt6",
@@ -404,7 +521,8 @@
     {
       "id": "dt8",
       "question": "I don't see abstract factory methods in my Spring codebase. Where did Factory go?",
-      "answer": "Spring IS the factory. @Autowired replaces manual factory calls. @Bean methods in @Configuration classes ARE factory methods managed by the framework. The concept lives on; the manual pattern doesn't."
+      "answer": "Spring IS the factory. @Autowired replaces manual factory calls. @Bean methods in @Configuration classes ARE factory methods managed by the framework. The concept lives on; the manual pattern doesn't.",
+      "codeExample": "@Configuration\nclass NotificationConfig {\n    @Bean(\"email\") // THIS is a factory method!\n    Notification email() {\n        return new EmailNotification(loadSmtpConfig());\n    }\n\n    @Bean(\"sms\")\n    Notification sms() {\n        return new SMSNotification(loadApiKey());\n    }\n}\n\n// Client: @Autowired IS the factory call\n@Autowired Map<String, Notification> notifications;\nnotifications.get(\"email\").send(msg); // Spring did the factory work"
     },
     {
       "id": "dt9",
@@ -444,12 +562,14 @@
     {
       "id": "dt16",
       "question": "I'm applying Strategy pattern and moving if-else into a factory... but that IS Strategy, right? How are we going towards Factory?",
-      "answer": "Strategy solves HOW to send (swap algorithms). Factory solves WHICH object to create. Strategy gave us the interface + concrete classes. But WHO decides which concrete class to instantiate? That if-else selection is Factory's job. Strategy = behavior swapping. Factory = creation selection. They solve different axes of the same problem."
+      "answer": "Strategy solves HOW to send (swap algorithms). Factory solves WHICH object to create. Strategy gave us the interface + concrete classes. But WHO decides which concrete class to instantiate? That if-else selection is Factory's job. Strategy = behavior swapping. Factory = creation selection. They solve different axes of the same problem.",
+      "codeExample": "// Strategy: WHICH algorithm to run (behavior swapping)\nnotificationService.setStrategy(new EmailStrategy());\nnotificationService.send(msg); // strategy decides HOW to send\n\n// Factory: WHICH object to create (creation selection)\nNotification n = NotificationFactory.create(\"EMAIL\");\nn.send(msg); // factory decided WHICH object to create\n\n// They combine: Factory CREATES the Strategy object\nStrategy s = StrategyFactory.create(userChoice);\ncontext.setStrategy(s);"
     },
     {
       "id": "dt17",
       "question": "In Factory Method, where is the factory CLASS? I see abstract service with a method... where did the factory go?",
-      "answer": "There IS no separate factory class in Factory Method. The 'factory' is a METHOD (createNotification) inside the abstract service class. That's why it's called Factory METHOD, not Factory Class. Each subclass overrides that one method to decide what to create. The factory lives as a method, not as a standalone class."
+      "answer": "There IS no separate factory class in Factory Method. The 'factory' is a METHOD (createNotification) inside the abstract service class. That's why it's called Factory METHOD, not Factory Class. Each subclass overrides that one method to decide what to create. The factory lives as a method, not as a standalone class.",
+      "codeExample": "// Simple Factory: factory IS a separate class\nclass NotificationFactory {\n    static Notification create(Type t) {\n        return switch(t) { EMAIL -> new Email(); SMS -> new SMS(); };\n    }\n}\n\n// Factory Method: factory IS a method INSIDE the service\nabstract class NotificationService {\n    abstract Notification createNotification(); // <-- THIS is the \"factory\"\n    void send(String msg) {\n        Notification n = createNotification(); // calls the factory method\n        n.send(msg);\n        log(msg);  // shared orchestration -- the reason this class exists\n    }\n}"
     },
     {
       "id": "dt18",
@@ -469,12 +589,14 @@
     {
       "id": "dt21",
       "question": "India has credit card, debit card, Visa, AND UPI. Why tight-couple IndiaPaymentFactory with just UPI?",
-      "answer": "Exactly! This is why Abstract Factory exists. Each country needs a FAMILY of related products: India -> Rupay + UPI + IndiaReceipt, Mexico -> MexicoCreditCard + Oxxo + MexicoReceipt. Simple/Method Factory creates ONE product type. Abstract Factory creates consistent FAMILIES. Your question independently discovered Abstract Factory's reason to exist."
+      "answer": "Exactly! This is why Abstract Factory exists. Each country needs a FAMILY of related products: India -> Rupay + UPI + IndiaReceipt, Mexico -> MexicoCreditCard + Oxxo + MexicoReceipt. Simple/Method Factory creates ONE product type. Abstract Factory creates consistent FAMILIES. Your question independently discovered Abstract Factory's reason to exist.",
+      "codeExample": "// Simple Factory: creates ONE product type\nNotification n = NotificationFactory.create(\"EMAIL\");\n\n// Abstract Factory: creates a FAMILY that varies together\nPaymentFactory india = new IndiaPaymentFactory();\nindia.createProcessor();  // UPI\nindia.createReceipt();    // GST Invoice\nindia.createValidator();  // VPA check\n// All consistent. Can't accidentally mix UPI with US receipt.\n\nPaymentFactory us = new USPaymentFactory();\nus.createProcessor();     // Credit Card\nus.createReceipt();       // US Invoice\nus.createValidator();     // Luhn check"
     },
     {
       "id": "dt22",
       "question": "new moved from EmailSender to EmailNotificationCreator. Still new, still tight coupling. How does this make ANY difference?",
-      "answer": "In isolation, it makes no difference. Factory Method earns its place ONLY when the creator has shared business logic around the product (log, retry, audit, validate). That orchestration is written once in the abstract class. Without Factory Method, every client duplicates the orchestration. The value isn't removing 'new' -- it's protecting shared logic while letting subclasses decide the product."
+      "answer": "In isolation, it makes no difference. Factory Method earns its place ONLY when the creator has shared business logic around the product (log, retry, audit, validate). That orchestration is written once in the abstract class. Without Factory Method, every client duplicates the orchestration. The value isn't removing 'new' -- it's protecting shared logic while letting subclasses decide the product.",
+      "codeExample": "// WITHOUT Factory Method: coupling + DUPLICATED orchestration\nclass OrderService {\n    void send(String msg) {\n        EmailNotification n = new EmailNotification(loadSmtp()); // coupled\n        n.send(msg);\n        log(msg);   // duplicated in PaymentService, ShippingService...\n        audit();     // duplicated everywhere\n    }\n}\n\n// WITH Factory Method: orchestration written ONCE\nabstract class NotificationService {\n    abstract Notification createNotification(); // hook\n    final void send(String msg) {        // ONCE\n        Notification n = createNotification();\n        n.send(msg);\n        log(msg);    // NOT duplicated\n        audit();     // NOT duplicated\n    }\n}\n// Value isn't removing 'new' -- it's protecting shared logic."
     },
     {
       "id": "dt23",
@@ -484,7 +606,8 @@
     {
       "id": "dt24",
       "question": "How does Spring @Autowired handle runtime user selection? It injects at startup, not at click time.",
-      "answer": "@Autowired alone can't. Use @Autowired Map<String, PaymentService> -- Spring populates the map with ALL beans at startup. At runtime when user clicks UPI, you do map.get('upi'). Spring registers beans, map lookup selects at runtime. The map IS a factory -- just framework-managed. No 'new' anywhere in client code."
+      "answer": "@Autowired alone can't. Use @Autowired Map<String, PaymentService> -- Spring populates the map with ALL beans at startup. At runtime when user clicks UPI, you do map.get('upi'). Spring registers beans, map lookup selects at runtime. The map IS a factory -- just framework-managed. No 'new' anywhere in client code.",
+      "codeExample": "@Service(\"upi\")\nclass UPIPaymentService implements PaymentService { ... }\n\n@Service(\"creditcard\")\nclass CreditCardPaymentService implements PaymentService { ... }\n\n// Spring auto-populates Map with ALL PaymentService beans\n@Autowired Map<String, PaymentService> services;\n// Map = {\"upi\": UPIPaymentService, \"creditcard\": CreditCardPaymentService}\n\n@PostMapping(\"/pay\")\nvoid pay(@RequestBody PayRequest req) {\n    // User clicks \"UPI\" -> req.getMethod() = \"upi\"\n    PaymentService svc = services.get(req.getMethod()); // runtime!\n    svc.process(req.getAmount()); // no 'new' anywhere\n}"
     },
     {
       "id": "dt25",
@@ -494,12 +617,14 @@
     {
       "id": "dt26",
       "question": "Simple vs Factory Method vs Abstract Factory -- what EXACTLY is the difference?",
-      "answer": "Simple Factory: ONE class with if-else, creates ONE product type. Use for 80% of cases. Factory Method: Abstract class with hook method, SUBCLASSES decide. Use when creation involves private knowledge per type. Abstract Factory: Interface with MULTIPLE create methods, creates FAMILIES of related products. Use when products must vary together (by country, theme, OS). Each is a separate pattern solving a different problem."
+      "answer": "Simple Factory: ONE class with if-else, creates ONE product type. Use for 80% of cases. Factory Method: Abstract class with hook method, SUBCLASSES decide. Use when creation involves private knowledge per type. Abstract Factory: Interface with MULTIPLE create methods, creates FAMILIES of related products. Use when products must vary together (by country, theme, OS). Each is a separate pattern solving a different problem.",
+      "codeExample": "// Simple Factory: ONE class, switch/if-else, ONE product type\nNotification n = NotificationFactory.create(type); // 80% of cases\n\n// Factory Method: abstract hook in service, subclass creates\nabstract class NotificationService {\n    abstract Notification createNotification(); // hook\n    void send(String msg) { /* shared workflow */ }\n}\nclass EmailService extends NotificationService { /* fills hook */ }\n\n// Abstract Factory: interface with MULTIPLE create methods, FAMILIES\ninterface PaymentFactory {\n    PaymentProcessor createProcessor();  // product 1\n    Receipt createReceipt();              // product 2\n    PaymentValidator createValidator();   // product 3\n}\n// IndiaPaymentFactory returns consistent India family"
     },
     {
       "id": "dt27",
       "question": "Factory as a separate CLASS vs factory as a METHOD inside the service -- which one and when?",
-      "answer": "Separate class when: multiple classes need to create the same object type (DRY), or creation and business logic are unrelated (OrderService creating Notifications). Method inside service when: only THIS class creates it (no duplication), or creation and business logic are coupled by design (UPI service needs UPI-specific creation AND UPI-specific retry). Test: 'If creation logic changes, does business logic ALSO change?' YES = same class. NO = separate."
+      "answer": "Separate class when: multiple classes need to create the same object type (DRY), or creation and business logic are unrelated (OrderService creating Notifications). Method inside service when: only THIS class creates it (no duplication), or creation and business logic are coupled by design (UPI service needs UPI-specific creation AND UPI-specific retry). Test: 'If creation logic changes, does business logic ALSO change?' YES = same class. NO = separate.",
+      "codeExample": "// SEPARATE CLASS: multiple services need creation (DRY)\nclass NotificationFactory { // used by Order, Payment, Shipping...\n    static Notification create(Type t) { ... }\n}\n// Test: \"Does another class also create this?\" YES -> separate class\n\n// METHOD IN SERVICE: only THIS class creates AND uses\nabstract class PaymentService {\n    abstract PaymentProcessor createProcessor(); // only here\n    void process(double amt) {\n        PaymentProcessor p = createProcessor();\n        p.charge(amt);\n        log(); audit(); // shared logic justifies the class\n    }\n}\n// Test: \"If creation changes, does business logic ALSO change?\" YES -> same class"
     },
     {
       "id": "dt28",
@@ -514,10 +639,10 @@
     {
       "id": "dt30",
       "question": "Factory pattern doesn't actually eliminate coupling. What's even the point?",
-      "answer": "Factory MANAGES coupling, not eliminates it. It takes coupling scattered across 10 files and concentrates it into 1 file. The progression: scattered (10 files touch 'new') -> Simple Factory (1 class) -> Registry (1 map) -> DI framework (config file) -> External YAML (zero Java code). Each step pushes 'new' further from business logic. Zero coupling is impossible in OOP -- someone must call 'new'. The goal is coupling in ONE place."
+      "answer": "Factory MANAGES coupling, not eliminates it. It takes coupling scattered across 10 files and concentrates it into 1 file. The progression: scattered (10 files touch 'new') -> Simple Factory (1 class) -> Registry (1 map) -> DI framework (config file) -> External YAML (zero Java code). Each step pushes 'new' further from business logic. Zero coupling is impossible in OOP -- someone must call 'new'. The goal is coupling in ONE place.",
+      "codeExample": "// Level 0: Scattered -- 'new' in 10 files\nEmailNotification n = new EmailNotification(); // in every service\n\n// Level 1: Simple Factory -- 'new' in 1 file\nNotification n = NotificationFactory.create(type);\n\n// Level 2: Registry -- 'new' in a Map\nNotification n = registry.create(type); // Supplier calls new\n\n// Level 3: DI Framework -- 'new' in config class\n@Autowired Notification notification; // framework calls new\n\n// Level 4: External config -- 'new' driven by YAML\n// application.yml\n// notification.type: email  --> zero Java 'new' in business code"
     }
   ],
-
   "cheatSheet": {
     "whenToUse": [
       "3+ types implementing the same interface",
@@ -540,10 +665,14 @@
       "Client": "Uses products through interface, never touches concrete classes"
     },
     "sixWordSummary": "Ask Factory. Don't new it yourself.",
-    "solidPrinciples": ["SRP (primary)", "OCP (primary)", "DIP (primary)", "LSP (bonus)"],
+    "solidPrinciples": [
+      "SRP (primary)",
+      "OCP (primary)",
+      "DIP (primary)",
+      "LSP (bonus)"
+    ],
     "codeSmellTrigger": "if-else / switch on type to decide which object to new"
   },
-
   "practiceQuestions": [
     {
       "id": "factory-basic-q1",
@@ -559,7 +688,11 @@
         "java": "enum VehicleType { CAR, TRUCK, MOTORCYCLE }\nenum VehicleSize { SMALL, MEDIUM, LARGE }\n\ninterface Vehicle {\n    VehicleSize getSize();\n    double getHourlyRate();\n    String getType();\n}\n\nclass Car implements Vehicle {\n    public VehicleSize getSize() { return VehicleSize.MEDIUM; }\n    public double getHourlyRate() { return 20.0; }\n    public String getType() { return \"Car\"; }\n}\n\nclass Truck implements Vehicle {\n    public VehicleSize getSize() { return VehicleSize.LARGE; }\n    public double getHourlyRate() { return 50.0; }\n    public String getType() { return \"Truck\"; }\n}\n\nclass Motorcycle implements Vehicle {\n    public VehicleSize getSize() { return VehicleSize.SMALL; }\n    public double getHourlyRate() { return 10.0; }\n    public String getType() { return \"Motorcycle\"; }\n}\n\nclass VehicleFactory {\n    public static Vehicle create(VehicleType type) {\n        return switch (type) {\n            case CAR        -> new Car();\n            case TRUCK      -> new Truck();\n            case MOTORCYCLE -> new Motorcycle();\n        };\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Vehicle v1 = VehicleFactory.create(VehicleType.CAR);\n        System.out.println(v1.getType() + \" | Size: \" + v1.getSize() + \" | Rate: $\" + v1.getHourlyRate() + \"/hr\");\n\n        Vehicle v2 = VehicleFactory.create(VehicleType.TRUCK);\n        System.out.println(v2.getType() + \" | Size: \" + v2.getSize() + \" | Rate: $\" + v2.getHourlyRate() + \"/hr\");\n\n        Vehicle v3 = VehicleFactory.create(VehicleType.MOTORCYCLE);\n        System.out.println(v3.getType() + \" | Size: \" + v3.getSize() + \" | Rate: $\" + v3.getHourlyRate() + \"/hr\");\n    }\n}",
         "cpp": "#include <iostream>\n#include <memory>\n#include <string>\nusing namespace std;\n\nenum class VehicleSize { SMALL, MEDIUM, LARGE };\nenum class VehicleType { CAR, TRUCK, MOTORCYCLE };\n\nclass Vehicle {\npublic:\n    virtual ~Vehicle() = default;\n    virtual VehicleSize getSize() const = 0;\n    virtual double getHourlyRate() const = 0;\n    virtual string getType() const = 0;\n};\n\nclass Car : public Vehicle {\npublic:\n    VehicleSize getSize() const override { return VehicleSize::MEDIUM; }\n    double getHourlyRate() const override { return 20.0; }\n    string getType() const override { return \"Car\"; }\n};\n\nclass Truck : public Vehicle {\npublic:\n    VehicleSize getSize() const override { return VehicleSize::LARGE; }\n    double getHourlyRate() const override { return 50.0; }\n    string getType() const override { return \"Truck\"; }\n};\n\nclass Motorcycle : public Vehicle {\npublic:\n    VehicleSize getSize() const override { return VehicleSize::SMALL; }\n    double getHourlyRate() const override { return 10.0; }\n    string getType() const override { return \"Motorcycle\"; }\n};\n\nclass VehicleFactory {\npublic:\n    static unique_ptr<Vehicle> create(VehicleType type) {\n        switch (type) {\n            case VehicleType::CAR:        return make_unique<Car>();\n            case VehicleType::TRUCK:      return make_unique<Truck>();\n            case VehicleType::MOTORCYCLE: return make_unique<Motorcycle>();\n            default: throw invalid_argument(\"Unknown vehicle type\");\n        }\n    }\n};\n\nint main() {\n    auto v1 = VehicleFactory::create(VehicleType::CAR);\n    cout << v1->getType() << \" | Rate: $\" << v1->getHourlyRate() << \"/hr\" << endl;\n\n    auto v2 = VehicleFactory::create(VehicleType::TRUCK);\n    cout << v2->getType() << \" | Rate: $\" << v2->getHourlyRate() << \"/hr\" << endl;\n\n    auto v3 = VehicleFactory::create(VehicleType::MOTORCYCLE);\n    cout << v3->getType() << \" | Rate: $\" << v3->getHourlyRate() << \"/hr\" << endl;\n\n    return 0;\n}"
       },
-      "tags": ["factory", "parking-lot", "basic"]
+      "tags": [
+        "factory",
+        "parking-lot",
+        "basic"
+      ]
     },
     {
       "id": "factory-inter-q1",
@@ -575,7 +708,12 @@
         "java": "import java.util.*;\nimport java.util.function.Supplier;\n\ninterface Notification {\n    void send(String message);\n    String getChannel();\n}\n\nclass EmailNotification implements Notification {\n    public void send(String message) { System.out.println(\"[EMAIL] \" + message); }\n    public String getChannel() { return \"EMAIL\"; }\n}\n\nclass SMSNotification implements Notification {\n    public void send(String message) { System.out.println(\"[SMS] \" + message); }\n    public String getChannel() { return \"SMS\"; }\n}\n\nclass PushNotification implements Notification {\n    public void send(String message) { System.out.println(\"[PUSH] \" + message); }\n    public String getChannel() { return \"PUSH\"; }\n}\n\n// Custom type -- added at runtime without modifying factory\nclass TelegramNotification implements Notification {\n    public void send(String message) { System.out.println(\"[TELEGRAM] \" + message); }\n    public String getChannel() { return \"TELEGRAM\"; }\n}\n\nclass NotificationRegistry {\n    private final Map<String, Supplier<Notification>> registry = new HashMap<>();\n\n    public NotificationRegistry() {\n        // Default registrations\n        registry.put(\"EMAIL\", EmailNotification::new);\n        registry.put(\"SMS\", SMSNotification::new);\n        registry.put(\"PUSH\", PushNotification::new);\n    }\n\n    public void register(String key, Supplier<Notification> creator) {\n        registry.put(key, creator);\n    }\n\n    public Notification create(String key) {\n        Supplier<Notification> supplier = registry.get(key);\n        if (supplier == null) throw new IllegalArgumentException(\"Unknown: \" + key);\n        return supplier.get();\n    }\n\n    public Set<String> getRegisteredTypes() {\n        return Collections.unmodifiableSet(registry.keySet());\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        NotificationRegistry registry = new NotificationRegistry();\n\n        // Use built-in types\n        registry.create(\"EMAIL\").send(\"Order confirmed!\");\n        registry.create(\"SMS\").send(\"OTP: 1234\");\n\n        // Dynamically register Telegram -- no factory code modified!\n        registry.register(\"TELEGRAM\", TelegramNotification::new);\n        registry.create(\"TELEGRAM\").send(\"Welcome to our channel!\");\n\n        System.out.println(\"Registered types: \" + registry.getRegisteredTypes());\n    }\n}",
         "cpp": "#include <iostream>\n#include <string>\n#include <memory>\n#include <unordered_map>\n#include <functional>\n#include <stdexcept>\nusing namespace std;\n\nclass Notification {\npublic:\n    virtual ~Notification() = default;\n    virtual void send(const string& message) = 0;\n    virtual string getChannel() const = 0;\n};\n\nclass EmailNotification : public Notification {\npublic:\n    void send(const string& msg) override { cout << \"[EMAIL] \" << msg << endl; }\n    string getChannel() const override { return \"EMAIL\"; }\n};\n\nclass SMSNotification : public Notification {\npublic:\n    void send(const string& msg) override { cout << \"[SMS] \" << msg << endl; }\n    string getChannel() const override { return \"SMS\"; }\n};\n\nclass TelegramNotification : public Notification {\npublic:\n    void send(const string& msg) override { cout << \"[TELEGRAM] \" << msg << endl; }\n    string getChannel() const override { return \"TELEGRAM\"; }\n};\n\nclass NotificationRegistry {\n    using Creator = function<unique_ptr<Notification>()>;\n    unordered_map<string, Creator> registry;\npublic:\n    NotificationRegistry() {\n        registry[\"EMAIL\"] = []() { return make_unique<EmailNotification>(); };\n        registry[\"SMS\"]   = []() { return make_unique<SMSNotification>(); };\n    }\n\n    void registerType(const string& key, Creator creator) {\n        registry[key] = move(creator);\n    }\n\n    unique_ptr<Notification> create(const string& key) {\n        auto it = registry.find(key);\n        if (it == registry.end()) throw invalid_argument(\"Unknown: \" + key);\n        return it->second();\n    }\n};\n\nint main() {\n    NotificationRegistry registry;\n    registry.create(\"EMAIL\")->send(\"Order confirmed!\");\n    registry.create(\"SMS\")->send(\"OTP: 1234\");\n\n    // Dynamic registration\n    registry.registerType(\"TELEGRAM\", []() {\n        return make_unique<TelegramNotification>();\n    });\n    registry.create(\"TELEGRAM\")->send(\"Welcome!\");\n\n    return 0;\n}"
       },
-      "tags": ["factory", "registry", "notification", "intermediate"]
+      "tags": [
+        "factory",
+        "registry",
+        "notification",
+        "intermediate"
+      ]
     },
     {
       "id": "factory-adv-q1",
@@ -592,10 +730,15 @@
         "java": "// Product interface (Strategy)\ninterface PaymentProcessor {\n    void validate(String details);\n    String charge(double amount);\n    void refund(String txnId);\n    String getName();\n}\n\n// Concrete Products\nclass CreditCardProcessor implements PaymentProcessor {\n    private String merchantId;\n    public CreditCardProcessor(String merchantId) { this.merchantId = merchantId; }\n    public void validate(String details) {\n        System.out.println(\"  Luhn check on card: \" + details.substring(details.length() - 4));\n    }\n    public String charge(double amount) {\n        String txnId = \"CC-\" + System.currentTimeMillis();\n        System.out.println(\"  Charged $\" + amount + \" via card network (merchant: \" + merchantId + \")\");\n        return txnId;\n    }\n    public void refund(String txnId) {\n        System.out.println(\"  Refunded \" + txnId + \" via card network\");\n    }\n    public String getName() { return \"Credit Card\"; }\n}\n\nclass UPIProcessor implements PaymentProcessor {\n    private String pspId;\n    public UPIProcessor(String pspId) { this.pspId = pspId; }\n    public void validate(String details) {\n        System.out.println(\"  VPA format check: \" + details);\n    }\n    public String charge(double amount) {\n        String txnId = \"UPI-\" + System.currentTimeMillis();\n        System.out.println(\"  Charged Rs.\" + amount + \" via NPCI (PSP: \" + pspId + \")\");\n        return txnId;\n    }\n    public void refund(String txnId) {\n        System.out.println(\"  UPI reversal for \" + txnId);\n    }\n    public String getName() { return \"UPI\"; }\n}\n\n// Abstract Service with Factory Method\nabstract class PaymentService {\n    abstract PaymentProcessor createProcessor();\n\n    // Template: shared orchestration\n    public void processPayment(String details, double amount) {\n        PaymentProcessor processor = createProcessor();\n        System.out.println(\"Processing \" + processor.getName() + \" payment...\");\n        processor.validate(details);\n        String txnId = processor.charge(amount);\n        System.out.println(\"  Transaction ID: \" + txnId);\n        log(processor.getName(), amount, txnId);\n    }\n\n    private void log(String method, double amount, String txnId) {\n        System.out.println(\"  [LOG] \" + method + \" | $\" + amount + \" | \" + txnId);\n    }\n}\n\n// Concrete Services -- each owns private creation logic\nclass CreditCardPaymentService extends PaymentService {\n    PaymentProcessor createProcessor() {\n        String merchantId = \"WMT-\" + System.getenv().getOrDefault(\"MERCHANT_ID\", \"DEFAULT\");\n        return new CreditCardProcessor(merchantId);\n    }\n}\n\nclass UPIPaymentService extends PaymentService {\n    PaymentProcessor createProcessor() {\n        String pspId = \"PSP-WALMART-IN\";\n        System.out.println(\"  Loading UPI config (PSP: \" + pspId + \")\");\n        return new UPIProcessor(pspId);\n    }\n}\n\n// Simple Factory to select the right service\nclass PaymentServiceFactory {\n    public static PaymentService create(String type) {\n        return switch (type.toUpperCase()) {\n            case \"CREDIT_CARD\" -> new CreditCardPaymentService();\n            case \"UPI\"         -> new UPIPaymentService();\n            default -> throw new IllegalArgumentException(\"Unknown: \" + type);\n        };\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // User selects UPI\n        String userChoice = \"UPI\";\n        PaymentService service = PaymentServiceFactory.create(userChoice);\n        service.processPayment(\"ravi@upi\", 999.0);\n\n        System.out.println();\n\n        // User selects Credit Card\n        userChoice = \"CREDIT_CARD\";\n        service = PaymentServiceFactory.create(userChoice);\n        service.processPayment(\"4111111111111234\", 2499.0);\n    }\n}",
         "cpp": "#include <iostream>\n#include <string>\n#include <memory>\n#include <stdexcept>\nusing namespace std;\n\nclass PaymentProcessor {\npublic:\n    virtual ~PaymentProcessor() = default;\n    virtual void validate(const string& details) = 0;\n    virtual string charge(double amount) = 0;\n    virtual string getName() const = 0;\n};\n\nclass CreditCardProcessor : public PaymentProcessor {\n    string merchantId;\npublic:\n    explicit CreditCardProcessor(string mid) : merchantId(move(mid)) {}\n    void validate(const string& details) override {\n        cout << \"  Luhn check: ****\" << details.substr(details.length() - 4) << endl;\n    }\n    string charge(double amount) override {\n        cout << \"  Charged $\" << amount << \" via card network\" << endl;\n        return \"CC-TXN-001\";\n    }\n    string getName() const override { return \"Credit Card\"; }\n};\n\nclass UPIProcessor : public PaymentProcessor {\n    string pspId;\npublic:\n    explicit UPIProcessor(string psp) : pspId(move(psp)) {}\n    void validate(const string& details) override {\n        cout << \"  VPA check: \" << details << endl;\n    }\n    string charge(double amount) override {\n        cout << \"  Charged Rs.\" << amount << \" via NPCI\" << endl;\n        return \"UPI-TXN-001\";\n    }\n    string getName() const override { return \"UPI\"; }\n};\n\nclass PaymentService {\npublic:\n    virtual ~PaymentService() = default;\n    virtual unique_ptr<PaymentProcessor> createProcessor() = 0;\n\n    void processPayment(const string& details, double amount) {\n        auto processor = createProcessor();\n        cout << \"Processing \" << processor->getName() << \"...\" << endl;\n        processor->validate(details);\n        string txnId = processor->charge(amount);\n        cout << \"  TXN: \" << txnId << endl;\n    }\n};\n\nclass CreditCardPaymentService : public PaymentService {\npublic:\n    unique_ptr<PaymentProcessor> createProcessor() override {\n        return make_unique<CreditCardProcessor>(\"WMT-DEFAULT\");\n    }\n};\n\nclass UPIPaymentService : public PaymentService {\npublic:\n    unique_ptr<PaymentProcessor> createProcessor() override {\n        cout << \"  Loading UPI config...\" << endl;\n        return make_unique<UPIProcessor>(\"PSP-WALMART-IN\");\n    }\n};\n\nclass PaymentServiceFactory {\npublic:\n    static unique_ptr<PaymentService> create(const string& type) {\n        if (type == \"UPI\") return make_unique<UPIPaymentService>();\n        if (type == \"CREDIT_CARD\") return make_unique<CreditCardPaymentService>();\n        throw invalid_argument(\"Unknown: \" + type);\n    }\n};\n\nint main() {\n    auto service = PaymentServiceFactory::create(\"UPI\");\n    service->processPayment(\"ravi@upi\", 999.0);\n\n    cout << endl;\n\n    service = PaymentServiceFactory::create(\"CREDIT_CARD\");\n    service->processPayment(\"4111111111111234\", 2499.0);\n\n    return 0;\n}"
       },
-      "tags": ["factory", "factory-method", "strategy", "payment", "advanced"]
+      "tags": [
+        "factory",
+        "factory-method",
+        "strategy",
+        "payment",
+        "advanced"
+      ]
     }
   ],
-
   "bestPractices": [
     "Use enums for factory keys -- compile-time safety, no typo crashes",
     "Simple Factory for 80% of cases -- don't over-engineer with Factory Method unless creation is complex",
@@ -606,7 +749,6 @@
     "Return new instances for stateful products -- never cache mutable objects",
     "Parse strings to enums at system boundaries -- enums travel through business logic"
   ],
-
   "commonMistakes": [
     {
       "mistake": "Creating a Factory for only 1 type that won't change",
@@ -632,5 +774,73 @@
       "mistake": "Confusing Factory (WHICH type to create) with Builder (HOW to configure complex object)",
       "correct": "Factory picks the type in one call. Builder configures step-by-step. Combine when you need both."
     }
-  ]
+  ],
+  "codeFactoryMethod": {
+    "steps": [
+      {
+        "step": 1,
+        "title": "Define Product Interface",
+        "description": "Same Notification interface. Products now accept private config via constructor (SMTP host, API key) -- Simple Factory can't know all these without becoming a God Factory."
+      },
+      {
+        "step": 2,
+        "title": "Products Need Private Config",
+        "description": "EmailNotification needs SMTP host. SMSNotification needs API key. Each product's creation requires private knowledge only its channel owns."
+      },
+      {
+        "step": 3,
+        "title": "Abstract Service + Factory Method",
+        "description": "NotificationService is ABSTRACT. createNotification() is the HOOK (factory method). sendNotification() is shared orchestration (template method): validate -> create -> send -> log -> audit -- written ONCE."
+      },
+      {
+        "step": 4,
+        "title": "Subclasses Fill the Hook",
+        "description": "EmailNotificationService overrides createNotification() to load SMTP config and return EmailNotification. Each subclass owns ONLY its private creation knowledge. No God Factory."
+      },
+      {
+        "step": 5,
+        "title": "Client Uses Abstract Service",
+        "description": "Client holds NotificationService reference. Subclass decides internally what to create. Shared orchestration (log, audit, retry) never gets duplicated across services."
+      }
+    ],
+    "java": {
+      "title": "Factory Method - Notification System (Java)",
+      "code": "// FACTORY METHOD: Creation as a HOOK inside a service class.\n// Subclasses decide WHAT to create. Service owns the shared workflow.\n// USE WHEN: creation needs PRIVATE knowledge per type (config, keys)\n// AND the service has SHARED logic around the product (log, retry, audit).\n\nimport java.util.*;\n\n// Product Interface -- same as Simple Factory\ninterface Notification {\n    void send(String message);\n    String getChannel();\n}\n\n// Concrete Products -- each needs PRIVATE config to construct\nclass EmailNotification implements Notification {\n    private String smtpHost;\n    EmailNotification(String smtpHost) { this.smtpHost = smtpHost; }\n    public void send(String message) {\n        System.out.println(\"[EMAIL via \" + smtpHost + \"] \" + message);\n    }\n    public String getChannel() { return \"EMAIL\"; }\n}\n\nclass SMSNotification implements Notification {\n    private String apiKey;\n    SMSNotification(String apiKey) { this.apiKey = apiKey; }\n    public void send(String message) {\n        System.out.println(\"[SMS via \" + apiKey.substring(0,4) + \"***] \" + message);\n    }\n    public String getChannel() { return \"SMS\"; }\n}\n\n// ===== THE ABSTRACT CREATOR (Service) =====\n// WHY this class exists:\n// 1. createNotification() = FACTORY METHOD -- subclasses override\n// 2. sendNotification() = SHARED orchestration -- written ONCE\n// Without this, every service duplicates validate/log/audit.\nabstract class NotificationService {\n    // Factory Method -- subclasses fill in WHAT to create\n    protected abstract Notification createNotification();\n\n    // Template Method -- shared workflow using the created product\n    public final void sendNotification(String message) {\n        validate(message);\n        Notification n = createNotification(); // HOOK: subclass decides\n        n.send(message);\n        log(n.getChannel(), message);\n        audit(n.getChannel());\n    }\n\n    private void validate(String msg) {\n        System.out.println(\"  Validating: non-empty=\" + !msg.isEmpty());\n    }\n    private void log(String ch, String msg) {\n        System.out.println(\"  [LOG] \" + ch + \" | \" + msg.substring(0, Math.min(20, msg.length())) + \"...\");\n    }\n    private void audit(String ch) {\n        System.out.println(\"  [AUDIT] \" + ch + \" dispatched\");\n    }\n}\n\n// Concrete Creators -- each owns PRIVATE creation knowledge\nclass EmailNotificationService extends NotificationService {\n    protected Notification createNotification() {\n        // PRIVATE KNOWLEDGE: only EmailService knows SMTP config\n        String host = System.getenv().getOrDefault(\"SMTP_HOST\", \"smtp.walmart.com\");\n        System.out.println(\"  Loading SMTP config: \" + host);\n        return new EmailNotification(host);\n    }\n}\n\nclass SMSNotificationService extends NotificationService {\n    protected Notification createNotification() {\n        // PRIVATE KNOWLEDGE: only SMSService knows the API key source\n        String apiKey = \"twilio-9x8z\";\n        System.out.println(\"  Loading SMS API key from vault\");\n        return new SMSNotification(apiKey);\n    }\n}\n\n// Client: holds abstract service reference\npublic class Main {\n    public static void main(String[] args) {\n        NotificationService service;\n\n        System.out.println(\"--- Email Service ---\");\n        service = new EmailNotificationService();\n        service.sendNotification(\"Order #123 confirmed!\");\n\n        System.out.println();\n\n        System.out.println(\"--- SMS Service ---\");\n        service = new SMSNotificationService();\n        service.sendNotification(\"Your OTP is 9876\");\n    }\n}",
+      "explanation": "Factory Method = Template Method + creation hook. The abstract NotificationService defines the workflow (validate -> create -> send -> log -> audit) and leaves createNotification() as a hook for subclasses. Each subclass fills in the hook with its PRIVATE creation knowledge. Use ONLY when: (1) creation involves private config per type, AND (2) shared orchestration exists. No shared logic? Use Simple Factory."
+    }
+  },
+  "codeAbstractFactory": {
+    "steps": [
+      {
+        "step": 1,
+        "title": "Define Product Family Interfaces",
+        "description": "PaymentProcessor, Receipt, PaymentValidator -- three interfaces that form a FAMILY. Each country implements all three consistently."
+      },
+      {
+        "step": 2,
+        "title": "India Product Family",
+        "description": "UPIProcessor + IndiaReceipt (GST) + IndiaValidator (VPA check). These three MUST go together -- you can't mix UPI processor with US receipt."
+      },
+      {
+        "step": 3,
+        "title": "US Product Family",
+        "description": "CreditCardProcessor + USReceipt (US Invoice) + USValidator (Luhn check). A completely different family, but same interfaces."
+      },
+      {
+        "step": 4,
+        "title": "Abstract Factory Interface",
+        "description": "PaymentFactory has THREE create methods -- one for each product in the family. IndiaPaymentFactory and USPaymentFactory each return their consistent family."
+      },
+      {
+        "step": 5,
+        "title": "Client Uses the Factory",
+        "description": "CheckoutService takes a PaymentFactory. It doesn't know if it's India or US. Same code works for both -- the factory guarantees consistency across the family."
+      }
+    ],
+    "java": {
+      "title": "Abstract Factory - Payment System by Country (Java)",
+      "code": "// ABSTRACT FACTORY: Creates FAMILIES of related objects.\n// India: UPI + GST Receipt + VPA Validator\n// US: Credit Card + US Invoice + Luhn Validator\n// Can't mix India processor with US receipt -- they vary TOGETHER.\n// USE WHEN: products must be CONSISTENT within a theme/region/OS.\n\n// ===== Product Family Interfaces =====\ninterface PaymentProcessor {\n    void charge(double amount);\n    String getName();\n}\n\ninterface Receipt {\n    void generate(String txnId, double amount);\n}\n\ninterface PaymentValidator {\n    boolean validate(String details);\n}\n\n// ===== India Family =====\nclass UPIProcessor implements PaymentProcessor {\n    public void charge(double amount) {\n        System.out.println(\"  [UPI] Charged Rs.\" + amount + \" via NPCI\");\n    }\n    public String getName() { return \"UPI\"; }\n}\n\nclass IndiaReceipt implements Receipt {\n    public void generate(String txnId, double amount) {\n        double gst = amount * 0.18;\n        System.out.println(\"  [GST Invoice] \" + txnId + \" | Rs.\" + amount + \" + GST Rs.\" + String.format(\"%.2f\", gst));\n    }\n}\n\nclass IndiaValidator implements PaymentValidator {\n    public boolean validate(String details) {\n        boolean ok = details.contains(\"@\");\n        System.out.println(\"  [VPA Check] \" + details + \" -> \" + (ok ? \"VALID\" : \"INVALID\"));\n        return ok;\n    }\n}\n\n// ===== US Family =====\nclass CreditCardProcessor implements PaymentProcessor {\n    public void charge(double amount) {\n        System.out.println(\"  [Visa] Charged $\" + amount + \" via card network\");\n    }\n    public String getName() { return \"Credit Card\"; }\n}\n\nclass USReceipt implements Receipt {\n    public void generate(String txnId, double amount) {\n        System.out.println(\"  [US Invoice] \" + txnId + \" | $\" + amount + \" + state tax\");\n    }\n}\n\nclass USValidator implements PaymentValidator {\n    public boolean validate(String details) {\n        boolean ok = details.length() >= 13;\n        System.out.println(\"  [Luhn] ****\" + details.substring(details.length() - 4) + \" -> \" + (ok ? \"VALID\" : \"INVALID\"));\n        return ok;\n    }\n}\n\n// ===== Abstract Factory =====\n// WHY: Each country needs ALL THREE products to be consistent.\n// IndiaPaymentFactory guarantees: UPI + GST + VPA -- always together.\ninterface PaymentFactory {\n    PaymentProcessor createProcessor();\n    Receipt createReceipt();\n    PaymentValidator createValidator();\n}\n\nclass IndiaPaymentFactory implements PaymentFactory {\n    public PaymentProcessor createProcessor() { return new UPIProcessor(); }\n    public Receipt createReceipt() { return new IndiaReceipt(); }\n    public PaymentValidator createValidator() { return new IndiaValidator(); }\n}\n\nclass USPaymentFactory implements PaymentFactory {\n    public PaymentProcessor createProcessor() { return new CreditCardProcessor(); }\n    public Receipt createReceipt() { return new USReceipt(); }\n    public PaymentValidator createValidator() { return new USValidator(); }\n}\n\n// ===== Client -- SAME code works for ANY country =====\nclass CheckoutService {\n    private final PaymentFactory factory;\n\n    CheckoutService(PaymentFactory factory) { this.factory = factory; }\n\n    void checkout(String paymentDetails, double amount) {\n        PaymentValidator validator = factory.createValidator();\n        PaymentProcessor processor = factory.createProcessor();\n        Receipt receipt = factory.createReceipt();\n\n        System.out.println(\"=== \" + processor.getName() + \" Checkout ===\");\n        if (!validator.validate(paymentDetails)) {\n            System.out.println(\"  REJECTED\");\n            return;\n        }\n        processor.charge(amount);\n        receipt.generate(\"TXN-\" + System.currentTimeMillis(), amount);\n        System.out.println(\"=== Done ===\");\n    }\n}\n\n// Factory of Factories -- selects the right country\nclass PaymentFactoryProvider {\n    public static PaymentFactory getFactory(String country) {\n        return switch (country.toUpperCase()) {\n            case \"INDIA\" -> new IndiaPaymentFactory();\n            case \"US\"    -> new USPaymentFactory();\n            default -> throw new IllegalArgumentException(\"Unknown: \" + country);\n        };\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(\"--- India Checkout ---\");\n        CheckoutService india = new CheckoutService(PaymentFactoryProvider.getFactory(\"INDIA\"));\n        india.checkout(\"ravi@upi\", 999.0);\n\n        System.out.println();\n\n        System.out.println(\"--- US Checkout ---\");\n        CheckoutService us = new CheckoutService(PaymentFactoryProvider.getFactory(\"US\"));\n        us.checkout(\"4111111111111234\", 49.99);\n    }\n}",
+      "explanation": "Abstract Factory creates FAMILIES of related objects that must stay consistent. IndiaPaymentFactory always returns UPI + GST Receipt + VPA Validator -- never mixed with US products. Use when products vary TOGETHER by theme, region, or platform. Simple Factory creates ONE product type. Abstract Factory creates a coordinated FAMILY."
+    }
+  }
 }

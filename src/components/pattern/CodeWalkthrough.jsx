@@ -8,13 +8,23 @@ const languages = [
   { id: 'kotlin', label: 'Kotlin', color: 'bg-purple-600' }
 ]
 
-function CodeWalkthrough({ codeImplementation }) {
+function CodeWalkthrough({ codeImplementation, codeFactoryMethod, codeAbstractFactory }) {
   const [activeLang, setActiveLang] = useState('java')
   const [activeStep, setActiveStep] = useState(null)
+  const [activeFlavor, setActiveFlavor] = useState('simple')
 
   if (!codeImplementation) return null
 
-  const currentCode = codeImplementation[activeLang]
+  // Build flavors array dynamically from available data
+  const flavors = [
+    { id: 'simple', label: 'Simple Factory + Registry', icon: '\u{1F3ED}', data: codeImplementation },
+    codeFactoryMethod && { id: 'factory-method', label: 'Factory Method', icon: '\u{1F527}', data: codeFactoryMethod },
+    codeAbstractFactory && { id: 'abstract-factory', label: 'Abstract Factory', icon: '\u{1F3D7}\uFE0F', data: codeAbstractFactory },
+  ].filter(Boolean)
+
+  const hasFlavors = flavors.length > 1
+  const activeFlavorData = flavors.find(f => f.id === activeFlavor)?.data || codeImplementation
+  const currentCode = activeFlavorData[activeLang]
 
   return (
     <div className="space-y-6">
@@ -27,10 +37,35 @@ function CodeWalkthrough({ codeImplementation }) {
         </p>
       </div>
 
+      {/* Flavor Selector -- only shows when pattern has multiple code flavors */}
+      {hasFlavors && (
+        <div className="flex flex-wrap gap-2">
+          {flavors.map((flavor) => (
+            <button
+              key={flavor.id}
+              onClick={() => {
+                setActiveFlavor(flavor.id)
+                setActiveStep(null)
+                setActiveLang('java')
+              }}
+              className={clsx(
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border-2',
+                activeFlavor === flavor.id
+                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 shadow-sm'
+                  : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-primary-300 dark:hover:border-primary-600'
+              )}
+            >
+              <span className="text-lg">{flavor.icon}</span>
+              {flavor.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Build Steps */}
-      {codeImplementation.steps && (
+      {activeFlavorData.steps && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {codeImplementation.steps.map((s) => (
+          {activeFlavorData.steps.map((s) => (
             <button
               key={s.step}
               onClick={() => setActiveStep(activeStep === s.step ? null : s.step)}
@@ -67,7 +102,7 @@ function CodeWalkthrough({ codeImplementation }) {
         <span className="text-sm text-gray-500 dark:text-gray-400">Language:</span>
         <div className="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
           {languages.map((lang) => {
-            const hasCode = !!codeImplementation[lang.id]
+            const hasCode = !!activeFlavorData[lang.id]
             return (
               <button
                 key={lang.id}
@@ -91,7 +126,7 @@ function CodeWalkthrough({ codeImplementation }) {
       {/* Interactive Editor */}
       {currentCode && (
         <InteractiveEditor
-          key={activeLang}
+          key={`${activeFlavor}-${activeLang}`}
           code={currentCode.code}
           language={activeLang}
           title={currentCode.title}

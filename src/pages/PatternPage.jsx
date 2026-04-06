@@ -60,10 +60,15 @@ function DeepThoughtCard({ question }) {
       </button>
       {isOpen && (
         <div className="px-4 pb-4 pt-0 ml-9 animate-fade-in">
-          <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+          <div className="p-3 rounded-lg bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 space-y-3">
             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
               {question.answer}
             </p>
+            {question.codeExample && (
+              <pre className="p-3 rounded-lg bg-gray-900 text-green-300 text-xs font-mono overflow-x-auto leading-relaxed">
+                <code>{question.codeExample}</code>
+              </pre>
+            )}
           </div>
         </div>
       )}
@@ -126,7 +131,13 @@ function PatternPage() {
       case 'triggers':
         return <BrainTriggers brainTriggers={patternData.brainTriggers} />
       case 'code':
-        return <CodeWalkthrough codeImplementation={patternData.codeImplementation} />
+        return (
+          <CodeWalkthrough
+            codeImplementation={patternData.codeImplementation}
+            codeFactoryMethod={patternData.codeFactoryMethod}
+            codeAbstractFactory={patternData.codeAbstractFactory}
+          />
+        )
       case 'solid':
         return <SolidConnections solidConnections={patternData.solidConnections} />
       case 'lld':
