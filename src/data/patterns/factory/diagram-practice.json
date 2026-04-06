@@ -1,0 +1,29 @@
+{
+  "templates": [
+    {
+      "id": "simple-factory-class",
+      "label": "Simple Factory",
+      "code": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(message: String) void\n        +validate() boolean\n    }\n    class EmailNotification {\n        -smtpHost: String\n        +send(message: String) void\n    }\n    class SMSNotification {\n        -apiKey: String\n        +send(message: String) void\n    }\n    class PushNotification {\n        -fcmKey: String\n        +send(message: String) void\n    }\n    class NotificationFactory {\n        +create(type: String)$ Notification\n    }\n    Notification <|.. EmailNotification\n    Notification <|.. SMSNotification\n    Notification <|.. PushNotification\n    NotificationFactory ..> Notification : creates"
+    },
+    {
+      "id": "factory-method-class",
+      "label": "Factory Method",
+      "code": "classDiagram\n    class Notification {\n        <<interface>>\n        +send(msg: String) void\n    }\n    class NotificationService {\n        <<abstract>>\n        #createNotification()* Notification\n        +notifyUser(msg: String) void\n    }\n    class EmailNotificationService {\n        #createNotification() Notification\n    }\n    class SMSNotificationService {\n        #createNotification() Notification\n    }\n    class EmailNotification {\n        +send(msg: String) void\n    }\n    class SMSNotification {\n        +send(msg: String) void\n    }\n    Notification <|.. EmailNotification\n    Notification <|.. SMSNotification\n    NotificationService <|-- EmailNotificationService\n    NotificationService <|-- SMSNotificationService\n    EmailNotificationService ..> EmailNotification : creates\n    SMSNotificationService ..> SMSNotification : creates\n    NotificationService ..> Notification : uses"
+    },
+    {
+      "id": "abstract-factory-class",
+      "label": "Abstract Factory",
+      "code": "classDiagram\n    class TaxCalculator {\n        <<interface>>\n        +calculate(amount) double\n    }\n    class CurrencyFormatter {\n        <<interface>>\n        +format(amount) String\n    }\n    class RegionalComplianceFactory {\n        <<interface>>\n        +createTaxCalculator() TaxCalculator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    class IndiaComplianceFactory {\n        +createTaxCalculator() TaxCalculator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    class USComplianceFactory {\n        +createTaxCalculator() TaxCalculator\n        +createCurrencyFormatter() CurrencyFormatter\n    }\n    RegionalComplianceFactory <|.. IndiaComplianceFactory\n    RegionalComplianceFactory <|.. USComplianceFactory\n    IndiaComplianceFactory ..> GSTCalculator : creates\n    IndiaComplianceFactory ..> RupeeFormatter : creates\n    USComplianceFactory ..> SalesTaxCalculator : creates\n    USComplianceFactory ..> DollarFormatter : creates"
+    },
+    {
+      "id": "sequence-flow",
+      "label": "Sequence Diagram",
+      "code": "sequenceDiagram\n    participant C as OrderService\n    participant F as NotificationFactory\n    participant N as EmailNotification\n\n    C->>F: create(\"email\")\n    activate F\n    F->>F: registry.get(\"email\")\n    F->>N: new EmailNotification()\n    activate N\n    N-->>F: instance\n    deactivate N\n    F-->>C: Notification (interface)\n    deactivate F\n    C->>N: send(\"Order confirmed\")\n    activate N\n    N->>N: validate()\n    N-->>C: success\n    deactivate N\n    Note over C: Client never knew\n    Note over C: it was Email"
+    },
+    {
+      "id": "empty",
+      "label": "Blank Canvas",
+      "code": "classDiagram\n    %% Start drawing your UML here!\n    %% Try: class MyInterface { <<interface>> +myMethod() void }\n"
+    }
+  ]
+}

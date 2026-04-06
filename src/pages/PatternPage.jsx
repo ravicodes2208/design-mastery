@@ -19,6 +19,7 @@ const sectionComponents = {
   interview:    lazy(() => import('../components/pattern/InterviewPrep')),
   flashcards:   lazy(() => import('../components/pattern/Flashcards')),
   sandbox:      lazy(() => import('../components/pattern/CodeSandbox')),
+  diagramdraw:  lazy(() => import('../components/pattern/DiagramEditor')),
   solid:        lazy(() => import('../components/pattern/SolidConnections')),
   lld:          lazy(() => import('../components/pattern/LLDProblems')),
   web:          lazy(() => import('../components/pattern/PatternWeb')),
@@ -53,6 +54,7 @@ const sectionGroups = [
       { id: 'interview', label: 'Interview Prep', icon: '🎤', requiresData: 'interview' },
       { id: 'flashcards', label: 'Flashcards', icon: '🃏', requiresData: 'flashcards' },
       { id: 'sandbox', label: 'Code Sandbox', icon: '🧪', requiresData: 'sandbox' },
+      { id: 'diagramdraw', label: 'Diagram Practice', icon: '✏️', requiresData: 'diagramPractice' },
       { id: 'quiz', label: 'Quiz', icon: '📝' },
       { id: 'practice', label: 'Practice', icon: '🏋️' },
     ]
@@ -86,6 +88,7 @@ const sectionPropsMap = {
   interview:    (d) => ({ interview: d.interview }),
   flashcards:   (d) => ({ flashcards: d.flashcards }),
   sandbox:      (d) => ({ sandbox: d.sandbox }),
+  diagramdraw:  (d) => ({ diagramPractice: d.diagramPractice }),
   solid:        (d) => ({ solidConnections: d.solidConnections }),
   lld:          (d) => ({ lldProblems: d.lldProblems }),
   web:          (d) => ({ patternWeb: d.patternWeb }),
