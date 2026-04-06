@@ -118,7 +118,12 @@ function PatternPage() {
   }
 
   // Filter sections based on available data (e.g., hide Deep Thoughts if no questions exist)
-  const sections = baseSections.filter(s => !s.requiresData || patternData[s.requiresData]?.length > 0)
+  const sections = baseSections.filter(s => {
+    if (!s.requiresData) return true
+    const d = patternData[s.requiresData]
+    if (Array.isArray(d)) return d.length > 0
+    return d != null
+  })
 
   const isCompleted = progress.completedTopics.includes(topicId)
   const currentIdx = sections.findIndex(s => s.id === activeSection)
