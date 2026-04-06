@@ -18,10 +18,12 @@ import QuestionCard from '../components/practice/QuestionCard'
 
 // Import pattern data
 import strategyData from '../data/topics/design-patterns/strategy.json'
+import factoryData from '../data/topics/design-patterns/factory.json'
 
 // Pattern data registry
 const patternDataMap = {
-  'strategy': strategyData
+  'strategy': strategyData,
+  'factory': factoryData
 }
 
 // Section navigation config

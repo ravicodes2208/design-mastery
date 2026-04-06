@@ -1,0 +1,561 @@
+{
+  "id": "factory",
+  "title": "Factory Pattern",
+  "category": "creational",
+  "phase": "design-patterns",
+  "order": 2,
+  "icon": "🏭",
+  "description": "Centralize object creation so that clients don't need to know which concrete class to instantiate. Ask a Factory -- don't new it yourself.",
+  "estimatedTime": "2-3 hours",
+
+  "hook": {
+    "crux": "Don't create objects yourself -- ask a Factory to create them for you.",
+    "oneLiner": "Move object creation logic into a dedicated place so adding new types doesn't ripple through every file that creates objects.",
+    "problemStatement": "Imagine a notification system where OrderService, PaymentService, ShippingService, and ReturnService all create notifications. Each service has if-else chains: if email, new EmailNotification(); if SMS, new SMSNotification(); if push, new PushNotification(). Now the PM says 'add WhatsApp.' You touch 10+ files. Constructor of SMSNotification changes? 10+ files again. Testing? Every service is tightly coupled to every notification type.",
+    "analogy": {
+      "title": "The Pizza Restaurant",
+      "description": "You walk into a pizza restaurant and say 'Margherita.' You don't go into the kitchen, grab dough, spread sauce, sprinkle cheese, and fire the oven. The kitchen (Factory) takes your order (input) and hands you back a ready pizza (product). Tomorrow they add Truffle Pizza to the menu -- you don't change how you order. The kitchen handles it.",
+      "mapping": {
+        "You (customer)": "Client code (OrderService)",
+        "Menu item name": "Type enum/string input",
+        "Kitchen": "Factory",
+        "Pizza": "Product (Notification)",
+        "New menu item": "New concrete class (WhatsAppNotification)"
+      }
+    },
+    "participants": [
+      { "name": "Product Interface", "role": "The common contract all created objects share", "example": "Notification" },
+      { "name": "Concrete Products", "role": "The specific implementations the factory creates", "example": "EmailNotification, SMSNotification, PushNotification" },
+      { "name": "Factory", "role": "The ONE place that decides which concrete product to create", "example": "NotificationFactory" },
+      { "name": "Client", "role": "Code that asks the factory for objects without knowing concrete types", "example": "OrderService, PaymentService" }
+    ]
+  },
+
+  "brainTriggers": {
+    "description": "When you hear these keywords in a problem statement, your brain should instantly light up with 'Factory pattern!'",
+    "triggers": [
+      { "keyword": "based on type", "example": "Create a vehicle based on type -- car, bike, truck", "isStrategy": true },
+      { "keyword": "depending on input/config", "example": "Generate a report depending on format -- PDF, Excel, CSV", "isStrategy": true },
+      { "keyword": "multiple types of", "example": "The system has multiple types of payments", "isStrategy": true },
+      { "keyword": "dynamically create", "example": "Dynamically create the right handler at runtime", "isStrategy": true },
+      { "keyword": "without knowing the exact class", "example": "Client shouldn't know the exact class being instantiated", "isStrategy": true },
+      { "keyword": "easy to add new types in the future", "example": "Design it so adding a new notification channel is easy", "isStrategy": true }
+    ],
+    "notStrategy": [
+      { "keyword": "swap behavior at runtime on same object", "pattern": "Strategy", "reason": "That's algorithm swapping on an existing object, not creation of new objects" },
+      { "keyword": "complex multi-step object construction", "pattern": "Builder", "reason": "Builder configures HOW to build. Factory decides WHICH type to build." },
+      { "keyword": "families of related objects that must stay consistent", "pattern": "Abstract Factory", "reason": "Abstract Factory creates families. Simple/Method Factory creates one product type." }
+    ],
+    "litmusTest": "If the QUESTION is 'which class should I instantiate?' and the answer depends on runtime input, think Factory."
+  },
+
+  "codeImplementation": {
+    "steps": [
+      { "step": 1, "title": "Define the Product Interface", "description": "Create the contract -- the common interface all products share. Every product type implements this. Client code only ever sees this interface." },
+      { "step": 2, "title": "Create Concrete Products", "description": "Each product type gets its own class implementing the interface. EmailNotification handles email, SMSNotification handles SMS. Each owns ONLY its logic." },
+      { "step": 3, "title": "Build the Factory", "description": "One class/method that takes a type indicator (enum, string) and returns the right concrete product through the interface. All if-else/switch creation logic lives HERE and nowhere else." },
+      { "step": 4, "title": "Client Uses Factory", "description": "Client asks the factory for an object. Client only knows the interface. Adding a new type means adding a new class + one line in the factory. Client code is UNTOUCHED." }
+    ],
+    "java": {
+      "title": "Factory Pattern - Notification System (Java)",
+      "code": "// ============================================================\n// FACTORY PATTERN - Notification System\n// Don't create objects yourself -- ask a Factory.\n// ============================================================\n// Shows all 3 flavors: Simple Factory, Registry, Factory Method\n\nimport java.util.*;\nimport java.util.function.Supplier;\n\n// STEP 1: Product Interface (the contract)\n// WHY: Every notification type -- email, SMS, push -- shares this contract.\n// Client code ONLY knows this interface. Never touches concrete classes.\ninterface Notification {\n    void send(String message);\n    String getChannel();\n}\n\n// STEP 2: Concrete Products\n// WHY: Each notification type is its OWN class. SRP -- EmailNotification\n// knows ONLY about sending emails. It doesn't know SMS exists.\nclass EmailNotification implements Notification {\n    @Override\n    public void send(String message) {\n        System.out.println(\"[EMAIL] \" + message);\n    }\n    @Override\n    public String getChannel() { return \"EMAIL\"; }\n}\n\nclass SMSNotification implements Notification {\n    @Override\n    public void send(String message) {\n        System.out.println(\"[SMS] \" + message);\n    }\n    @Override\n    public String getChannel() { return \"SMS\"; }\n}\n\nclass PushNotification implements Notification {\n    @Override\n    public void send(String message) {\n        System.out.println(\"[PUSH] \" + message);\n    }\n    @Override\n    public String getChannel() { return \"PUSH\"; }\n}\n\nclass WhatsAppNotification implements Notification {\n    @Override\n    public void send(String message) {\n        System.out.println(\"[WHATSAPP] \" + message);\n    }\n    @Override\n    public String getChannel() { return \"WHATSAPP\"; }\n}\n\n// STEP 3A: Simple Factory (use this 80% of the time)\n// WHY: ONE class, ONE method, all creation logic centralized.\n// Add WhatsApp? ONE new case here. 10 services untouched.\nenum NotificationType { EMAIL, SMS, PUSH, WHATSAPP }\n\nclass NotificationFactory {\n    // WHY: Static method -- no need to instantiate the factory itself.\n    // WHY: Enum input -- compile-time safety, no typos, IDE autocomplete.\n    public static Notification create(NotificationType type) {\n        return switch (type) {\n            case EMAIL    -> new EmailNotification();\n            case SMS      -> new SMSNotification();\n            case PUSH     -> new PushNotification();\n            case WHATSAPP -> new WhatsAppNotification();\n        };\n    }\n}\n\n// STEP 3B: Registry Factory (eliminates if-else entirely)\n// WHY: Adding a new type = registry.put() at startup. No switch to modify.\nclass NotificationRegistry {\n    private static final Map<NotificationType, Supplier<Notification>> registry\n        = new EnumMap<>(NotificationType.class);\n\n    static {\n        registry.put(NotificationType.EMAIL,    EmailNotification::new);\n        registry.put(NotificationType.SMS,      SMSNotification::new);\n        registry.put(NotificationType.PUSH,     PushNotification::new);\n        registry.put(NotificationType.WHATSAPP, WhatsAppNotification::new);\n    }\n\n    public static Notification create(NotificationType type) {\n        Supplier<Notification> supplier = registry.get(type);\n        if (supplier == null) throw new IllegalArgumentException(\"Unknown: \" + type);\n        // ========== THE MAGIC LINE ==========\n        // WHY: supplier.get() calls the constructor lazily.\n        // No object created until actually needed.\n        return supplier.get();\n    }\n}\n\n// STEP 4: Client code -- NEVER touches concrete notification classes\npublic class Main {\n    public static void main(String[] args) {\n        // Simple Factory usage\n        Notification n1 = NotificationFactory.create(NotificationType.EMAIL);\n        n1.send(\"Order #123 confirmed!\");\n\n        Notification n2 = NotificationFactory.create(NotificationType.WHATSAPP);\n        n2.send(\"Your OTP is 9876\");\n\n        // Registry usage\n        Notification n3 = NotificationRegistry.create(NotificationType.SMS);\n        n3.send(\"Payment of $99 received\");\n\n        // Simulating a service that uses factory\n        String userPref = \"PUSH\"; // from DB, config, or API\n        NotificationType type = NotificationType.valueOf(userPref);\n        Notification n4 = NotificationFactory.create(type);\n        n4.send(\"Your package has shipped!\");\n    }\n}",
+      "explanation": "Java uses interfaces as the Product contract. Simple Factory uses switch/enum for compile-time safety. Registry Factory uses Map<Enum, Supplier> for zero if-else extensibility. Client only knows the Notification interface -- adding WhatsApp touched only the factory, not any service."
+    },
+    "cpp": {
+      "title": "Factory Pattern - Notification System (C++)",
+      "code": "// ============================================================\n// FACTORY PATTERN - Notification System\n// Don't create objects yourself -- ask a Factory.\n// ============================================================\n#include <iostream>\n#include <string>\n#include <memory>\n#include <unordered_map>\n#include <functional>\n#include <stdexcept>\nusing namespace std;\n\n// STEP 1: Product Interface\n// WHY: Abstract class with pure virtual functions = C++ interface.\n// WHY: Virtual destructor is MANDATORY -- without it, deleting through\n// a base pointer causes undefined behavior.\nclass Notification {\npublic:\n    virtual ~Notification() = default;\n    virtual void send(const string& message) = 0;\n    virtual string getChannel() const = 0;\n};\n\n// STEP 2: Concrete Products\n// WHY: Each type owns only its behavior. SRP.\nclass EmailNotification : public Notification {\npublic:\n    void send(const string& message) override {\n        cout << \"[EMAIL] \" << message << endl;\n    }\n    string getChannel() const override { return \"EMAIL\"; }\n};\n\nclass SMSNotification : public Notification {\npublic:\n    void send(const string& message) override {\n        cout << \"[SMS] \" << message << endl;\n    }\n    string getChannel() const override { return \"SMS\"; }\n};\n\nclass PushNotification : public Notification {\npublic:\n    void send(const string& message) override {\n        cout << \"[PUSH] \" << message << endl;\n    }\n    string getChannel() const override { return \"PUSH\"; }\n};\n\nclass WhatsAppNotification : public Notification {\npublic:\n    void send(const string& message) override {\n        cout << \"[WHATSAPP] \" << message << endl;\n    }\n    string getChannel() const override { return \"WHATSAPP\"; }\n};\n\n// STEP 3A: Simple Factory\n// WHY: unique_ptr transfers ownership to client. No memory leaks.\nenum class NotificationType { EMAIL, SMS, PUSH, WHATSAPP };\n\nclass NotificationFactory {\npublic:\n    static unique_ptr<Notification> create(NotificationType type) {\n        switch (type) {\n            case NotificationType::EMAIL:    return make_unique<EmailNotification>();\n            case NotificationType::SMS:      return make_unique<SMSNotification>();\n            case NotificationType::PUSH:     return make_unique<PushNotification>();\n            case NotificationType::WHATSAPP: return make_unique<WhatsAppNotification>();\n            default: throw invalid_argument(\"Unknown notification type\");\n        }\n    }\n};\n\n// STEP 3B: Registry Factory\n// WHY: std::function stores lambdas. No switch needed.\nclass NotificationRegistry {\n    using Creator = function<unique_ptr<Notification>()>;\n    static unordered_map<string, Creator>& registry() {\n        static unordered_map<string, Creator> reg;\n        return reg;\n    }\npublic:\n    static void registerType(const string& key, Creator creator) {\n        registry()[key] = move(creator);\n    }\n    static unique_ptr<Notification> create(const string& key) {\n        auto it = registry().find(key);\n        if (it == registry().end())\n            throw invalid_argument(\"Unknown type: \" + key);\n        return it->second();\n    }\n};\n\n// STEP 4: Client\nint main() {\n    // Simple Factory\n    auto n1 = NotificationFactory::create(NotificationType::EMAIL);\n    n1->send(\"Order #123 confirmed!\");\n\n    auto n2 = NotificationFactory::create(NotificationType::WHATSAPP);\n    n2->send(\"Your OTP is 9876\");\n\n    // Registry Factory\n    NotificationRegistry::registerType(\"sms\", []() {\n        return make_unique<SMSNotification>();\n    });\n    NotificationRegistry::registerType(\"push\", []() {\n        return make_unique<PushNotification>();\n    });\n\n    auto n3 = NotificationRegistry::create(\"sms\");\n    n3->send(\"Payment of $99 received\");\n\n    auto n4 = NotificationRegistry::create(\"push\");\n    n4->send(\"Your package has shipped!\");\n\n    return 0;\n}",
+      "explanation": "C++ uses abstract classes with pure virtual functions. Smart pointers (unique_ptr) handle ownership via RAII -- no manual delete. Registry uses std::function to store creation lambdas. Virtual destructor is mandatory for safe polymorphic deletion."
+    },
+    "kotlin": {
+      "title": "Factory Pattern - Notification System (Kotlin)",
+      "code": "// ============================================================\n// FACTORY PATTERN - Notification System\n// Don't create objects yourself -- ask a Factory.\n// ============================================================\n\n// STEP 1: Product Interface\n// WHY: Kotlin interfaces are clean. This is the contract.\ninterface Notification {\n    fun send(message: String)\n    fun getChannel(): String\n}\n\n// STEP 2: Concrete Products\n// WHY: Each class does ONE thing. SRP.\nclass EmailNotification : Notification {\n    override fun send(message: String) = println(\"[EMAIL] $message\")\n    override fun getChannel() = \"EMAIL\"\n}\n\nclass SMSNotification : Notification {\n    override fun send(message: String) = println(\"[SMS] $message\")\n    override fun getChannel() = \"SMS\"\n}\n\nclass PushNotification : Notification {\n    override fun send(message: String) = println(\"[PUSH] $message\")\n    override fun getChannel() = \"PUSH\"\n}\n\nclass WhatsAppNotification : Notification {\n    override fun send(message: String) = println(\"[WHATSAPP] $message\")\n    override fun getChannel() = \"WHATSAPP\"\n}\n\n// STEP 3A: Simple Factory using enum\n// WHY: Kotlin enum + when = exhaustive, no missing cases.\nenum class NotificationType { EMAIL, SMS, PUSH, WHATSAPP }\n\n// WHY: object = Singleton factory. One instance, globally accessible.\nobject NotificationFactory {\n    fun create(type: NotificationType): Notification = when (type) {\n        NotificationType.EMAIL    -> EmailNotification()\n        NotificationType.SMS      -> SMSNotification()\n        NotificationType.PUSH     -> PushNotification()\n        NotificationType.WHATSAPP -> WhatsAppNotification()\n    }\n}\n\n// STEP 3B: Registry Factory\n// WHY: Map of lambdas. Add new types without touching factory code.\nobject NotificationRegistry {\n    private val registry = mutableMapOf<NotificationType, () -> Notification>(\n        NotificationType.EMAIL    to ::EmailNotification,\n        NotificationType.SMS      to ::SMSNotification,\n        NotificationType.PUSH     to ::PushNotification,\n        NotificationType.WHATSAPP to ::WhatsAppNotification\n    )\n\n    fun register(type: NotificationType, creator: () -> Notification) {\n        registry[type] = creator\n    }\n\n    fun create(type: NotificationType): Notification {\n        val creator = registry[type]\n            ?: throw IllegalArgumentException(\"Unknown type: $type\")\n        return creator()\n    }\n}\n\n// STEP 4: Client\nfun main() {\n    // Simple Factory\n    val n1 = NotificationFactory.create(NotificationType.EMAIL)\n    n1.send(\"Order #123 confirmed!\")\n\n    val n2 = NotificationFactory.create(NotificationType.WHATSAPP)\n    n2.send(\"Your OTP is 9876\")\n\n    // Registry\n    val n3 = NotificationRegistry.create(NotificationType.SMS)\n    n3.send(\"Payment of $99 received\")\n\n    // Dynamic type from user input\n    val userPref = \"PUSH\"\n    val type = NotificationType.valueOf(userPref)\n    val n4 = NotificationFactory.create(type)\n    n4.send(\"Your package has shipped!\")\n}",
+      "explanation": "Kotlin's 'object' keyword creates a singleton factory naturally. 'when' expressions are exhaustive with enums -- compiler warns if you miss a case. Constructor references (::EmailNotification) serve as factory lambdas. Clean, concise, safe."
+    }
+  },
+
+  "solidConnections": [
+    {
+      "principle": "SRP",
+      "fullName": "Single Responsibility Principle",
+      "isPrimary": true,
+      "connection": "OrderService no longer has the responsibility of creating notifications. Factory owns creation. Service owns business logic. Each class has one reason to change.",
+      "example": "Before: OrderService creates + sends notifications. After: Factory creates, OrderService just uses them.",
+      "icon": "🎯"
+    },
+    {
+      "principle": "OCP",
+      "fullName": "Open/Closed Principle",
+      "isPrimary": true,
+      "connection": "Add WhatsApp? Create a new class + add one line in factory. OrderService, PaymentService, ShippingService stay CLOSED for modification.",
+      "example": "10 services use NotificationFactory.create(). Adding WhatsApp changes only the factory. 10 services untouched.",
+      "icon": "🔓"
+    },
+    {
+      "principle": "DIP",
+      "fullName": "Dependency Inversion Principle",
+      "isPrimary": true,
+      "connection": "Client depends on Notification (abstraction), not EmailNotification (concretion). The factory provides the right object without the client knowing the concrete class.",
+      "example": "OrderService holds Notification (interface). Factory decides the concrete type. OrderService is decoupled from all implementations.",
+      "icon": "🔄"
+    },
+    {
+      "principle": "LSP",
+      "fullName": "Liskov Substitution Principle",
+      "isPrimary": false,
+      "connection": "All products returned by the factory are substitutable through the interface. Email, SMS, Push all satisfy the Notification contract.",
+      "example": "NotificationFactory.create(EMAIL) and NotificationFactory.create(SMS) both return Notification -- client uses them identically.",
+      "icon": "🔀"
+    }
+  ],
+
+  "lldProblems": [
+    {
+      "id": 1,
+      "problem": "Parking Lot System",
+      "where": "Vehicle creation at entry gate based on sensor data",
+      "context": "EntryGate",
+      "strategyInterface": "Vehicle",
+      "concreteStrategies": ["Car", "Truck", "Motorcycle", "Bus"],
+      "why": "Sensor gives a type string. Gate doesn't care about vehicle internals -- just needs a Vehicle to find the right spot and calculate rate."
+    },
+    {
+      "id": 2,
+      "problem": "Notification System",
+      "where": "Channel creation based on user preference",
+      "context": "NotificationService",
+      "strategyInterface": "Notification",
+      "concreteStrategies": ["EmailNotification", "SMSNotification", "PushNotification", "WhatsAppNotification"],
+      "why": "Multiple services send notifications. Factory centralizes creation. Add Telegram? Change factory only."
+    },
+    {
+      "id": 3,
+      "problem": "Payment Gateway",
+      "where": "Processor creation based on payment method selected by user",
+      "context": "CheckoutService",
+      "strategyInterface": "PaymentProcessor",
+      "concreteStrategies": ["CreditCardProcessor", "UPIProcessor", "PayPalProcessor", "NetBankingProcessor"],
+      "why": "Each processor has different validation and charging logic. Factory picks the right one. Use Factory Method when creation involves private config (API keys, vault credentials)."
+    },
+    {
+      "id": 4,
+      "problem": "Document Editor",
+      "where": "Document creation when user clicks 'New' and selects file type",
+      "context": "EditorApp",
+      "strategyInterface": "Document",
+      "concreteStrategies": ["WordDocument", "Spreadsheet", "Presentation", "PDF"],
+      "why": "User selects document type at runtime. Factory returns the right document. Adding a new format doesn't change the editor."
+    },
+    {
+      "id": 5,
+      "problem": "Ride-Sharing App (Uber)",
+      "where": "Ride object creation when user selects ride type",
+      "context": "BookingService",
+      "strategyInterface": "Ride",
+      "concreteStrategies": ["UberX", "UberPool", "UberXL", "UberBlack"],
+      "why": "Different ride types have different capacity, pricing, and matching rules. Factory creates the right Ride object from user selection."
+    },
+    {
+      "id": 6,
+      "problem": "Logging Framework",
+      "where": "Logger creation based on environment configuration",
+      "context": "Application",
+      "strategyInterface": "Logger",
+      "concreteStrategies": ["ConsoleLogger", "FileLogger", "CloudLogger", "DatabaseLogger"],
+      "why": "Dev uses ConsoleLogger, production uses CloudLogger. Factory reads config and creates the right logger. Switch environments without code changes."
+    },
+    {
+      "id": 7,
+      "problem": "Vending Machine",
+      "where": "Item dispensing based on selection button/code",
+      "context": "VendingMachine",
+      "strategyInterface": "Item",
+      "concreteStrategies": ["Coke", "Pepsi", "Chips", "Candy", "Water"],
+      "why": "User presses a button, machine creates the right item. Adding new items means adding a class and registering in the factory."
+    },
+    {
+      "id": 8,
+      "problem": "Snake & Ladder",
+      "where": "Special cell creation while building the game board",
+      "context": "BoardBuilder",
+      "strategyInterface": "Cell",
+      "concreteStrategies": ["NormalCell", "SnakeCell", "LadderCell", "PowerUpCell"],
+      "why": "Board config specifies cell types. Factory creates the right cell object for each position. Adding PowerUpCell doesn't change board setup logic."
+    },
+    {
+      "id": 9,
+      "problem": "E-Commerce / Shopping Cart",
+      "where": "Discount creation based on customer tier or promotion code",
+      "context": "CartService",
+      "strategyInterface": "Discount",
+      "concreteStrategies": ["FlatDiscount", "PercentageDiscount", "BuyOneGetOne", "SeasonalDiscount"],
+      "why": "Promotions change weekly. Factory creates the right discount from promo code or customer tier. Cart doesn't know discount internals."
+    },
+    {
+      "id": 10,
+      "problem": "Food Delivery (Swiggy/Zomato)",
+      "where": "Restaurant listing strategy based on user region and preferences",
+      "context": "SearchService",
+      "strategyInterface": "RestaurantRanker",
+      "concreteStrategies": ["RatingBasedRanker", "DistanceBasedRanker", "PopularityRanker", "PersonalizedRanker"],
+      "why": "Ranking algorithm varies by region and A/B test group. Factory creates the right ranker from config. Adding a new ranking algorithm is one class + one factory line."
+    }
+  ],
+
+  "patternWeb": {
+    "bestFriends": [
+      {
+        "pattern": "Strategy",
+        "relationship": "Factory creates the right Strategy object. Strategy defines behavior, Factory selects which behavior to inject. They solve orthogonal problems: Factory = WHICH object, Strategy = HOW it behaves.",
+        "example": "NotificationFactory.create('SMS') returns SMSNotification, which is then used as a Strategy by NotificationService"
+      },
+      {
+        "pattern": "Template Method",
+        "relationship": "Factory Method IS Template Method + creation hook. The abstract class defines the workflow, the factory method is the abstract step that subclasses fill in.",
+        "example": "NotificationService.send() defines the flow (create -> send -> log -> audit). createNotification() is the hook subclasses override."
+      },
+      {
+        "pattern": "Builder",
+        "relationship": "Factory decides WHICH type. Builder decides HOW to configure it. They combine when you need to both select a type AND configure it with many options.",
+        "example": "Factory picks EmailNotification. Builder sets subject, CC, BCC, attachments, template, locale."
+      }
+    ],
+    "evilTwin": {
+      "pattern": "Builder",
+      "similarity": "Both are creational patterns that encapsulate object creation details from the client.",
+      "difference": "Factory answers WHICH type to create (one decision, one line). Builder answers HOW to configure a complex object (many steps, fluent API). If you need to choose between types, Factory. If you need step-by-step construction, Builder.",
+      "mnemonic": "Factory = WHICH type. Builder = HOW to build.",
+      "deferredComparison": false,
+      "note": "Factory returns a ready-to-use object in one call. Builder requires multiple configuration steps before build()."
+    },
+    "evolution": [
+      {
+        "pattern": "Abstract Factory",
+        "direction": "Simple Factory evolves into Abstract Factory when you need to create FAMILIES of related objects that must be consistent (e.g., India: UPI + Rupay + GST Receipt).",
+        "when": "If your factory needs multiple create methods for related products that vary together by theme/region/OS."
+      },
+      {
+        "pattern": "Registry/Map Pattern",
+        "direction": "Simple Factory evolves into Registry when you want to eliminate the if-else/switch entirely and make type registration dynamic.",
+        "when": "When new types are added frequently and you don't want to modify the factory at all."
+      }
+    ]
+  },
+
+  "antiPatterns": [
+    {
+      "id": "factory-for-one-type",
+      "trap": "Factory for ONE type -- YAGNI",
+      "description": "Don't create a factory when there's only one implementation that won't change. Over-engineering with patterns is as bad as under-engineering without them.",
+      "badCode": "class LoggerFactory {\n    static Logger create() {\n        return new ConsoleLogger(); // only one type... why factory?\n    }\n}",
+      "goodCode": "// Just use it directly\nLogger logger = new ConsoleLogger();",
+      "severity": "warning",
+      "fix": "Ask: Do I have 3+ types? Is the type chosen at runtime? Is creation logic duplicated? If NO to all, skip the factory."
+    },
+    {
+      "id": "god-factory",
+      "trap": "God Factory -- knows everyone's private details",
+      "description": "A factory that loads SMTP config for email, API keys for SMS, and device tokens for push knows too much. It violates SRP by owning private knowledge of every product type.",
+      "badCode": "class NotificationFactory {\n    static Notification create(String type) {\n        if (type.equals(\"email\")) {\n            SmtpConfig c = loadSmtpConfig(); // email's private knowledge\n            return new EmailNotification(c);\n        } else if (type.equals(\"sms\")) {\n            SmsApiKey k = loadApiKey(); // sms's private knowledge\n            return new SMSNotification(k);\n        }\n    }\n}",
+      "goodCode": "// Products self-configure (Simple Factory stays clean)\nclass EmailNotification implements Notification {\n    public EmailNotification() {\n        this.config = SmtpConfig.load(); // I load my own config\n    }\n}\n// OR use Factory Method when creation is genuinely complex\nclass EmailNotificationService extends NotificationService {\n    Notification createNotification() {\n        SmtpConfig config = loadSmtpConfig(); // my private knowledge\n        return new EmailNotification(config);\n    }\n}",
+      "severity": "critical",
+      "fix": "Either let products self-configure (Option A) or use Factory Method so each subclass owns its private creation logic (Option B)."
+    },
+    {
+      "id": "string-keys",
+      "trap": "String keys without validation -- runtime typo bombs",
+      "description": "Using raw strings as factory keys means typos compile fine but crash at runtime. 'emal' compiles, but factory.create('emal') throws at runtime.",
+      "badCode": "Notification n = factory.create(\"emal\"); // typo! compiles fine, crashes at runtime",
+      "goodCode": "// Use enums -- typos caught at COMPILE time\nenum NotificationType { EMAIL, SMS, PUSH }\nNotification n = factory.create(NotificationType.EMAIL); // safe",
+      "severity": "warning",
+      "fix": "Use enums for factory keys. Parse strings to enums at system boundaries (API, config). Strings never travel deep into code."
+    },
+    {
+      "id": "mutable-singleton-products",
+      "trap": "Caching mutable products -- thread safety nightmare",
+      "description": "Returning the same mutable object from a factory creates shared state. Thread 1 sets CC, Thread 2 sends -- OTP goes to the boss.",
+      "badCode": "private static final EmailNotification EMAIL = new EmailNotification();\nstatic Notification create(String type) {\n    return EMAIL; // same mutable object returned every time!\n}",
+      "goodCode": "// Return NEW instance for stateful products\nstatic Notification create(String type) {\n    return new EmailNotification(); // fresh instance, no shared state\n}\n// Cache ONLY stateless products (no mutable fields)",
+      "severity": "critical",
+      "fix": "New instance for stateful products. Cache only stateless products. Use Supplier/lambda in registry for lazy creation."
+    },
+    {
+      "id": "factory-method-no-shared-logic",
+      "trap": "Factory Method when there's no shared orchestration",
+      "description": "If the abstract class only has createProduct() and nothing else, the subclass hierarchy is pointless. Simple Factory would be cleaner.",
+      "badCode": "abstract class NotificationCreator {\n    abstract Notification create(); // only method -- no shared logic\n}\nclass EmailCreator extends NotificationCreator {\n    Notification create() { return new EmailNotification(); } // pointless wrapper\n}",
+      "goodCode": "// Simple Factory is cleaner when there's no shared behavior\nclass NotificationFactory {\n    static Notification create(String type) {\n        return switch(type) { ... };\n    }\n}",
+      "severity": "warning",
+      "fix": "Factory Method is justified ONLY when the abstract class has shared orchestration (log, retry, audit) around the created product. No shared logic = use Simple Factory."
+    }
+  ],
+
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "recognition",
+      "question": "A logistics system needs to create shipments via Air, Ground, or Sea based on package priority. What pattern fits best?",
+      "options": ["Factory -- create the right Shipment based on priority", "Strategy -- swap shipment algorithm at runtime", "Observer -- notify when shipment is created", "Builder -- construct shipment step-by-step"],
+      "correctAnswer": 0,
+      "explanation": "'Based on priority' = runtime type selection. 'Create shipments' = object creation. That's Factory. Strategy would be for swapping how a shipment calculates delivery time."
+    },
+    {
+      "id": "q2",
+      "type": "comparison",
+      "question": "What's the key difference between Factory and Strategy?",
+      "options": [
+        "Factory decides WHICH object to create. Strategy decides WHICH algorithm to run.",
+        "Factory is creational, Strategy is structural.",
+        "Factory uses interfaces, Strategy uses abstract classes.",
+        "There is no real difference."
+      ],
+      "correctAnswer": 0,
+      "explanation": "Factory = WHICH object (creation). Strategy = WHICH behavior (algorithm). They're orthogonal -- Factory can create Strategy objects."
+    },
+    {
+      "id": "q3",
+      "type": "debugging",
+      "question": "A factory loads SMTP config for email, API keys for SMS, and device tokens for push -- all inside one method. What's the problem?",
+      "options": [
+        "God Factory -- it knows private details of every product type, violating SRP",
+        "Nothing wrong -- factories should know how to create everything",
+        "Should use Builder pattern instead",
+        "The factory needs more methods"
+      ],
+      "correctAnswer": 0,
+      "explanation": "The factory is a God class. Products should self-configure, or use Factory Method so each subclass owns its private creation logic."
+    },
+    {
+      "id": "q4",
+      "type": "design",
+      "question": "When should you choose Simple Factory over Factory Method?",
+      "options": [
+        "When creation is simple (just 'new X()') and you own all the code",
+        "Always -- Factory Method is outdated",
+        "When you have more than 5 product types",
+        "When products need to be cached"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Simple Factory for simple creation. Factory Method when creation involves complex private knowledge per type, or when others extend your framework."
+    },
+    {
+      "id": "q5",
+      "type": "application",
+      "question": "A factory uses String keys: factory.create('emal'). The typo compiles fine but crashes at runtime. How do you fix this?",
+      "options": [
+        "Use enums instead of strings -- NotificationType.EMAIL catches typos at compile time",
+        "Add more try-catch blocks",
+        "Use Factory Method instead of Simple Factory",
+        "Add validation to check string spelling"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Enums provide compile-time safety. IDE autocompletes them. Typos are impossible. Parse strings to enums at system boundaries only."
+    },
+    {
+      "id": "q6",
+      "type": "deep-thought",
+      "question": "Does Factory pattern eliminate tight coupling?",
+      "options": [
+        "No -- it MANAGES coupling by centralizing it from N places to 1 place. Someone must still call 'new'.",
+        "Yes -- Factory completely eliminates coupling between client and products",
+        "Only Factory Method eliminates coupling, Simple Factory doesn't",
+        "Coupling is eliminated when combined with Singleton"
+      ],
+      "correctAnswer": 0,
+      "explanation": "Factory doesn't eliminate 'new' -- it centralizes it. The progression: scattered (10 files) -> Factory (1 file) -> DI framework (config). Zero coupling is impossible in OOP."
+    }
+  ],
+
+  "deepThoughtQuestions": [
+    {
+      "id": "dt1",
+      "question": "Products have different constructor parameters (EmailNotification needs SMTP host, SMS needs API key). How does a factory with a single create(type) method handle this?",
+      "answer": "Three approaches: (A) Products self-configure internally -- factory stays clean. (B) Factory takes a generic config object. (C) Use Factory Method so each subclass owns its private creation knowledge. Option A is most common in practice."
+    },
+    {
+      "id": "dt2",
+      "question": "A Registry/Map factory creates ALL objects at startup. What if some products are expensive to create?",
+      "answer": "Store Supplier<Notification> (lambdas/factories), not instances. The registry holds recipes, not dishes. Objects are created lazily only when requested. This is called Lazy Factory."
+    },
+    {
+      "id": "dt3",
+      "question": "Factory Method mixes creation logic with business logic in the same class. Isn't that violating SRP?",
+      "answer": "It's intentional when creation and business logic are coupled by design (e.g., UPI service needs UPI-specific creation AND UPI-specific retry logic). If they're unrelated (OrderService creating Notifications), use a separate Factory class."
+    },
+    {
+      "id": "dt4",
+      "question": "If Factory Method subclasses decide creation, isn't the creation logic scattered across classes?",
+      "answer": "Yes, and that's justified ONLY when each piece of scattered logic is private knowledge belonging to that class (SMTP config in EmailService, VPA validation in UPIService). If creation is simple new X(), centralize in Simple Factory."
+    },
+    {
+      "id": "dt5",
+      "question": "We still need if-else somewhere to create the concrete creator/service in Factory Method. Isn't this still tight coupling?",
+      "answer": "Factory Method was designed for frameworks where each team directly instantiates their own creator -- no if-else needed. In standalone apps, yes, you need a Simple Factory on top to select the right service. Factory Method alone doesn't solve client-side selection."
+    },
+    {
+      "id": "dt6",
+      "question": "Factory returns an interface type. But I need type-specific methods like setCC() on EmailNotification. What do I do?",
+      "answer": "Configure DURING creation, not after. Push type-specific configuration into the factory or use Builder before factory. If you need to cast after creation, either your interface is too thin or you shouldn't be using a factory for that use case."
+    },
+    {
+      "id": "dt7",
+      "question": "Is Factory pattern relevant in microservices where you can't 'new' a remote service?",
+      "answer": "MORE relevant. The factory creates HTTP clients, Kafka producers, or gRPC stubs -- proxies to remote services. Client code calls sender.send() without knowing if it's in-memory or remote. Same interface, same factory, different product internals."
+    },
+    {
+      "id": "dt8",
+      "question": "I don't see abstract factory methods in my Spring codebase. Where did Factory go?",
+      "answer": "Spring IS the factory. @Autowired replaces manual factory calls. @Bean methods in @Configuration classes ARE factory methods managed by the framework. The concept lives on; the manual pattern doesn't."
+    },
+    {
+      "id": "dt9",
+      "question": "Why not just use constructor overloading instead of a Factory?",
+      "answer": "Constructors can only return their own type (can't return subtypes), can't have meaningful names (createForMarketing vs createForOTP), and cramming all type logic into one class creates a god-class. Factory can return any subtype through the interface."
+    },
+    {
+      "id": "dt10",
+      "question": "Static factory methods in Java (List.of, Optional.empty, Integer.valueOf) -- are they the same as Factory Pattern?",
+      "answer": "No. Joshua Bloch's Static Factory Method is a constructor alternative for the SAME class (naming, caching, readability). GoF Factory Pattern chooses between DIFFERENT implementations at runtime. They share the name 'factory' but solve different problems."
+    },
+    {
+      "id": "dt11",
+      "question": "Static factory makes testing harder because you can't mock static methods. Did Factory pattern just make code HARDER to test?",
+      "answer": "Yes, if the factory is static. Solution: make the factory an injectable interface. Client gets NotificationFactory injected, not a static call. In tests, mock the factory. Never use static factories in code that needs testing."
+    },
+    {
+      "id": "dt12",
+      "question": "Can Factory return Singletons? Is that safe?",
+      "answer": "Safe ONLY for stateless products (no mutable fields). For stateful products, shared mutable state causes race conditions. Rule: stateless = cache and reuse. Stateful = new instance every time."
+    },
+    {
+      "id": "dt13",
+      "question": "Products have a deep inheritance tree (Email -> SecureEmail -> MarketingEmail). Factory explodes with types. How do you handle this?",
+      "answer": "Use hierarchical factories (channel factory picks email/sms, then email factory picks secure/marketing) or a composite key registry with Map<(Channel, Purpose), Supplier>. Never one giant flat factory."
+    },
+    {
+      "id": "dt14",
+      "question": "Where exactly does creation END and configuration BEGIN? Whose job is configuration?",
+      "answer": "Factory creates (WHICH type). Builder configures (HOW to set up). Client gets back a fully ready object. If the client configures after factory returns, something's wrong. Factory + Builder combine naturally."
+    },
+    {
+      "id": "dt15",
+      "question": "When should I say NO to Factory?",
+      "answer": "When: only 1 type, type known at compile time, only 2 stable types, creation is trivial, or you're adding it 'for the future' (YAGNI). The YAGNI test: 3+ types? Runtime choice? Complex/duplicated creation? If NO to all, skip Factory."
+    }
+  ],
+
+  "cheatSheet": {
+    "whenToUse": [
+      "3+ types implementing the same interface",
+      "Type chosen at runtime from user input, config, or environment",
+      "Creation logic duplicated across multiple classes",
+      "You want to add new types without touching existing client code",
+      "Building a library/SDK that others extend with their own types"
+    ],
+    "whenNotToUse": [
+      "Only 1 type that won't change (YAGNI)",
+      "Type is known at compile time and is stable",
+      "Only 2 stable types -- simple if-else is fine",
+      "Creation is trivial (just new X() with no logic)",
+      "You're adding it 'for the future' that may never come"
+    ],
+    "structure": {
+      "Product Interface": "Common contract all products share (Notification)",
+      "Concrete Products": "Specific implementations (EmailNotification, SMSNotification)",
+      "Factory": "One place that creates the right product (NotificationFactory)",
+      "Client": "Uses products through interface, never touches concrete classes"
+    },
+    "sixWordSummary": "Ask Factory. Don't new it yourself.",
+    "solidPrinciples": ["SRP (primary)", "OCP (primary)", "DIP (primary)", "LSP (bonus)"],
+    "codeSmellTrigger": "if-else / switch on type to decide which object to new"
+  },
+
+  "practiceQuestions": [
+    {
+      "id": "factory-basic-q1",
+      "title": "Vehicle Factory for Parking Lot",
+      "difficulty": "basic",
+      "description": "Create a Simple Factory for a parking lot system:\n- Vehicle interface with getSize() and getHourlyRate()\n- Car: MEDIUM size, $20/hr\n- Truck: LARGE size, $50/hr\n- Motorcycle: SMALL size, $10/hr\n- VehicleFactory.create(type) returns the right vehicle\n- Use enum for type safety\n- Demo creating vehicles and printing their details",
+      "hints": [
+        "Start with an enum VehicleType { CAR, TRUCK, MOTORCYCLE }",
+        "Vehicle interface has two methods: getSize() and getHourlyRate()",
+        "Factory uses switch/when on the enum to return the right concrete class"
+      ],
+      "solutions": {
+        "java": "enum VehicleType { CAR, TRUCK, MOTORCYCLE }\nenum VehicleSize { SMALL, MEDIUM, LARGE }\n\ninterface Vehicle {\n    VehicleSize getSize();\n    double getHourlyRate();\n    String getType();\n}\n\nclass Car implements Vehicle {\n    public VehicleSize getSize() { return VehicleSize.MEDIUM; }\n    public double getHourlyRate() { return 20.0; }\n    public String getType() { return \"Car\"; }\n}\n\nclass Truck implements Vehicle {\n    public VehicleSize getSize() { return VehicleSize.LARGE; }\n    public double getHourlyRate() { return 50.0; }\n    public String getType() { return \"Truck\"; }\n}\n\nclass Motorcycle implements Vehicle {\n    public VehicleSize getSize() { return VehicleSize.SMALL; }\n    public double getHourlyRate() { return 10.0; }\n    public String getType() { return \"Motorcycle\"; }\n}\n\nclass VehicleFactory {\n    public static Vehicle create(VehicleType type) {\n        return switch (type) {\n            case CAR        -> new Car();\n            case TRUCK      -> new Truck();\n            case MOTORCYCLE -> new Motorcycle();\n        };\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Vehicle v1 = VehicleFactory.create(VehicleType.CAR);\n        System.out.println(v1.getType() + \" | Size: \" + v1.getSize() + \" | Rate: $\" + v1.getHourlyRate() + \"/hr\");\n\n        Vehicle v2 = VehicleFactory.create(VehicleType.TRUCK);\n        System.out.println(v2.getType() + \" | Size: \" + v2.getSize() + \" | Rate: $\" + v2.getHourlyRate() + \"/hr\");\n\n        Vehicle v3 = VehicleFactory.create(VehicleType.MOTORCYCLE);\n        System.out.println(v3.getType() + \" | Size: \" + v3.getSize() + \" | Rate: $\" + v3.getHourlyRate() + \"/hr\");\n    }\n}",
+        "cpp": "#include <iostream>\n#include <memory>\n#include <string>\nusing namespace std;\n\nenum class VehicleSize { SMALL, MEDIUM, LARGE };\nenum class VehicleType { CAR, TRUCK, MOTORCYCLE };\n\nclass Vehicle {\npublic:\n    virtual ~Vehicle() = default;\n    virtual VehicleSize getSize() const = 0;\n    virtual double getHourlyRate() const = 0;\n    virtual string getType() const = 0;\n};\n\nclass Car : public Vehicle {\npublic:\n    VehicleSize getSize() const override { return VehicleSize::MEDIUM; }\n    double getHourlyRate() const override { return 20.0; }\n    string getType() const override { return \"Car\"; }\n};\n\nclass Truck : public Vehicle {\npublic:\n    VehicleSize getSize() const override { return VehicleSize::LARGE; }\n    double getHourlyRate() const override { return 50.0; }\n    string getType() const override { return \"Truck\"; }\n};\n\nclass Motorcycle : public Vehicle {\npublic:\n    VehicleSize getSize() const override { return VehicleSize::SMALL; }\n    double getHourlyRate() const override { return 10.0; }\n    string getType() const override { return \"Motorcycle\"; }\n};\n\nclass VehicleFactory {\npublic:\n    static unique_ptr<Vehicle> create(VehicleType type) {\n        switch (type) {\n            case VehicleType::CAR:        return make_unique<Car>();\n            case VehicleType::TRUCK:      return make_unique<Truck>();\n            case VehicleType::MOTORCYCLE: return make_unique<Motorcycle>();\n            default: throw invalid_argument(\"Unknown vehicle type\");\n        }\n    }\n};\n\nint main() {\n    auto v1 = VehicleFactory::create(VehicleType::CAR);\n    cout << v1->getType() << \" | Rate: $\" << v1->getHourlyRate() << \"/hr\" << endl;\n\n    auto v2 = VehicleFactory::create(VehicleType::TRUCK);\n    cout << v2->getType() << \" | Rate: $\" << v2->getHourlyRate() << \"/hr\" << endl;\n\n    auto v3 = VehicleFactory::create(VehicleType::MOTORCYCLE);\n    cout << v3->getType() << \" | Rate: $\" << v3->getHourlyRate() << \"/hr\" << endl;\n\n    return 0;\n}"
+      },
+      "tags": ["factory", "parking-lot", "basic"]
+    },
+    {
+      "id": "factory-inter-q1",
+      "title": "Notification System with Registry Factory",
+      "difficulty": "intermediate",
+      "description": "Create a Registry-based Factory for notifications:\n- Notification interface with send(message) and getChannel()\n- Email, SMS, Push, WhatsApp implementations\n- NotificationRegistry using Map<Enum, Supplier> for lazy creation\n- Support dynamic registration of new types at runtime\n- Demo: register a custom 'Telegram' notification without modifying factory code",
+      "hints": [
+        "Use EnumMap<NotificationType, Supplier<Notification>> for the registry",
+        "Supplier.get() creates the object lazily -- only when requested",
+        "Allow runtime registration: registry.register(type, TelegramNotification::new)"
+      ],
+      "solutions": {
+        "java": "import java.util.*;\nimport java.util.function.Supplier;\n\ninterface Notification {\n    void send(String message);\n    String getChannel();\n}\n\nclass EmailNotification implements Notification {\n    public void send(String message) { System.out.println(\"[EMAIL] \" + message); }\n    public String getChannel() { return \"EMAIL\"; }\n}\n\nclass SMSNotification implements Notification {\n    public void send(String message) { System.out.println(\"[SMS] \" + message); }\n    public String getChannel() { return \"SMS\"; }\n}\n\nclass PushNotification implements Notification {\n    public void send(String message) { System.out.println(\"[PUSH] \" + message); }\n    public String getChannel() { return \"PUSH\"; }\n}\n\n// Custom type -- added at runtime without modifying factory\nclass TelegramNotification implements Notification {\n    public void send(String message) { System.out.println(\"[TELEGRAM] \" + message); }\n    public String getChannel() { return \"TELEGRAM\"; }\n}\n\nclass NotificationRegistry {\n    private final Map<String, Supplier<Notification>> registry = new HashMap<>();\n\n    public NotificationRegistry() {\n        // Default registrations\n        registry.put(\"EMAIL\", EmailNotification::new);\n        registry.put(\"SMS\", SMSNotification::new);\n        registry.put(\"PUSH\", PushNotification::new);\n    }\n\n    public void register(String key, Supplier<Notification> creator) {\n        registry.put(key, creator);\n    }\n\n    public Notification create(String key) {\n        Supplier<Notification> supplier = registry.get(key);\n        if (supplier == null) throw new IllegalArgumentException(\"Unknown: \" + key);\n        return supplier.get();\n    }\n\n    public Set<String> getRegisteredTypes() {\n        return Collections.unmodifiableSet(registry.keySet());\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        NotificationRegistry registry = new NotificationRegistry();\n\n        // Use built-in types\n        registry.create(\"EMAIL\").send(\"Order confirmed!\");\n        registry.create(\"SMS\").send(\"OTP: 1234\");\n\n        // Dynamically register Telegram -- no factory code modified!\n        registry.register(\"TELEGRAM\", TelegramNotification::new);\n        registry.create(\"TELEGRAM\").send(\"Welcome to our channel!\");\n\n        System.out.println(\"Registered types: \" + registry.getRegisteredTypes());\n    }\n}",
+        "cpp": "#include <iostream>\n#include <string>\n#include <memory>\n#include <unordered_map>\n#include <functional>\n#include <stdexcept>\nusing namespace std;\n\nclass Notification {\npublic:\n    virtual ~Notification() = default;\n    virtual void send(const string& message) = 0;\n    virtual string getChannel() const = 0;\n};\n\nclass EmailNotification : public Notification {\npublic:\n    void send(const string& msg) override { cout << \"[EMAIL] \" << msg << endl; }\n    string getChannel() const override { return \"EMAIL\"; }\n};\n\nclass SMSNotification : public Notification {\npublic:\n    void send(const string& msg) override { cout << \"[SMS] \" << msg << endl; }\n    string getChannel() const override { return \"SMS\"; }\n};\n\nclass TelegramNotification : public Notification {\npublic:\n    void send(const string& msg) override { cout << \"[TELEGRAM] \" << msg << endl; }\n    string getChannel() const override { return \"TELEGRAM\"; }\n};\n\nclass NotificationRegistry {\n    using Creator = function<unique_ptr<Notification>()>;\n    unordered_map<string, Creator> registry;\npublic:\n    NotificationRegistry() {\n        registry[\"EMAIL\"] = []() { return make_unique<EmailNotification>(); };\n        registry[\"SMS\"]   = []() { return make_unique<SMSNotification>(); };\n    }\n\n    void registerType(const string& key, Creator creator) {\n        registry[key] = move(creator);\n    }\n\n    unique_ptr<Notification> create(const string& key) {\n        auto it = registry.find(key);\n        if (it == registry.end()) throw invalid_argument(\"Unknown: \" + key);\n        return it->second();\n    }\n};\n\nint main() {\n    NotificationRegistry registry;\n    registry.create(\"EMAIL\")->send(\"Order confirmed!\");\n    registry.create(\"SMS\")->send(\"OTP: 1234\");\n\n    // Dynamic registration\n    registry.registerType(\"TELEGRAM\", []() {\n        return make_unique<TelegramNotification>();\n    });\n    registry.create(\"TELEGRAM\")->send(\"Welcome!\");\n\n    return 0;\n}"
+      },
+      "tags": ["factory", "registry", "notification", "intermediate"]
+    },
+    {
+      "id": "factory-adv-q1",
+      "title": "Payment Gateway with Factory Method + Strategy",
+      "difficulty": "advanced",
+      "description": "Design a payment system combining Factory and Strategy:\n- PaymentProcessor interface: validate(), charge(amount), refund(txnId)\n- CreditCardProcessor: Luhn validation, card network charging\n- UPIProcessor: VPA validation, NPCI API charging\n- Abstract PaymentService with factory method createProcessor()\n- Each service subclass owns private creation logic (config loading, key management)\n- Simple Factory on top to select the right service based on user choice\n- Demo the full flow: user selects payment method -> factory picks service -> service creates processor -> processes payment",
+      "hints": [
+        "PaymentService is abstract with createProcessor() as factory method and processPayment() as the template",
+        "UPIPaymentService.createProcessor() loads UPI config (private knowledge)",
+        "PaymentServiceFactory.create(type) returns the right PaymentService subclass",
+        "This combines: Simple Factory (select service) + Factory Method (create processor) + Strategy (processor interface)"
+      ],
+      "solutions": {
+        "java": "// Product interface (Strategy)\ninterface PaymentProcessor {\n    void validate(String details);\n    String charge(double amount);\n    void refund(String txnId);\n    String getName();\n}\n\n// Concrete Products\nclass CreditCardProcessor implements PaymentProcessor {\n    private String merchantId;\n    public CreditCardProcessor(String merchantId) { this.merchantId = merchantId; }\n    public void validate(String details) {\n        System.out.println(\"  Luhn check on card: \" + details.substring(details.length() - 4));\n    }\n    public String charge(double amount) {\n        String txnId = \"CC-\" + System.currentTimeMillis();\n        System.out.println(\"  Charged $\" + amount + \" via card network (merchant: \" + merchantId + \")\");\n        return txnId;\n    }\n    public void refund(String txnId) {\n        System.out.println(\"  Refunded \" + txnId + \" via card network\");\n    }\n    public String getName() { return \"Credit Card\"; }\n}\n\nclass UPIProcessor implements PaymentProcessor {\n    private String pspId;\n    public UPIProcessor(String pspId) { this.pspId = pspId; }\n    public void validate(String details) {\n        System.out.println(\"  VPA format check: \" + details);\n    }\n    public String charge(double amount) {\n        String txnId = \"UPI-\" + System.currentTimeMillis();\n        System.out.println(\"  Charged Rs.\" + amount + \" via NPCI (PSP: \" + pspId + \")\");\n        return txnId;\n    }\n    public void refund(String txnId) {\n        System.out.println(\"  UPI reversal for \" + txnId);\n    }\n    public String getName() { return \"UPI\"; }\n}\n\n// Abstract Service with Factory Method\nabstract class PaymentService {\n    abstract PaymentProcessor createProcessor();\n\n    // Template: shared orchestration\n    public void processPayment(String details, double amount) {\n        PaymentProcessor processor = createProcessor();\n        System.out.println(\"Processing \" + processor.getName() + \" payment...\");\n        processor.validate(details);\n        String txnId = processor.charge(amount);\n        System.out.println(\"  Transaction ID: \" + txnId);\n        log(processor.getName(), amount, txnId);\n    }\n\n    private void log(String method, double amount, String txnId) {\n        System.out.println(\"  [LOG] \" + method + \" | $\" + amount + \" | \" + txnId);\n    }\n}\n\n// Concrete Services -- each owns private creation logic\nclass CreditCardPaymentService extends PaymentService {\n    PaymentProcessor createProcessor() {\n        String merchantId = \"WMT-\" + System.getenv().getOrDefault(\"MERCHANT_ID\", \"DEFAULT\");\n        return new CreditCardProcessor(merchantId);\n    }\n}\n\nclass UPIPaymentService extends PaymentService {\n    PaymentProcessor createProcessor() {\n        String pspId = \"PSP-WALMART-IN\";\n        System.out.println(\"  Loading UPI config (PSP: \" + pspId + \")\");\n        return new UPIProcessor(pspId);\n    }\n}\n\n// Simple Factory to select the right service\nclass PaymentServiceFactory {\n    public static PaymentService create(String type) {\n        return switch (type.toUpperCase()) {\n            case \"CREDIT_CARD\" -> new CreditCardPaymentService();\n            case \"UPI\"         -> new UPIPaymentService();\n            default -> throw new IllegalArgumentException(\"Unknown: \" + type);\n        };\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // User selects UPI\n        String userChoice = \"UPI\";\n        PaymentService service = PaymentServiceFactory.create(userChoice);\n        service.processPayment(\"ravi@upi\", 999.0);\n\n        System.out.println();\n\n        // User selects Credit Card\n        userChoice = \"CREDIT_CARD\";\n        service = PaymentServiceFactory.create(userChoice);\n        service.processPayment(\"4111111111111234\", 2499.0);\n    }\n}",
+        "cpp": "#include <iostream>\n#include <string>\n#include <memory>\n#include <stdexcept>\nusing namespace std;\n\nclass PaymentProcessor {\npublic:\n    virtual ~PaymentProcessor() = default;\n    virtual void validate(const string& details) = 0;\n    virtual string charge(double amount) = 0;\n    virtual string getName() const = 0;\n};\n\nclass CreditCardProcessor : public PaymentProcessor {\n    string merchantId;\npublic:\n    explicit CreditCardProcessor(string mid) : merchantId(move(mid)) {}\n    void validate(const string& details) override {\n        cout << \"  Luhn check: ****\" << details.substr(details.length() - 4) << endl;\n    }\n    string charge(double amount) override {\n        cout << \"  Charged $\" << amount << \" via card network\" << endl;\n        return \"CC-TXN-001\";\n    }\n    string getName() const override { return \"Credit Card\"; }\n};\n\nclass UPIProcessor : public PaymentProcessor {\n    string pspId;\npublic:\n    explicit UPIProcessor(string psp) : pspId(move(psp)) {}\n    void validate(const string& details) override {\n        cout << \"  VPA check: \" << details << endl;\n    }\n    string charge(double amount) override {\n        cout << \"  Charged Rs.\" << amount << \" via NPCI\" << endl;\n        return \"UPI-TXN-001\";\n    }\n    string getName() const override { return \"UPI\"; }\n};\n\nclass PaymentService {\npublic:\n    virtual ~PaymentService() = default;\n    virtual unique_ptr<PaymentProcessor> createProcessor() = 0;\n\n    void processPayment(const string& details, double amount) {\n        auto processor = createProcessor();\n        cout << \"Processing \" << processor->getName() << \"...\" << endl;\n        processor->validate(details);\n        string txnId = processor->charge(amount);\n        cout << \"  TXN: \" << txnId << endl;\n    }\n};\n\nclass CreditCardPaymentService : public PaymentService {\npublic:\n    unique_ptr<PaymentProcessor> createProcessor() override {\n        return make_unique<CreditCardProcessor>(\"WMT-DEFAULT\");\n    }\n};\n\nclass UPIPaymentService : public PaymentService {\npublic:\n    unique_ptr<PaymentProcessor> createProcessor() override {\n        cout << \"  Loading UPI config...\" << endl;\n        return make_unique<UPIProcessor>(\"PSP-WALMART-IN\");\n    }\n};\n\nclass PaymentServiceFactory {\npublic:\n    static unique_ptr<PaymentService> create(const string& type) {\n        if (type == \"UPI\") return make_unique<UPIPaymentService>();\n        if (type == \"CREDIT_CARD\") return make_unique<CreditCardPaymentService>();\n        throw invalid_argument(\"Unknown: \" + type);\n    }\n};\n\nint main() {\n    auto service = PaymentServiceFactory::create(\"UPI\");\n    service->processPayment(\"ravi@upi\", 999.0);\n\n    cout << endl;\n\n    service = PaymentServiceFactory::create(\"CREDIT_CARD\");\n    service->processPayment(\"4111111111111234\", 2499.0);\n\n    return 0;\n}"
+      },
+      "tags": ["factory", "factory-method", "strategy", "payment", "advanced"]
+    }
+  ],
+
+  "bestPractices": [
+    "Use enums for factory keys -- compile-time safety, no typo crashes",
+    "Simple Factory for 80% of cases -- don't over-engineer with Factory Method unless creation is complex",
+    "Factory Method only when creation involves private knowledge per type (config loading, key management)",
+    "Store Supplier/lambdas in registry, not instances -- lazy creation avoids resource waste",
+    "Products should be self-sufficient when possible -- factory stays clean",
+    "Make factory injectable (interface, not static) for testability",
+    "Return new instances for stateful products -- never cache mutable objects",
+    "Parse strings to enums at system boundaries -- enums travel through business logic"
+  ],
+
+  "commonMistakes": [
+    {
+      "mistake": "Creating a Factory for only 1 type that won't change",
+      "correct": "Just use 'new' directly. Add Factory when you actually have 3+ types chosen at runtime."
+    },
+    {
+      "mistake": "Factory knows private details of every product (SMTP config, API keys, tokens)",
+      "correct": "Products self-configure, or use Factory Method so each subclass owns its private knowledge."
+    },
+    {
+      "mistake": "Using raw strings as factory keys -- typos crash at runtime",
+      "correct": "Use enums. Parse strings to enums at API/config boundaries only."
+    },
+    {
+      "mistake": "Returning cached mutable objects from factory -- thread-unsafe shared state",
+      "correct": "New instance for stateful products. Cache only stateless/immutable products."
+    },
+    {
+      "mistake": "Using Factory Method when there's no shared orchestration in the abstract class",
+      "correct": "If the abstract class only has createProduct() and nothing else, Simple Factory is cleaner."
+    },
+    {
+      "mistake": "Confusing Factory (WHICH type to create) with Builder (HOW to configure complex object)",
+      "correct": "Factory picks the type in one call. Builder configures step-by-step. Combine when you need both."
+    }
+  ]
+}
