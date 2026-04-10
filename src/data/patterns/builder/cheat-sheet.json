@@ -3,7 +3,7 @@
     "whenToUse": [
       "4+ constructor parameters with many optional",
       "Cross-field validation needed before object creation",
-      "Object must be immutable after construction",
+      "Object should be validated and complete before use",
       "Construction has a specific sequence or rules",
       "Same construction process needs to create different representations",
       "You need computed/derived fields calculated from other fields"
@@ -16,7 +16,7 @@
       "Kotlin/Python named arguments solve your readability problem"
     ],
     "structure": {
-      "Product": "The complex immutable object with final fields and private constructor (Meal)",
+      "Product": "The complex object with private constructor -- identity fields final, lifecycle fields can be mutable (Meal)",
       "Builder": "Static inner class with fluent setters returning 'this', and build() with validation (Meal.Builder)",
       "Director (optional)": "Encapsulates reusable build recipes (MealRecipes.kidsMeal(builder))",
       "Client": "Creates Builder, configures via fluent API, calls build()"
@@ -32,19 +32,19 @@
     "codeSmellTrigger": "Constructor with 5+ parameters, half of them null or false"
   },
   "bestPractices": [
-    "All Product fields final -- enforce immutability via compiler",
+    "Identity fields final (orderId, amount). Lifecycle fields (status, timestamps) can be mutable with controlled access.",
     "Product constructor private -- only Builder can create it",
     "build() validates ALL constraints -- required fields, cross-field rules, ranges",
     "Return 'this' from every setter -- enables fluent chaining",
     "Defensive copy collections in Product constructor -- List.copyOf(), not direct reference",
-    "Use Optional<T> for optional getters in Java -- force caller to handle absence",
+    "Consider Optional<T> for nullable getters in Java -- useful but not mandatory",
     "Separate Builder per Product type -- never a God Builder",
     "Extract repeated build sequences into Director methods"
   ],
   "commonMistakes": [
     {
-      "mistake": "Product has setters, allowing mutation after build()",
-      "correct": "All fields final, no setters. Only getters. Builder is the sole path to creation."
+      "mistake": "Product has setters on identity fields (orderId, amount), allowing mutation of what Builder validated",
+      "correct": "Identity fields final, no setters. Lifecycle fields (status) can have setters. Builder validates at birth."
     },
     {
       "mistake": "build() just copies fields with no validation",

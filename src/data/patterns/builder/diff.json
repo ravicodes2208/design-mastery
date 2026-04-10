@@ -22,8 +22,8 @@
     },
     {
       "id": "mutable-vs-immutable",
-      "title": "Object Safety -- Mutable Setters vs Immutable Builder",
-      "description": "Setters allow modification at any time. Builder produces final, validated objects.",
+      "title": "Object Safety -- Raw Setters vs Validated Builder",
+      "description": "Raw setters allow incomplete objects. Builder ensures objects are born valid and complete.",
       "before": {
         "label": "Mutable Setters (unsafe, no completion guarantee)",
         "language": "java",
@@ -31,12 +31,12 @@
         "code": "// No guarantee of completeness\nOrder order = new Order();\norder.setItems(items);       // is it valid yet? NO\n// ... passed to another method mid-construction ...\norder.setAddress(addr);      // still incomplete...\norder.setPayment(card);\n// Someone later:\norder.setPayment(null);      // MUTATED after 'done'!\norder.setItems(emptyList()); // ORDER CORRUPTED"
       },
       "after": {
-        "label": "Builder -- Validated and Immutable",
+        "label": "Builder -- Validated at Birth",
         "language": "java",
         "highlights": [2, 3, 4, 5, 6],
-        "code": "// Guaranteed complete, validated, immutable\nOrder order = new Order.Builder()\n    .items(items)\n    .shippingAddress(addr)\n    .paymentMethod(card)\n    .build();  // validates all fields, computes total\n// order.setPayment(null);  // COMPILE ERROR -- no setters!\n// order.setItems(empty);   // COMPILE ERROR -- fields are final!\n// Once built, NOTHING can corrupt this order."
+        "code": "// Guaranteed complete, validated, immutable\nOrder order = new Order.Builder()\n    .items(items)\n    .shippingAddress(addr)\n    .paymentMethod(card)\n    .build();  // validates all fields, computes total\n// Identity fields are final -- can't corrupt what Builder validated\n// Lifecycle fields (status) can change, but identity stays valid\n// Object was born valid. Identity fields stay valid forever."
       },
-      "insight": "Builder: mutable BEFORE build(), immutable AFTER. Setters: mutable FOREVER. Builder gives you a clear 'done' moment."
+      "insight": "Builder: messy drafts BEFORE build(), validated object AFTER. Setters: no completion guarantee. Builder gives you a clear 'born valid' moment."
     },
     {
       "id": "validation-scattered-vs-centralized",

@@ -18,7 +18,7 @@
   },
   {
     "id": "dt4",
-    "question": "How do I make an immutable Builder? Why would I want one?",
+    "question": "How do I make a copy-on-write Builder? Why would I want one?",
     "answer": "Each setter returns a NEW Builder instance instead of 'this'. This makes the builder itself immutable -- you can share a 'base' builder and derive variants without interference. Functional languages do this naturally. Cost: more object allocation. Benefit: thread-safe builder, shareable presets.",
     "codeExample": "// Immutable Builder -- each setter returns a new Builder\nclass MealBuilder {\n    final String bun; final int patties;\n    MealBuilder(String bun, int patties) { this.bun = bun; this.patties = patties; }\n    MealBuilder withBun(String b) { return new MealBuilder(b, this.patties); }\n    MealBuilder withPatties(int p) { return new MealBuilder(this.bun, p); }\n}\n\n// Share a base, derive safely\nMealBuilder base = new MealBuilder(\"Sesame\", 1);\nMealBuilder large = base.withPatties(3);  // base unchanged!"
   },
@@ -99,7 +99,7 @@
   {
     "id": "dt18",
     "question": "How does serialization (JSON/XML) interact with Builder products?",
-    "answer": "Jackson/Gson need either: (A) a no-arg constructor + setters (breaks immutability), (B) @JsonDeserialize(builder = Meal.Builder.class) to deserialize via Builder, or (C) @JsonCreator on an all-args constructor. Option B is ideal -- JSON goes through the Builder, getting validation for free. Serialization (object to JSON) works fine with getters.",
+    "answer": "Jackson/Gson need either: (A) a no-arg constructor + setters (bypasses Builder validation), (B) @JsonDeserialize(builder = Meal.Builder.class) to deserialize via Builder, or (C) @JsonCreator on an all-args constructor. Option B is ideal -- JSON goes through the Builder, getting validation for free. Works regardless of whether the product is fully immutable or has mutable lifecycle fields. Serialization (object to JSON) works fine with getters.",
     "codeExample": "// Jackson: deserialize JSON through Builder\n@JsonDeserialize(builder = Meal.Builder.class)\nclass Meal {\n    // immutable fields...\n\n    @JsonPOJOBuilder(withPrefix = \"set\")\n    static class Builder {\n        // Jackson calls setters, then build()\n        // Validation happens automatically!\n    }\n}\n\n// JSON -> Builder -> validate -> Meal\nMeal meal = objectMapper.readValue(json, Meal.class);"
   },
   {

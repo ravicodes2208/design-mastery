@@ -1,6 +1,6 @@
 {
   "title": "Builder Pattern: The Complete Walkthrough",
-  "subtitle": "From telescoping constructors to fluent immutable builders -- an interactive discussion that builds the pattern step by step, through questions, doubts, and aha moments.",
+  "subtitle": "From telescoping constructors to fluent validated builders -- an interactive discussion that builds the pattern step by step, through questions, doubts, and aha moments.",
   "readTime": "15 min read",
   "sections": [
     {
@@ -52,7 +52,7 @@
       "content": [
         {
           "type": "text",
-          "value": "What if the thing you call setters on ISN'T the actual object? What if it's a separate staging area whose only job is to collect configuration and then produce the final, perfect, immutable object in ONE shot?"
+          "value": "What if the thing you call setters on ISN'T the actual object? What if it's a separate staging area whose only job is to collect configuration and then produce the final, perfect, validated object in ONE shot?"
         },
         {
           "type": "code",
@@ -61,11 +61,11 @@
         },
         {
           "type": "text",
-          "value": "The Builder collects choices. The Meal is born only at build() -- fully validated, all computed fields calculated, completely immutable. You can change your mind on the Builder (it's a draft). But once the Meal exists, it's FINAL."
+          "value": "The Builder collects choices. The Meal is born only at build() -- fully validated, all computed fields calculated, ready to use. You can change your mind on the Builder (it's a draft). Once build() is called, you know the object was born valid."
         },
         {
           "type": "insight",
-          "value": "Builder = staging area. Product = final artifact. build() = the gate between draft and done. Configure freely before build(). Never modify after."
+          "value": "Builder = staging area. Product = validated artifact. build() = the gate between draft and done. Configure freely before build(). The object is guaranteed valid at birth."
         }
       ]
     },
@@ -113,21 +113,26 @@
       ]
     },
     {
-      "id": "immutability",
-      "title": "Private Constructor + Final Fields = True Immutability",
+      "id": "immutability-nuance",
+      "title": "Immutability: A Choice, Not a Requirement",
       "content": [
         {
           "type": "text",
-          "value": "The Product's constructor is PRIVATE. Only the Builder can call it. All fields are FINAL. No setters exist on the Product. This creates an airtight immutability guarantee."
+          "value": "Many tutorials say Builder MUST produce immutable objects. That's not true. Builder's job is clean construction + validation. Immutability is a separate design decision that pairs well with Builder but isn't mandatory."
         },
         {
           "type": "code",
-          "title": "Immutability enforcement",
-          "value": "public final class Meal {\n    private final String bun;         // final = set once in constructor\n    private final int pattyCount;\n    private final String cheese;\n    private final List<String> toppings;\n    private final double price;\n\n    // PRIVATE constructor -- only Builder can create\n    private Meal(Builder b) {\n        this.bun = b.bun;\n        this.pattyCount = b.pattyCount;\n        this.cheese = b.cheese;\n        this.toppings = List.copyOf(b.toppings);  // defensive copy!\n        this.price = calculatePrice(b);\n    }\n\n    // Only GETTERS -- no setters\n    public String getBun() { return bun; }\n    public Optional<String> getCheese() { return Optional.ofNullable(cheese); }\n    public List<String> getToppings() { return toppings; }  // already immutable\n    public double getPrice() { return price; }\n\n    public static class Builder { ... }\n}"
+          "title": "Value Objects → Immutable (all final, no setters)",
+          "value": "// HttpRequest, Configuration, Query — don't change after creation\npublic final class HttpRequest {\n    private final String url;       // final — never changes\n    private final String method;    // final — never changes\n    private final Map<String, String> headers; // final + defensive copy\n\n    private HttpRequest(Builder b) {\n        this.url = b.url;\n        this.method = b.method;\n        this.headers = Map.copyOf(b.headers);\n    }\n    // Only GETTERS — no setters. Truly immutable.\n}"
+        },
+        {
+          "type": "code",
+          "title": "Entities → Identity final, Lifecycle mutable",
+          "value": "// Payment, Order, Booking — have fields that change over time\npublic class Payment {\n    private final String orderId;       // final — identity, never changes\n    private final double amount;        // final — identity, never changes\n    private final String method;        // final — identity, never changes\n\n    private PaymentStatus status;       // mutable — changes through lifecycle\n    private Instant processedAt;        // mutable — set later\n\n    private Payment(Builder b) {\n        this.orderId = b.orderId;\n        this.amount = b.amount;\n        this.method = b.method;\n        this.status = PaymentStatus.CREATED;\n    }\n\n    // Setters for lifecycle fields\n    public void setStatus(PaymentStatus s) { this.status = s; }\n    public void setProcessedAt(Instant t)  { this.processedAt = t; }\n}"
         },
         {
           "type": "insight",
-          "value": "Private constructor = only Builder creates. Final fields = can't change after creation. Defensive copies = collections are truly immutable. This is a FORTRESS."
+          "value": "Builder guarantees the object is BORN VALID. Whether it stays frozen (immutable value object) or lives and changes (mutable entity) is a separate design decision. Don't force immutability where it doesn't belong."
         }
       ]
     },

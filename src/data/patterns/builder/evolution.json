@@ -35,12 +35,12 @@
       "label": "Basic Builder",
       "shortLabel": "Builder",
       "icon": "\ud83c\udfd7\ufe0f",
-      "description": "Static inner class with fluent setters. build() validates and returns immutable Product. Clean, safe, extensible.",
+      "description": "Static inner class with fluent setters. build() validates and returns a complete, valid Product. Clean, safe, extensible.",
       "problems": [
         "More boilerplate than setters (worth it for safety)",
         "Repeated build recipes across codebase (Director fixes this)"
       ],
-      "code": "Meal meal = new Meal.Builder()\n    .bun(\"sesame\")\n    .pattyCount(2)\n    .cheese(\"cheddar\")\n    .size(\"large\")\n    .build();  // validates + immutable!\n\n// Optional fields simply not called\nMeal simple = new Meal.Builder()\n    .bun(\"regular\")\n    .pattyCount(1)\n    .size(\"small\")\n    .build();\n\n// Cross-field validation in build()\n// gluten-free + bacon = IllegalStateException"
+      "code": "Meal meal = new Meal.Builder()\n    .bun(\"sesame\")\n    .pattyCount(2)\n    .cheese(\"cheddar\")\n    .size(\"large\")\n    .build();  // validates + done!\n\n// Optional fields simply not called\nMeal simple = new Meal.Builder()\n    .bun(\"regular\")\n    .pattyCount(1)\n    .size(\"small\")\n    .build();\n\n// Cross-field validation in build()\n// gluten-free + bacon = IllegalStateException"
     },
     {
       "id": "builder-director",

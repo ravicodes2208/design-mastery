@@ -10,7 +10,7 @@
       "Decorator -- wrap trip with additional features"
     ],
     "correctAnswer": 0,
-    "explanation": "Many optional parts, step-by-step assembly, cross-field validation (car rental needs valid license), and the trip should be immutable once booked. Classic Builder."
+    "explanation": "Many optional parts, step-by-step assembly, cross-field validation (car rental needs valid license), and the trip should be validated before booking. Classic Builder."
   },
   {
     "id": "q2",
@@ -41,15 +41,15 @@
   {
     "id": "q4",
     "type": "design",
-    "question": "A Product class has final fields AND public setters. What's wrong?",
+    "question": "A Product class has public setters on identity fields that Builder validated (orderId, amount). What's wrong?",
     "options": [
-      "Setters on the Product defeat Builder's immutability guarantee -- remove all setters",
+      "Setters on identity fields defeat Builder's validation guarantee -- identity fields should be final",
       "Nothing -- final fields AND setters is a safety belt approach",
       "Setters are fine as long as build() validated everything",
       "Products should never have final fields"
     ],
     "correctAnswer": 0,
-    "explanation": "If the Product has setters, anyone can mutate it after build(). The promise of 'immutable once created' is broken. Final fields + no setters = true immutability."
+    "explanation": "If identity fields (orderId, amount) have setters, anyone can corrupt what Builder validated. Identity fields should be final. Lifecycle fields (status, timestamps) can have setters -- that's normal for entities."
   },
   {
     "id": "q5",
@@ -75,6 +75,6 @@
       "Only for simple objects -- complex objects always need Builder"
     ],
     "correctAnswer": 0,
-    "explanation": "Named args replace Builder's SYNTAX (readability, optional params). But Builder's SEMANTICS remain valuable: cross-field validation in build(), computed fields, immutability guarantees, Director pattern for reusable recipes."
+    "explanation": "Named args replace Builder's SYNTAX (readability, optional params). But Builder's SEMANTICS remain valuable: cross-field validation in build(), computed fields, construction guarantees, Director pattern for reusable recipes."
   }
 ]

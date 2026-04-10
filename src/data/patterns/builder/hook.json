@@ -1,6 +1,6 @@
 {
-  "crux": "Don't construct complex objects directly -- use a Builder as a staging area, configure step-by-step, and produce the final immutable object only when you say build().",
-  "oneLiner": "Separate the construction of a complex object from its representation so the same construction process can create different representations -- configure freely in a Builder, validate cross-field constraints, compute derived values, and produce an immutable Product only at build() time.",
+  "crux": "Don't construct complex objects directly -- use a Builder as a staging area, configure step-by-step, and produce the final validated object only when you say build().",
+  "oneLiner": "Separate the construction of a complex object from its representation so the same construction process can create different representations -- configure freely in a Builder, validate cross-field constraints, compute derived values, and produce a validated Product only at build() time.",
   "problemStatement": "Imagine a restaurant ordering system. A customer orders a customizable meal: bun type, patty count, cheese type, veggies (lettuce, tomato, onion, jalapeno -- any combo), sauces (ketchup, mayo, BBQ -- any combo), extras (bacon, egg, avocado), and meal size. That's 15+ parameters. Telescoping constructors are unreadable. Setters leave the object in transient invalid states -- half-built meals floating around. Someone mixes up parameter order and a customer gets a disgusting burger. Tomorrow the restaurant adds 'spice level' -- every existing constructor call breaks.",
   "analogy": {
     "title": "The Subway Sandwich Counter",
@@ -10,18 +10,18 @@
       "Sandwich artist + open sub": "Builder (the staging area)",
       "Your choices step by step": "Fluent setter methods (.cheese(), .sauce())",
       "'Wrap it up!'": "build() method -- validates and produces final product",
-      "Sealed sandwich in paper": "Product (immutable Meal object)"
+      "Sealed sandwich in paper": "Product (validated, ready-to-use Meal object)"
     }
   },
   "participants": [
     {
       "name": "Product",
-      "role": "The complex object being constructed. All fields are final/immutable. Private constructor -- only Builder can create it.",
+      "role": "The complex object being constructed. Private constructor -- only Builder can create it. Identity fields are typically final; lifecycle fields can be mutable with controlled access.",
       "example": "Meal (with bun, pattyCount, cheese, toppings, sauce, size, price)"
     },
     {
       "name": "Builder",
-      "role": "The staging area that collects configuration step by step via fluent setters. Returns 'this' from each setter for chaining. The build() method validates cross-field constraints, computes derived values, and creates the immutable Product.",
+      "role": "The staging area that collects configuration step by step via fluent setters. Returns 'this' from each setter for chaining. The build() method validates cross-field constraints, computes derived values, and creates the validated Product.",
       "example": "Meal.Builder -- with .bun(), .pattyCount(), .cheese(), .sauce(), .build()"
     },
     {

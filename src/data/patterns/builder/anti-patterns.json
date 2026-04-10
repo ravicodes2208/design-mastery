@@ -19,17 +19,17 @@
   },
   {
     "id": "mutable-product",
-    "trap": "Product with setters -- defeats immutability guarantee",
-    "description": "If the Product has setters, anyone can modify it after build(). The Builder's promise of 'born perfect, forever final' is broken. Why use Builder if the product is mutable?",
-    "badCode": "class Meal {\n    private String cheese;\n    public void setCheese(String c) { this.cheese = c; } // public setter!\n}\n\nMeal m = new Meal.Builder().cheese(\"cheddar\").build();\nm.setCheese(\"swiss\"); // modified AFTER build! Builder was pointless.",
-    "goodCode": "class Meal {\n    private final String cheese; // final -- can't change after construction\n    // NO setter. Only getter.\n    public String getCheese() { return cheese; }\n}",
+    "trap": "Setters on identity fields -- defeats construction guarantee",
+    "description": "If the Product has setters on identity fields (the ones Builder validated), anyone can corrupt it after build(). Builder's promise of 'born valid' is broken. However, lifecycle fields (like status) that change over time CAN have setters -- that's normal for entities.",
+    "badCode": "class Payment {\n    private String orderId;\n    private double amount;\n    public void setOrderId(String id) { this.orderId = id; } // identity changed!\n    public void setAmount(double a) { this.amount = a; }     // identity changed!\n}\n\nPayment p = new Payment.Builder().orderId(\"ORD-1\").amount(500).build();\np.setAmount(0);  // CORRUPTED -- Builder's validation was pointless",
+    "goodCode": "class Payment {\n    private final String orderId;    // final -- identity never changes\n    private final double amount;     // final -- identity never changes\n    private PaymentStatus status;    // mutable -- lifecycle field\n\n    public void setStatus(PaymentStatus s) { this.status = s; } // OK!\n    // No setter for orderId or amount -- Builder's validation holds\n}",
     "severity": "critical",
-    "fix": "All Product fields must be final. No setters on the Product. Only getters. The Builder is the ONLY way to set values."
+    "fix": "Identity fields (what Builder validates) should be final. Lifecycle fields (status, timestamps) can have setters. Ask: 'Would changing this field invalidate what build() checked?'"
   },
   {
     "id": "no-defensive-copy",
     "trap": "Sharing mutable collections between Builder and Product",
-    "description": "If the Product's constructor copies the Builder's list by reference, mutating the Builder's list after build() corrupts the 'immutable' product.",
+    "description": "If the Product's constructor copies the Builder's list by reference, mutating the Builder's list after build() corrupts the built product. This matters most for value objects; for entities with mutable collections, consider whether this is actually a concern.",
     "badCode": "private Meal(Builder b) {\n    this.toppings = b.toppings; // SHARED reference!\n}\n// After build:\nbuilder.toppings.add(\"poison\"); // corrupts the built meal!",
     "goodCode": "private Meal(Builder b) {\n    this.toppings = List.copyOf(b.toppings); // defensive copy!\n}\n// After build:\nbuilder.toppings.add(\"poison\"); // no effect on the meal",
     "severity": "critical",

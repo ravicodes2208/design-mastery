@@ -12,17 +12,17 @@
           "id": "eo-1",
           "phase": "Clarify Requirements",
           "interviewer": "What are the key constraints for order creation?",
-          "goodAnswer": "Let me clarify: (1) Which fields are required vs optional? Items, address, payment are required. Coupon, gift wrap, insurance, delivery notes are optional. (2) Is the order immutable after creation? Yes -- once placed, it shouldn't be modifiable directly. (3) Are there cross-field constraints? Gift message requires gift wrap to be true. Insurance has amount limits based on order total. (4) Is the total computed? Yes -- from items + shipping - coupon + insurance.",
+          "goodAnswer": "Let me clarify: (1) Which fields are required vs optional? Items, address, payment are required. Coupon, gift wrap, insurance, delivery notes are optional. (2) Which fields are fixed after creation? Order items and address are locked after placement. Status changes through lifecycle. (3) Are there cross-field constraints? Gift message requires gift wrap to be true. Insurance has amount limits based on order total. (4) Is the total computed? Yes -- from items + shipping - coupon + insurance.",
           "keyInsight": "Asking about required vs optional, immutability, and cross-field validation sets up Builder perfectly.",
           "redFlag": "Jumping to a constructor with 10 parameters.",
           "followUps": [
             {
               "probe": "Good questions. Yes, immutable after creation, and gift message requires gift wrap.",
-              "strongResponse": "Perfect -- immutability plus cross-field validation plus many optional fields. This is a textbook Builder pattern scenario. I'll use a static inner Builder class with fluent API and centralized validation in build()."
+              "strongResponse": "Perfect -- validated construction plus cross-field validation plus many optional fields. This is a textbook Builder pattern scenario. I'll use a static inner Builder class with fluent API and centralized validation in build()."
             },
             {
               "probe": "How would you handle order modifications after creation?",
-              "strongResponse": "Once built, the Order is immutable. For modifications, I'd create a NEW order via the Builder, potentially using the existing order's data as a starting template -- like a copy-with-modifications approach."
+              "strongResponse": "Identity fields (items, address, payment) are locked after build(). Lifecycle fields like order status change through service methods. For major modifications, create a new Order via Builder using the existing order as a template."
             }
           ]
         },
@@ -30,7 +30,7 @@
           "id": "eo-2",
           "phase": "Identify the Pattern",
           "interviewer": "How would you structure the Order creation code?",
-          "goodAnswer": "I'd use the Builder pattern. Order has required fields (items, address, payment) and many optional fields (coupon, gift wrap, insurance, notes). The total is computed from other fields. Cross-field validation (gift message needs gift wrap) must happen atomically. The Builder collects all choices via fluent setters, validates everything in build(), computes the total, and returns an immutable Order.",
+          "goodAnswer": "I'd use the Builder pattern. Order has required fields (items, address, payment) and many optional fields (coupon, gift wrap, insurance, notes). The total is computed from other fields. Cross-field validation (gift message needs gift wrap) must happen atomically. The Builder collects all choices via fluent setters, validates everything in build(), computes the total, and returns a validated Order with identity fields locked.",
           "keyInsight": "Name the pattern explicitly and list WHY it fits: optional fields, computed fields, cross-field validation, immutability.",
           "code": "public final class Order {\n    private final List<Item> items;\n    private final Address shippingAddress;\n    private final PaymentMethod payment;\n    private final String couponCode;\n    private final boolean giftWrap;\n    private final String giftMessage;\n    private final boolean insurance;\n    private final String deliveryNotes;\n    private final double total;  // COMPUTED\n\n    private Order(Builder b) { /* copy from builder */ }\n\n    public static class Builder {\n        // All via setters -- no constructor params\n        private List<Item> items;\n        private Address shippingAddress;\n        private PaymentMethod payment;\n        private String couponCode = null;\n        private boolean giftWrap = false;\n        private String giftMessage = null;\n        private boolean insurance = false;\n        private String deliveryNotes = null;\n\n        public Builder items(List<Item> i) { this.items = i; return this; }\n        public Builder shippingAddress(Address a) { this.shippingAddress = a; return this; }\n        // ... more setters ...\n\n        public Order build() {\n            if (items == null || items.isEmpty())\n                throw new IllegalStateException(\"Order needs items\");\n            if (shippingAddress == null)\n                throw new IllegalStateException(\"Shipping address required\");\n            if (giftMessage != null && !giftWrap)\n                throw new IllegalStateException(\"Gift message requires gift wrap\");\n            return new Order(this);\n        }\n    }\n}",
           "redFlag": "Using setters on Order directly, or a 10-parameter constructor.",
@@ -63,8 +63,8 @@
           "id": "eo-4",
           "phase": "Production Concerns",
           "interviewer": "Any thread safety or performance concerns?",
-          "goodAnswer": "Builders should be short-lived, local objects: create -> configure -> build -> discard. Never share a Builder across threads. The built Order is immutable, so it's inherently thread-safe -- can be passed between threads freely. For performance, defensive copies in the constructor (List.copyOf) are negligible for typical order sizes. If orders have 10,000+ items, consider lazy immutable wrappers.",
-          "keyInsight": "Builder = local and short-lived. Product = immutable and shareable. This separation IS the thread safety story.",
+          "goodAnswer": "Builders should be short-lived, local objects: create -> configure -> build -> discard. Never share a Builder across threads. The built Order's identity fields are final, so they're thread-safe. Lifecycle fields need appropriate synchronization if shared. For performance, defensive copies in the constructor (List.copyOf) are negligible for typical order sizes. If orders have 10,000+ items, consider lazy immutable wrappers.",
+          "keyInsight": "Builder = local and short-lived. Product identity = final and shareable. This separation simplifies the thread safety story.",
           "redFlag": "Suggesting synchronized builders or thread-safe setter methods.",
           "followUps": [
             {
@@ -74,7 +74,7 @@
           ]
         }
       ],
-      "summary": "You demonstrated: pattern recognition (Builder for optional fields + validation + immutability), clean API design (fluent Builder with centralized validation), computed field handling, practical thread safety reasoning, and evolution path (single builder -> Director -> separate builders). Strong Hire signal."
+      "summary": "You demonstrated: pattern recognition (Builder for optional fields + validation + clean construction), clean API design (fluent Builder with centralized validation), computed field handling, practical thread safety reasoning, and evolution path (single builder -> Director -> separate builders). Strong Hire signal."
     },
     {
       "id": "notification-builder",
@@ -86,7 +86,7 @@
           "id": "nb-1",
           "phase": "Recognize the Pattern",
           "interviewer": "How would you design the notification creation API?",
-          "goodAnswer": "Builder pattern. Many optional fields (image, buttons, scheduling, expiry), cross-field constraints (SMS can't have images, expiry must be after scheduled time, max 3 buttons), and the notification should be immutable once dispatched. I'd combine with Factory: Factory picks the right builder variant per channel, Builder configures it.",
+          "goodAnswer": "Builder pattern. Many optional fields (image, buttons, scheduling, expiry), cross-field constraints (SMS can't have images, expiry must be after scheduled time, max 3 buttons), and the notification should be validated before dispatch. I'd combine with Factory: Factory picks the right builder variant per channel, Builder configures it.",
           "keyInsight": "Combining Factory + Builder for channel-specific validation is a senior-level insight.",
           "code": "Notification notif = Notification.builder()\n    .title(\"Order Shipped\")\n    .body(\"Your laptop is on the way\")\n    .channel(Channel.PUSH)\n    .image(\"laptop.png\")\n    .addActionButton(\"Track\", \"/track/123\")\n    .addActionButton(\"Help\", \"/support\")\n    .priority(Priority.HIGH)\n    .scheduleAt(tomorrow9AM)\n    .expiresAt(tomorrowEOD)\n    .build();",
           "redFlag": "A single constructor with all fields, or a Notification class with setters.",

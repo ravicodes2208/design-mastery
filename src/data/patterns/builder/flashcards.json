@@ -10,13 +10,13 @@
         {
           "id": "fc-1",
           "front": "What is the ONE sentence definition of Builder Pattern?",
-          "back": "Separate the construction of a complex object from its representation -- use a staging area (Builder) to configure step-by-step, validate in build(), and produce an immutable Product.",
+          "back": "Separate the construction of a complex object from its representation -- use a staging area (Builder) to configure step-by-step, validate in build(), and produce a validated Product.",
           "difficulty": "easy"
         },
         {
           "id": "fc-2",
           "front": "What are the 4 participants in Builder pattern?",
-          "back": "1. Product -- the complex immutable object (Meal)\n2. Builder -- staging area with fluent setters (Meal.Builder)\n3. Director -- reusable recipes (MealRecipes.kidsMeal())\n4. Client -- creates Builder, configures, calls build()",
+          "back": "1. Product -- the complex validated object (Meal)\n2. Builder -- staging area with fluent setters (Meal.Builder)\n3. Director -- reusable recipes (MealRecipes.kidsMeal())\n4. Client -- creates Builder, configures, calls build()",
           "difficulty": "easy"
         },
         {
@@ -52,8 +52,8 @@
         },
         {
           "id": "fc-7",
-          "front": "Object needs to be immutable after creation, but construction is multi-step. Pattern?",
-          "back": "Builder. The Builder is mutable (staging area). The Product is immutable (final fields, no setters). build() is the gate between mutable draft and immutable result.",
+          "front": "Object needs to be validated and complete before use, but construction is multi-step. Pattern?",
+          "back": "Builder. The Builder is mutable (staging area). build() validates and produces the final object. Identity fields stay locked; lifecycle fields can evolve.",
           "difficulty": "medium"
         },
         {
@@ -83,8 +83,8 @@
       "cards": [
         {
           "id": "fc-11",
-          "front": "Product has final fields AND public setters. What's wrong?",
-          "back": "Setters on Product defeat Builder's immutability guarantee. If you can mutate after build(), Builder was pointless. Remove all setters. Only getters on Product.",
+          "front": "Product has public setters on identity fields (orderId, amount). What's wrong?",
+          "back": "Setters on identity fields defeat Builder's validation guarantee. If orderId or amount can change after build(), Builder was pointless. Identity fields: final. Lifecycle fields (status): setters OK.",
           "difficulty": "medium"
         },
         {

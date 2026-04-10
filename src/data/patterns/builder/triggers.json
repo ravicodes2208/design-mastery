@@ -28,7 +28,7 @@
     },
     {
       "keyword": "immutable once created",
-      "example": "Payment request must be final and unmodifiable after construction",
+      "example": "HttpRequest, Configuration objects that should not change once built",
       "isStrategy": true
     },
     {
@@ -54,5 +54,5 @@
       "reason": "Prototype copies from an existing object. Builder constructs from scratch."
     }
   ],
-  "litmusTest": "If the QUESTION is 'how do I construct this complex object with many optional parts, validate it, and make it immutable?' -- think Builder."
+  "litmusTest": "If the QUESTION is 'how do I construct this complex object with many optional parts and validate it before use?' -- think Builder."
 }
