@@ -1,0 +1,411 @@
+{
+  "id": "command",
+  "title": "Command Pattern",
+  "phase": "design-patterns",
+  "order": 4,
+  "icon": "📜",
+  "description": "Encapsulate a request as an object, enabling undo, queuing, logging, and transactional operations",
+  "estimatedTime": "2-3 hours",
+  "prerequisites": ["strategy"],
+  "levels": {
+    "basic": {
+      "title": "Core Intuition",
+      "description": "Why the Command pattern exists and the fundamental problem it solves",
+      "concepts": [
+        {
+          "id": "command-crux",
+          "title": "The Crux — Wrap a Request as an Object",
+          "explanation": "The Command pattern encapsulates a request (an action + its parameters + its target) as a standalone object. Instead of directly calling receiver.doSomething(), you create a Command object that knows WHO to call, WHAT to do, and HOW to undo it. This decouples the sender of the request from the object that performs it.\n\nThink about it: without Command, if a button directly calls light.on(), that button is forever married to that light. With Command, the button just calls command.execute() — and you can swap what that command does at any time.",
+          "realWorldAnalogy": "A restaurant order slip. You tell the waiter what you want, but the waiter doesn't cook — he writes it on a slip and clips it to the kitchen board. That slip IS the command: it captures WHAT to make, can be QUEUED (10 slips on the board), can be UNDONE (cancel the soup!), and can be LOGGED (end-of-night receipts). The waiter (invoker) never needs to know HOW to cook.",
+          "keyPoints": [
+            "A command object encapsulates: the receiver, the action to perform, and the state needed to undo it",
+            "The invoker (e.g., remote control, scheduler) doesn't know what the command does — it just calls execute()",
+            "The receiver (e.g., light, stereo, database) doesn't know it's being called through a command",
+            "This decoupling enables: undo/redo, queuing, logging, scheduling, and transactions"
+          ]
+        },
+        {
+          "id": "command-four-players",
+          "title": "The Four Players",
+          "explanation": "Every Command pattern implementation has exactly four roles:\n\n1. Command (Interface): Declares execute() and undo(). This is the contract.\n2. ConcreteCommand: Implements the interface. Holds a reference to the receiver AND saves previous state for undo.\n3. Invoker: Stores commands and decides WHEN to execute them. Contains the data structure (Stack for undo, Queue for scheduling, etc.).\n4. Receiver: The object that actually does the work. Knows nothing about commands.\n\nThe Client creates commands, binds them to receivers, and hands them to the invoker.",
+          "realWorldAnalogy": "A movie set: The Director (Client) decides what should happen. 'Action!' and 'Cut!' are Commands. The Assistant Director (Invoker) schedules and sequences them. The Camera Crew, Actors, and Lighting Team (Receivers) actually do the work. The commands can be queued in a shot list, reordered, and even undone ('Let's redo that take').",
+          "keyPoints": [
+            "Command interface: execute() + undo() — the universal contract",
+            "ConcreteCommand: binds receiver + action + saved state for undo",
+            "Invoker: stores commands in a data structure, triggers execute/undo",
+            "Receiver: does the actual work, knows nothing about the pattern",
+            "Client: creates and configures everything, wires it together"
+          ]
+        },
+        {
+          "id": "command-brain-triggers",
+          "title": "Brain Triggers — When to Think Command",
+          "explanation": "In an interview, these keywords should trigger the Command pattern:\n\n• 'undo/redo' — THE signature trigger. If a system needs undo, think Command immediately.\n• 'history of actions' — logging every operation as an object.\n• 'queue requests' — store commands for later execution.\n• 'schedule tasks' — deferred execution with time-based triggers.\n• 'macro/batch' — a composite command holding multiple child commands.\n• 'transaction/rollback' — execute a sequence, undo all if one fails.\n• 'replay' — re-execute stored commands to rebuild state.\n• 'decouple sender from receiver' — the fundamental intent.\n• 'button/toolbar/menu actions' — each UI action maps to a command object.",
+          "keyPoints": [
+            "Undo/redo is the #1 brain trigger for Command pattern",
+            "Queuing, scheduling, and logging are secondary triggers",
+            "Transaction/rollback = Command + Stack + try/catch",
+            "If the problem says 'macro' or 'batch operations', think Composite + Command"
+          ]
+        }
+      ],
+      "cppCode": {
+        "title": "Smart Home Remote — Basic Command Pattern in C++",
+        "code": "#include <iostream>\n#include <memory>\n#include <stack>\n#include <string>\n\n// ====== Command Interface ======\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n};\n\n// ====== Receiver ======\nclass Light {\n    std::string location_;\n    bool isOn_ = false;\npublic:\n    explicit Light(std::string loc) : location_(std::move(loc)) {}\n    void on()  { isOn_ = true;  std::cout << location_ << \" light ON\\n\"; }\n    void off() { isOn_ = false; std::cout << location_ << \" light OFF\\n\"; }\n    bool isOn() const { return isOn_; }\n};\n\n// ====== Concrete Command ======\nclass LightOnCommand : public Command {\n    Light& light_;\n    bool wasOn_; // saved state for undo\npublic:\n    explicit LightOnCommand(Light& light) : light_(light), wasOn_(false) {}\n    void execute() override {\n        wasOn_ = light_.isOn(); // save BEFORE\n        light_.on();\n    }\n    void undo() override {\n        if (!wasOn_) light_.off(); // restore previous state\n    }\n};\n\nclass LightOffCommand : public Command {\n    Light& light_;\n    bool wasOn_;\npublic:\n    explicit LightOffCommand(Light& light) : light_(light), wasOn_(false) {}\n    void execute() override {\n        wasOn_ = light_.isOn();\n        light_.off();\n    }\n    void undo() override {\n        if (wasOn_) light_.on();\n    }\n};\n\n// ====== Invoker ======\nclass RemoteControl {\n    std::stack<std::shared_ptr<Command>> history_;\npublic:\n    void executeCommand(std::shared_ptr<Command> cmd) {\n        cmd->execute();\n        history_.push(cmd); // THE MAGIC LINE\n    }\n    void pressUndo() {\n        if (!history_.empty()) {\n            history_.top()->undo();\n            history_.pop();\n        }\n    }\n};\n\n// ====== Client ======\nint main() {\n    Light livingRoom(\"Living Room\");\n    auto lightOn  = std::make_shared<LightOnCommand>(livingRoom);\n    auto lightOff = std::make_shared<LightOffCommand>(livingRoom);\n\n    RemoteControl remote;\n    remote.executeCommand(lightOn);   // Living Room light ON\n    remote.executeCommand(lightOff);  // Living Room light OFF\n    remote.pressUndo();               // Living Room light ON (undo off)\n    remote.pressUndo();               // Living Room light OFF (undo on)\n    return 0;\n}",
+        "explanation": "The C++ implementation uses virtual dispatch for polymorphism, shared_ptr for shared ownership of commands in the history stack, and references to receivers (the command doesn't own the light — it just references it). The virtual destructor in the Command base class is essential for proper cleanup through base pointers. Notice how the RemoteControl (invoker) has zero knowledge of Light — it only knows the Command interface."
+      },
+      "javaCode": {
+        "title": "Smart Home Remote — Basic Command Pattern in Java",
+        "code": "// ====== Command Interface ======\npublic interface Command {\n    void execute();\n    void undo();\n}\n\n// ====== Receiver ======\npublic class Light {\n    private String location;\n    private boolean isOn = false;\n\n    public Light(String location) { this.location = location; }\n    public void on()  { isOn = true;  System.out.println(location + \" light ON\"); }\n    public void off() { isOn = false; System.out.println(location + \" light OFF\"); }\n    public boolean isOn() { return isOn; }\n}\n\n// ====== Concrete Commands ======\npublic class LightOnCommand implements Command {\n    private Light light;\n    private boolean wasOn; // saved state for undo\n\n    public LightOnCommand(Light light) { this.light = light; }\n\n    @Override\n    public void execute() {\n        wasOn = light.isOn(); // save BEFORE\n        light.on();\n    }\n\n    @Override\n    public void undo() {\n        if (!wasOn) light.off(); // restore previous state\n    }\n}\n\npublic class LightOffCommand implements Command {\n    private Light light;\n    private boolean wasOn;\n\n    public LightOffCommand(Light light) { this.light = light; }\n\n    @Override\n    public void execute() {\n        wasOn = light.isOn();\n        light.off();\n    }\n\n    @Override\n    public void undo() {\n        if (wasOn) light.on();\n    }\n}\n\n// ====== Invoker ======\nimport java.util.ArrayDeque;\nimport java.util.Deque;\n\npublic class RemoteControl {\n    private Deque<Command> history = new ArrayDeque<>();\n\n    public void executeCommand(Command cmd) {\n        cmd.execute();\n        history.push(cmd); // THE MAGIC LINE\n    }\n\n    public void pressUndo() {\n        if (!history.isEmpty()) {\n            history.pop().undo();\n        }\n    }\n}\n\n// ====== Client ======\npublic class SmartHome {\n    public static void main(String[] args) {\n        Light livingRoom = new Light(\"Living Room\");\n        Command lightOn  = new LightOnCommand(livingRoom);\n        Command lightOff = new LightOffCommand(livingRoom);\n\n        RemoteControl remote = new RemoteControl();\n        remote.executeCommand(lightOn);   // Living Room light ON\n        remote.executeCommand(lightOff);  // Living Room light OFF\n        remote.pressUndo();               // Living Room light ON\n        remote.pressUndo();               // Living Room light OFF\n    }\n}",
+        "explanation": "The Java implementation uses interfaces for the Command contract and ArrayDeque as the undo stack. Java's garbage collector handles memory management, so we don't need smart pointers like C++. The pattern is identical in structure — the difference is in language idioms (interface vs abstract class, GC vs smart pointers). The key insight: history.push(cmd) is the magic line that enables undo."
+      },
+      "comparison": [
+        {
+          "aspect": "Command Interface",
+          "cpp": "Abstract class with virtual methods + virtual destructor",
+          "java": "interface keyword with default methods possible"
+        },
+        {
+          "aspect": "Memory Management",
+          "cpp": "std::shared_ptr for shared ownership in history stack",
+          "java": "GC handles everything — just store references"
+        },
+        {
+          "aspect": "Receiver Binding",
+          "cpp": "Reference (Light&) — receiver must outlive command",
+          "java": "Object reference — GC keeps receiver alive as long as command exists"
+        },
+        {
+          "aspect": "History Stack",
+          "cpp": "std::stack<std::shared_ptr<Command>>",
+          "java": "Deque<Command> (ArrayDeque preferred over Stack)"
+        },
+        {
+          "aspect": "Null Object Pattern",
+          "cpp": "NoOpCommand concrete class",
+          "java": "Anonymous class or lambda: () -> {}"
+        }
+      ],
+      "practiceQuestions": [
+        {
+          "id": "cmd-q1",
+          "title": "Text Editor Commands",
+          "difficulty": "basic",
+          "description": "Implement a simple text editor with Command pattern. Support three operations: Type (append text), Delete (remove last N characters), and Undo. Each command should be undoable. The editor maintains a string buffer.",
+          "hints": [
+            "TypeCommand saves the text it added, undo removes that exact text",
+            "DeleteCommand saves the deleted characters, undo re-appends them",
+            "Use a Stack to store executed commands for undo"
+          ],
+          "solutions": {
+            "cpp": "#include <iostream>\n#include <stack>\n#include <memory>\n#include <string>\n\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n};\n\nclass TextEditor {\n    std::string buffer_;\npublic:\n    void append(const std::string& text) { buffer_ += text; }\n    void deleteLast(int n) { buffer_.erase(buffer_.size() - n, n); }\n    std::string getText() const { return buffer_; }\n    int length() const { return buffer_.size(); }\n};\n\nclass TypeCommand : public Command {\n    TextEditor& editor_;\n    std::string text_;\npublic:\n    TypeCommand(TextEditor& ed, std::string text)\n        : editor_(ed), text_(std::move(text)) {}\n    void execute() override { editor_.append(text_); }\n    void undo() override { editor_.deleteLast(text_.size()); }\n};\n\nclass DeleteCommand : public Command {\n    TextEditor& editor_;\n    int count_;\n    std::string deleted_;\npublic:\n    DeleteCommand(TextEditor& ed, int count)\n        : editor_(ed), count_(count) {}\n    void execute() override {\n        std::string text = editor_.getText();\n        deleted_ = text.substr(text.size() - count_);\n        editor_.deleteLast(count_);\n    }\n    void undo() override { editor_.append(deleted_); }\n};\n\nint main() {\n    TextEditor editor;\n    std::stack<std::shared_ptr<Command>> history;\n\n    auto type1 = std::make_shared<TypeCommand>(editor, \"Hello \");\n    type1->execute(); history.push(type1);\n    std::cout << editor.getText() << std::endl; // Hello \n\n    auto type2 = std::make_shared<TypeCommand>(editor, \"World\");\n    type2->execute(); history.push(type2);\n    std::cout << editor.getText() << std::endl; // Hello World\n\n    history.top()->undo(); history.pop();\n    std::cout << editor.getText() << std::endl; // Hello \n\n    auto del = std::make_shared<DeleteCommand>(editor, 3);\n    del->execute(); history.push(del);\n    std::cout << editor.getText() << std::endl; // Hel\n\n    history.top()->undo(); history.pop();\n    std::cout << editor.getText() << std::endl; // Hello \n    return 0;\n}",
+            "java": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\ninterface Command {\n    void execute();\n    void undo();\n}\n\nclass TextEditor {\n    private StringBuilder buffer = new StringBuilder();\n    public void append(String text) { buffer.append(text); }\n    public void deleteLast(int n) { buffer.delete(buffer.length() - n, buffer.length()); }\n    public String getText() { return buffer.toString(); }\n    public int length() { return buffer.length(); }\n}\n\nclass TypeCommand implements Command {\n    private TextEditor editor;\n    private String text;\n    public TypeCommand(TextEditor editor, String text) {\n        this.editor = editor;\n        this.text = text;\n    }\n    public void execute() { editor.append(text); }\n    public void undo() { editor.deleteLast(text.length()); }\n}\n\nclass DeleteCommand implements Command {\n    private TextEditor editor;\n    private int count;\n    private String deleted;\n    public DeleteCommand(TextEditor editor, int count) {\n        this.editor = editor;\n        this.count = count;\n    }\n    public void execute() {\n        String text = editor.getText();\n        deleted = text.substring(text.length() - count);\n        editor.deleteLast(count);\n    }\n    public void undo() { editor.append(deleted); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        TextEditor editor = new TextEditor();\n        Deque<Command> history = new ArrayDeque<>();\n\n        Command type1 = new TypeCommand(editor, \"Hello \");\n        type1.execute(); history.push(type1);\n        System.out.println(editor.getText()); // Hello \n\n        Command type2 = new TypeCommand(editor, \"World\");\n        type2.execute(); history.push(type2);\n        System.out.println(editor.getText()); // Hello World\n\n        history.pop().undo();\n        System.out.println(editor.getText()); // Hello \n\n        Command del = new DeleteCommand(editor, 3);\n        del.execute(); history.push(del);\n        System.out.println(editor.getText()); // Hel\n\n        history.pop().undo();\n        System.out.println(editor.getText()); // Hello \n    }\n}"
+          },
+          "tags": ["command", "undo", "text-editor", "stack"]
+        },
+        {
+          "id": "cmd-q2",
+          "title": "Smart Home with Undo/Redo",
+          "difficulty": "basic",
+          "description": "Extend the basic smart home remote control to support both undo AND redo. Rules: Execute pushes to undo stack and clears redo stack. Undo pops from undo stack, calls undo(), and pushes to redo stack. Redo pops from redo stack, calls execute(), and pushes to undo stack.",
+          "hints": [
+            "You need TWO stacks: undoStack and redoStack",
+            "A new execute() must clear the redo stack (can't redo after a new action)",
+            "Redo simply calls execute() again on the popped command"
+          ],
+          "solutions": {
+            "cpp": "#include <iostream>\n#include <stack>\n#include <memory>\n#include <string>\n\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n};\n\nclass Light {\n    std::string location_;\n    bool isOn_ = false;\npublic:\n    explicit Light(std::string loc) : location_(std::move(loc)) {}\n    void on()  { isOn_ = true;  std::cout << location_ << \" ON\\n\"; }\n    void off() { isOn_ = false; std::cout << location_ << \" OFF\\n\"; }\n    bool isOn() const { return isOn_; }\n};\n\nclass LightOnCommand : public Command {\n    Light& light_;\n    bool wasOn_;\npublic:\n    explicit LightOnCommand(Light& l) : light_(l), wasOn_(false) {}\n    void execute() override { wasOn_ = light_.isOn(); light_.on(); }\n    void undo() override { if (!wasOn_) light_.off(); }\n};\n\nclass RemoteControl {\n    std::stack<std::shared_ptr<Command>> undoStack_;\n    std::stack<std::shared_ptr<Command>> redoStack_;\npublic:\n    void executeCommand(std::shared_ptr<Command> cmd) {\n        cmd->execute();\n        undoStack_.push(cmd);\n        while (!redoStack_.empty()) redoStack_.pop(); // clear redo\n    }\n    void pressUndo() {\n        if (!undoStack_.empty()) {\n            auto cmd = undoStack_.top(); undoStack_.pop();\n            cmd->undo();\n            redoStack_.push(cmd);\n        }\n    }\n    void pressRedo() {\n        if (!redoStack_.empty()) {\n            auto cmd = redoStack_.top(); redoStack_.pop();\n            cmd->execute();\n            undoStack_.push(cmd);\n        }\n    }\n};\n\nint main() {\n    Light room(\"Bedroom\");\n    auto on = std::make_shared<LightOnCommand>(room);\n    RemoteControl remote;\n    remote.executeCommand(on);  // Bedroom ON\n    remote.pressUndo();          // Bedroom OFF\n    remote.pressRedo();          // Bedroom ON\n    return 0;\n}",
+            "java": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\ninterface Command {\n    void execute();\n    void undo();\n}\n\nclass Light {\n    private String location;\n    private boolean isOn = false;\n    public Light(String location) { this.location = location; }\n    public void on()  { isOn = true;  System.out.println(location + \" ON\"); }\n    public void off() { isOn = false; System.out.println(location + \" OFF\"); }\n    public boolean isOn() { return isOn; }\n}\n\nclass LightOnCommand implements Command {\n    private Light light;\n    private boolean wasOn;\n    public LightOnCommand(Light light) { this.light = light; }\n    public void execute() { wasOn = light.isOn(); light.on(); }\n    public void undo() { if (!wasOn) light.off(); }\n}\n\nclass RemoteControl {\n    private Deque<Command> undoStack = new ArrayDeque<>();\n    private Deque<Command> redoStack = new ArrayDeque<>();\n\n    public void executeCommand(Command cmd) {\n        cmd.execute();\n        undoStack.push(cmd);\n        redoStack.clear(); // new action kills redo history\n    }\n    public void pressUndo() {\n        if (!undoStack.isEmpty()) {\n            Command cmd = undoStack.pop();\n            cmd.undo();\n            redoStack.push(cmd);\n        }\n    }\n    public void pressRedo() {\n        if (!redoStack.isEmpty()) {\n            Command cmd = redoStack.pop();\n            cmd.execute();\n            undoStack.push(cmd);\n        }\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Light room = new Light(\"Bedroom\");\n        Command on = new LightOnCommand(room);\n        RemoteControl remote = new RemoteControl();\n        remote.executeCommand(on);  // Bedroom ON\n        remote.pressUndo();          // Bedroom OFF\n        remote.pressRedo();          // Bedroom ON\n    }\n}"
+          },
+          "tags": ["command", "undo", "redo", "two-stacks"]
+        }
+      ]
+    },
+    "intermediate": {
+      "title": "SOLID Connections & Real-World Usage",
+      "description": "How Command embodies SOLID principles, pairs with other patterns, and maps to real LLD interview problems",
+      "concepts": [
+        {
+          "id": "command-solid",
+          "title": "SOLID Principles in Command Pattern",
+          "explanation": "The Command pattern is a SOLID powerhouse:\n\n• Single Responsibility (SRP): Each ConcreteCommand has ONE job — encapsulate one specific action. LightOnCommand only turns on lights, nothing else.\n\n• Open/Closed (OCP): Adding redo required ZERO changes to any Command class. We only modified the Invoker. New commands can be added without changing existing code.\n\n• Liskov Substitution (LSP): Any Command can replace any other Command in the invoker. The RemoteControl works with LightOnCommand, StereoPlayCommand, or any future command — they're all substitutable.\n\n• Interface Segregation (ISP): The Command interface is minimal — just execute() and undo(). No bloated interfaces.\n\n• Dependency Inversion (DIP): The Invoker depends on the Command abstraction, not on concrete receivers. High-level modules (RemoteControl) don't depend on low-level modules (Light, Stereo).",
+          "realWorldAnalogy": "Think of a universal TV remote. It depends on the CONCEPT of a button press (abstraction), not on any specific TV brand (concrete). You can point it at a Samsung or LG — it doesn't care. That's DIP. And adding a new button (new command) doesn't require rewiring existing buttons — that's OCP.",
+          "keyPoints": [
+            "SRP: Each command class has exactly one responsibility",
+            "OCP: New commands added without modifying existing code",
+            "LSP: All commands are substitutable through the Command interface",
+            "DIP: Invoker depends on Command abstraction, not concrete receivers"
+          ]
+        },
+        {
+          "id": "command-pattern-combos",
+          "title": "Pattern Combinations — Command's Best Friends",
+          "explanation": "Command rarely works alone in real systems:\n\n1. Command + Memento: When undo can't reverse the action (e.g., sending an email), save a full state snapshot (Memento) before executing. Undo restores the snapshot instead of reversing logic.\n\n2. Command + Composite: A MacroCommand is a command that holds a list of child commands. execute() runs all children in order, undo() runs all children's undo() in reverse. Perfect for batch operations.\n\n3. Command + Strategy: When a command needs a configurable algorithm. SortCommand(strategy) lets you swap the sorting algorithm without creating new command classes.\n\n4. Command + Observer: After execute(), notify observers. Dashboard updates, email alerts, and log entries can all subscribe to command completion events.\n\n5. Command + Prototype: Clone a template command for each new request instead of creating from scratch. Useful in task schedulers where the same command template runs multiple times.",
+          "realWorldAnalogy": "A chef's kitchen: The order slip (Command) might require a specific cooking technique (Strategy). A combo meal order (Composite) contains multiple individual dishes. If the dish can't be uncooked (irreversible), the chef takes a photo first (Memento). And the waiter announces 'Order up!' to all servers (Observer).",
+          "keyPoints": [
+            "Command + Memento = undo for irreversible actions",
+            "Command + Composite = macro/batch operations",
+            "Command + Strategy = commands with swappable algorithms",
+            "Command + Observer = notifications after execution",
+            "In interviews, mentioning these combos signals senior-level thinking"
+          ]
+        },
+        {
+          "id": "command-data-structures",
+          "title": "Data Structure Pairing — The Right Container for the Job",
+          "explanation": "The command object stays the same — only the CONTAINER changes based on what you need:\n\n• Stack → Undo/Redo (LIFO: last action undone first)\n• Queue → Task Processing (FIFO: first submitted, first executed)\n• PriorityQueue → Scheduling (sorted by time or priority)\n• ArrayList → Audit Log (append-only, never delete)\n• List<Command> inside CompositeCommand → Macro/Batch\n• Stack + try/catch → Transaction Rollback (undo all on failure)\n• Bounded Queue → Rate Limiting (reject when full)\n• Persistent Log (DB/Kafka) → Event Sourcing (replay to rebuild state)\n\nThe key insight: the data structure in the invoker DETERMINES the capability. Same Command interface, completely different behavior based on the container.",
+          "realWorldAnalogy": "Think of a sticky note (the command). Put it on a stack of papers → you'll handle the most recent first (undo). Put it in a ticket queue → first come first served. Pin it to a calendar → scheduled execution. File it in a binder → audit trail. The note doesn't change — where you PUT it determines what happens.",
+          "keyPoints": [
+            "Stack = undo/redo (LIFO)",
+            "Queue = task processing (FIFO)",
+            "PriorityQueue = scheduling by time/priority",
+            "ArrayList = audit logging (append-only)",
+            "The invoker's data structure defines the system's capability"
+          ]
+        }
+      ],
+      "cppCode": {
+        "title": "Macro Command + Transaction Rollback in C++",
+        "code": "#include <iostream>\n#include <memory>\n#include <vector>\n#include <stack>\n#include <stdexcept>\n#include <string>\n\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n};\n\n// ====== Receivers ======\nclass Account {\n    std::string name_;\n    double balance_;\npublic:\n    Account(std::string name, double balance)\n        : name_(std::move(name)), balance_(balance) {}\n    void withdraw(double amount) {\n        if (balance_ < amount)\n            throw std::runtime_error(\"Insufficient funds in \" + name_);\n        balance_ -= amount;\n        std::cout << name_ << \": withdrew $\" << amount\n                  << \" (balance: $\" << balance_ << \")\\n\";\n    }\n    void deposit(double amount) {\n        balance_ += amount;\n        std::cout << name_ << \": deposited $\" << amount\n                  << \" (balance: $\" << balance_ << \")\\n\";\n    }\n    double getBalance() const { return balance_; }\n};\n\n// ====== Concrete Command ======\nclass TransferCommand : public Command {\n    Account& from_;\n    Account& to_;\n    double amount_;\n    bool executed_ = false;\npublic:\n    TransferCommand(Account& from, Account& to, double amount)\n        : from_(from), to_(to), amount_(amount) {}\n    void execute() override {\n        from_.withdraw(amount_);\n        to_.deposit(amount_);\n        executed_ = true;\n    }\n    void undo() override {\n        if (executed_) {\n            to_.withdraw(amount_);\n            from_.deposit(amount_);\n            executed_ = false;\n        }\n    }\n};\n\n// ====== Macro Command (Composite + Command) ======\nclass MacroCommand : public Command {\n    std::vector<std::shared_ptr<Command>> commands_;\n    std::stack<std::shared_ptr<Command>> executed_;\npublic:\n    void addCommand(std::shared_ptr<Command> cmd) {\n        commands_.push_back(std::move(cmd));\n    }\n    void execute() override {\n        try {\n            for (auto& cmd : commands_) {\n                cmd->execute();\n                executed_.push(cmd);\n            }\n        } catch (const std::exception& e) {\n            std::cout << \"FAILED: \" << e.what() << \" — ROLLING BACK\\n\";\n            while (!executed_.empty()) {\n                executed_.top()->undo();\n                executed_.pop();\n            }\n            throw;\n        }\n    }\n    void undo() override {\n        while (!executed_.empty()) {\n            executed_.top()->undo();\n            executed_.pop();\n        }\n    }\n};\n\nint main() {\n    Account alice(\"Alice\", 1000);\n    Account bob(\"Bob\", 500);\n    Account charlie(\"Charlie\", 200);\n\n    auto macro = std::make_shared<MacroCommand>();\n    macro->addCommand(std::make_shared<TransferCommand>(alice, bob, 300));\n    macro->addCommand(std::make_shared<TransferCommand>(bob, charlie, 1500)); // will fail!\n\n    try {\n        macro->execute();\n    } catch (...) {\n        std::cout << \"\\nAfter rollback:\\n\";\n        std::cout << \"Alice: $\" << alice.getBalance() << \"\\n\";   // $1000\n        std::cout << \"Bob: $\" << bob.getBalance() << \"\\n\";       // $500\n        std::cout << \"Charlie: $\" << charlie.getBalance() << \"\\n\"; // $200\n    }\n    return 0;\n}",
+        "explanation": "This demonstrates two advanced Command capabilities: MacroCommand (Composite pattern) groups multiple commands into a batch, and Transaction Rollback undoes all executed commands in reverse order when any single command fails. The executed_ stack tracks which commands succeeded so that rollback only undoes what was actually done. This is exactly how database transactions work — all or nothing."
+      },
+      "javaCode": {
+        "title": "Macro Command + Transaction Rollback in Java",
+        "code": "import java.util.*;\n\n// ====== Command Interface ======\ninterface Command {\n    void execute();\n    void undo();\n}\n\n// ====== Receiver ======\nclass Account {\n    private String name;\n    private double balance;\n\n    public Account(String name, double balance) {\n        this.name = name;\n        this.balance = balance;\n    }\n    public void withdraw(double amount) {\n        if (balance < amount)\n            throw new RuntimeException(\"Insufficient funds in \" + name);\n        balance -= amount;\n        System.out.printf(\"%s: withdrew $%.0f (balance: $%.0f)%n\", name, amount, balance);\n    }\n    public void deposit(double amount) {\n        balance += amount;\n        System.out.printf(\"%s: deposited $%.0f (balance: $%.0f)%n\", name, amount, balance);\n    }\n    public double getBalance() { return balance; }\n}\n\n// ====== Concrete Command ======\nclass TransferCommand implements Command {\n    private Account from, to;\n    private double amount;\n    private boolean executed = false;\n\n    public TransferCommand(Account from, Account to, double amount) {\n        this.from = from;\n        this.to = to;\n        this.amount = amount;\n    }\n    public void execute() {\n        from.withdraw(amount);\n        to.deposit(amount);\n        executed = true;\n    }\n    public void undo() {\n        if (executed) {\n            to.withdraw(amount);\n            from.deposit(amount);\n            executed = false;\n        }\n    }\n}\n\n// ====== Macro Command (Composite + Command) ======\nclass MacroCommand implements Command {\n    private List<Command> commands = new ArrayList<>();\n    private Deque<Command> executed = new ArrayDeque<>();\n\n    public void addCommand(Command cmd) { commands.add(cmd); }\n\n    public void execute() {\n        try {\n            for (Command cmd : commands) {\n                cmd.execute();\n                executed.push(cmd);\n            }\n        } catch (Exception e) {\n            System.out.println(\"FAILED: \" + e.getMessage() + \" — ROLLING BACK\");\n            while (!executed.isEmpty()) {\n                executed.pop().undo();\n            }\n            throw e;\n        }\n    }\n    public void undo() {\n        while (!executed.isEmpty()) {\n            executed.pop().undo();\n        }\n    }\n}\n\n// ====== Client ======\npublic class BankingApp {\n    public static void main(String[] args) {\n        Account alice = new Account(\"Alice\", 1000);\n        Account bob = new Account(\"Bob\", 500);\n        Account charlie = new Account(\"Charlie\", 200);\n\n        MacroCommand batchTransfer = new MacroCommand();\n        batchTransfer.addCommand(new TransferCommand(alice, bob, 300));\n        batchTransfer.addCommand(new TransferCommand(bob, charlie, 1500)); // fails!\n\n        try {\n            batchTransfer.execute();\n        } catch (Exception e) {\n            System.out.println(\"\\nAfter rollback:\");\n            System.out.printf(\"Alice: $%.0f%n\", alice.getBalance());   // $1000\n            System.out.printf(\"Bob: $%.0f%n\", bob.getBalance());       // $500\n            System.out.printf(\"Charlie: $%.0f%n\", charlie.getBalance()); // $200\n        }\n    }\n}",
+        "explanation": "The Java version showcases MacroCommand as a Composite — it holds child commands in a List and tracks executed ones in a Deque. When the second transfer fails (Bob only has $800, can't transfer $1500), the catch block rolls back the first transfer. After rollback, all balances are restored to their original values. This pattern is essential in any LLD problem involving financial transactions, order processing, or multi-step workflows."
+      },
+      "comparison": [
+        {
+          "aspect": "Exception Handling",
+          "cpp": "std::exception with what() method, catch by const reference",
+          "java": "RuntimeException, catch by type, getMessage()"
+        },
+        {
+          "aspect": "Composite Storage",
+          "cpp": "std::vector<shared_ptr<Command>> — manual memory management",
+          "java": "List<Command> — GC handles cleanup"
+        },
+        {
+          "aspect": "Rollback Stack",
+          "cpp": "std::stack<shared_ptr<Command>> — RAII cleanup on scope exit",
+          "java": "Deque<Command> — GC cleanup, manual clear if needed"
+        },
+        {
+          "aspect": "Boolean Flag",
+          "cpp": "bool executed_ = false (in-class initializer, C++11+)",
+          "java": "boolean executed = false (field initializer)"
+        }
+      ],
+      "practiceQuestions": [
+        {
+          "id": "cmd-q3",
+          "title": "Task Scheduler with Priority Queue",
+          "difficulty": "intermediate",
+          "description": "Build a task scheduler that accepts commands with a priority level (1=highest). Commands should execute in priority order, not insertion order. Support: schedule(command, priority), executeNext(), and executeAll(). The scheduler should use a PriorityQueue internally.",
+          "hints": [
+            "Create a wrapper class that holds a Command + priority and implements Comparable",
+            "PriorityQueue naturally gives you the highest-priority item first",
+            "executeNext() polls from the queue, executeAll() drains it"
+          ],
+          "solutions": {
+            "cpp": "#include <iostream>\n#include <memory>\n#include <queue>\n#include <string>\n\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n    virtual std::string name() const = 0;\n};\n\nclass PrintCommand : public Command {\n    std::string message_;\npublic:\n    explicit PrintCommand(std::string msg) : message_(std::move(msg)) {}\n    void execute() override { std::cout << \"Executing: \" << message_ << \"\\n\"; }\n    void undo() override { std::cout << \"Undoing: \" << message_ << \"\\n\"; }\n    std::string name() const override { return message_; }\n};\n\nstruct ScheduledTask {\n    std::shared_ptr<Command> command;\n    int priority; // lower number = higher priority\n    bool operator>(const ScheduledTask& other) const {\n        return priority > other.priority;\n    }\n};\n\nclass TaskScheduler {\n    std::priority_queue<ScheduledTask, std::vector<ScheduledTask>,\n                        std::greater<ScheduledTask>> queue_;\npublic:\n    void schedule(std::shared_ptr<Command> cmd, int priority) {\n        queue_.push({std::move(cmd), priority});\n    }\n    void executeNext() {\n        if (!queue_.empty()) {\n            queue_.top().command->execute();\n            queue_.pop();\n        }\n    }\n    void executeAll() {\n        while (!queue_.empty()) executeNext();\n    }\n};\n\nint main() {\n    TaskScheduler scheduler;\n    scheduler.schedule(std::make_shared<PrintCommand>(\"Low priority task\"), 3);\n    scheduler.schedule(std::make_shared<PrintCommand>(\"URGENT task\"), 1);\n    scheduler.schedule(std::make_shared<PrintCommand>(\"Medium task\"), 2);\n    scheduler.executeAll();\n    // Output: URGENT → Medium → Low\n    return 0;\n}",
+            "java": "import java.util.PriorityQueue;\n\ninterface Command {\n    void execute();\n    void undo();\n    String name();\n}\n\nclass PrintCommand implements Command {\n    private String message;\n    public PrintCommand(String msg) { this.message = msg; }\n    public void execute() { System.out.println(\"Executing: \" + message); }\n    public void undo() { System.out.println(\"Undoing: \" + message); }\n    public String name() { return message; }\n}\n\nclass ScheduledTask implements Comparable<ScheduledTask> {\n    Command command;\n    int priority;\n    ScheduledTask(Command cmd, int priority) {\n        this.command = cmd;\n        this.priority = priority;\n    }\n    public int compareTo(ScheduledTask other) {\n        return Integer.compare(this.priority, other.priority);\n    }\n}\n\nclass TaskScheduler {\n    private PriorityQueue<ScheduledTask> queue = new PriorityQueue<>();\n\n    public void schedule(Command cmd, int priority) {\n        queue.offer(new ScheduledTask(cmd, priority));\n    }\n    public void executeNext() {\n        ScheduledTask task = queue.poll();\n        if (task != null) task.command.execute();\n    }\n    public void executeAll() {\n        while (!queue.isEmpty()) executeNext();\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        TaskScheduler scheduler = new TaskScheduler();\n        scheduler.schedule(new PrintCommand(\"Low priority task\"), 3);\n        scheduler.schedule(new PrintCommand(\"URGENT task\"), 1);\n        scheduler.schedule(new PrintCommand(\"Medium task\"), 2);\n        scheduler.executeAll();\n        // Output: URGENT → Medium → Low\n    }\n}"
+          },
+          "tags": ["command", "priority-queue", "scheduler", "invoker"]
+        },
+        {
+          "id": "cmd-q4",
+          "title": "Drawing App with Macro Undo",
+          "difficulty": "intermediate",
+          "description": "Build a drawing application that supports: DrawCircle, DrawRectangle, and a MacroCommand that groups multiple draws. The canvas maintains a list of shapes. Each command adds/removes shapes. Implement undo for both individual commands and macro commands (undo should remove all shapes added by the macro in one step).",
+          "hints": [
+            "Canvas receiver holds a List<String> of shape names",
+            "DrawCommand saves the index where it inserted the shape for undo",
+            "MacroCommand holds List<Command> and undoes all children in reverse order"
+          ],
+          "solutions": {
+            "cpp": "#include <iostream>\n#include <memory>\n#include <vector>\n#include <stack>\n#include <string>\n#include <algorithm>\n\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n};\n\nclass Canvas {\n    std::vector<std::string> shapes_;\npublic:\n    void addShape(const std::string& shape) {\n        shapes_.push_back(shape);\n        std::cout << \"Drew: \" << shape << \"\\n\";\n    }\n    void removeShape(const std::string& shape) {\n        auto it = std::find(shapes_.begin(), shapes_.end(), shape);\n        if (it != shapes_.end()) {\n            shapes_.erase(it);\n            std::cout << \"Removed: \" << shape << \"\\n\";\n        }\n    }\n    void display() const {\n        std::cout << \"Canvas: [\";\n        for (size_t i = 0; i < shapes_.size(); ++i) {\n            std::cout << shapes_[i];\n            if (i + 1 < shapes_.size()) std::cout << \", \";\n        }\n        std::cout << \"]\\n\";\n    }\n};\n\nclass DrawCommand : public Command {\n    Canvas& canvas_;\n    std::string shape_;\npublic:\n    DrawCommand(Canvas& c, std::string shape)\n        : canvas_(c), shape_(std::move(shape)) {}\n    void execute() override { canvas_.addShape(shape_); }\n    void undo() override { canvas_.removeShape(shape_); }\n};\n\nclass MacroCommand : public Command {\n    std::vector<std::shared_ptr<Command>> commands_;\npublic:\n    void add(std::shared_ptr<Command> cmd) { commands_.push_back(std::move(cmd)); }\n    void execute() override {\n        for (auto& cmd : commands_) cmd->execute();\n    }\n    void undo() override {\n        for (auto it = commands_.rbegin(); it != commands_.rend(); ++it)\n            (*it)->undo();\n    }\n};\n\nint main() {\n    Canvas canvas;\n    std::stack<std::shared_ptr<Command>> history;\n\n    auto circle = std::make_shared<DrawCommand>(canvas, \"Circle\");\n    circle->execute(); history.push(circle);\n\n    auto macro = std::make_shared<MacroCommand>();\n    macro->add(std::make_shared<DrawCommand>(canvas, \"Rect1\"));\n    macro->add(std::make_shared<DrawCommand>(canvas, \"Rect2\"));\n    macro->execute(); history.push(macro);\n\n    canvas.display(); // [Circle, Rect1, Rect2]\n\n    history.top()->undo(); history.pop(); // removes Rect2 and Rect1\n    canvas.display(); // [Circle]\n    return 0;\n}",
+            "java": "import java.util.*;\n\ninterface Command {\n    void execute();\n    void undo();\n}\n\nclass Canvas {\n    private List<String> shapes = new ArrayList<>();\n    public void addShape(String shape) {\n        shapes.add(shape);\n        System.out.println(\"Drew: \" + shape);\n    }\n    public void removeShape(String shape) {\n        shapes.remove(shape);\n        System.out.println(\"Removed: \" + shape);\n    }\n    public void display() { System.out.println(\"Canvas: \" + shapes); }\n}\n\nclass DrawCommand implements Command {\n    private Canvas canvas;\n    private String shape;\n    public DrawCommand(Canvas canvas, String shape) {\n        this.canvas = canvas;\n        this.shape = shape;\n    }\n    public void execute() { canvas.addShape(shape); }\n    public void undo() { canvas.removeShape(shape); }\n}\n\nclass MacroCommand implements Command {\n    private List<Command> commands = new ArrayList<>();\n    public void add(Command cmd) { commands.add(cmd); }\n    public void execute() { commands.forEach(Command::execute); }\n    public void undo() {\n        var reversed = new ArrayList<>(commands);\n        Collections.reverse(reversed);\n        reversed.forEach(Command::undo);\n    }\n}\n\npublic class DrawingApp {\n    public static void main(String[] args) {\n        Canvas canvas = new Canvas();\n        Deque<Command> history = new ArrayDeque<>();\n\n        Command circle = new DrawCommand(canvas, \"Circle\");\n        circle.execute(); history.push(circle);\n\n        MacroCommand macro = new MacroCommand();\n        macro.add(new DrawCommand(canvas, \"Rect1\"));\n        macro.add(new DrawCommand(canvas, \"Rect2\"));\n        macro.execute(); history.push(macro);\n\n        canvas.display(); // [Circle, Rect1, Rect2]\n\n        history.pop().undo(); // removes Rect2 and Rect1\n        canvas.display(); // [Circle]\n    }\n}"
+          },
+          "tags": ["command", "composite", "macro", "undo", "drawing"]
+        }
+      ]
+    },
+    "advanced": {
+      "title": "Expert Patterns & Interview Mastery",
+      "description": "Anti-patterns, complex implementations, event sourcing, and interview-ready problem solving",
+      "concepts": [
+        {
+          "id": "command-anti-patterns",
+          "title": "Anti-Patterns — The Traps That Break Your Design",
+          "explanation": "Four traps that catch even experienced developers:\n\n1. God Command: The command contains ALL business logic instead of delegating to a receiver. Symptom: your command class is 200+ lines. Fix: command should be a thin wrapper that calls receiver methods.\n\n2. Forgotten State for Undo: The undo() method can't work because execute() didn't save the previous state. Symptom: undo does nothing or corrupts state. Fix: ALWAYS save relevant state BEFORE executing.\n\n3. Over-Engineering: Using Command when a simple method call would suffice. The YAGNI test: Do you need undo? Queuing? Logging? Scheduling? If ALL answers are NO, don't use Command.\n\n4. Unbounded History: The undo stack grows forever, eating memory. Fix: cap at N commands, drop the oldest. Text editors typically limit to 50-100 undo levels.\n\n5. Partial Execution without Rollback: In a transaction, if step 2 of 3 fails, step 1's effects remain. Fix: use try/catch with rollback — undo all executed commands in reverse order.",
+          "realWorldAnalogy": "The God Command is like a waiter who cooks, serves, washes dishes, AND manages the restaurant. That's not a waiter — that's a one-person show that will break. The waiter should write the slip and carry it — nothing more.",
+          "keyPoints": [
+            "God Command: delegate to receivers, don't put logic in the command",
+            "Forgotten State: always save before execute, restore on undo",
+            "Over-Engineering: apply the YAGNI test before using Command",
+            "Unbounded History: cap the stack size",
+            "Partial Execution: wrap in try/catch with reverse-order rollback"
+          ]
+        },
+        {
+          "id": "command-evil-twins",
+          "title": "Command vs Strategy vs Observer — The Decisive Differences",
+          "explanation": "These three patterns are confused constantly in interviews:\n\nCommand vs Strategy:\n- Strategy picks HOW to do something (algorithm selection). Command wraps WHAT to do (request encapsulation).\n- Strategy is stateless — swap and forget. Command carries state for undo.\n- Strategy answers: 'Which algorithm?' Command answers: 'What should happen later?'\n- One sentence: Strategy picks the recipe; Command writes the order slip.\n\nCommand vs Observer:\n- Command is one-to-one: invoker → specific command → specific receiver.\n- Observer is one-to-many: subject → broadcasts to ALL subscribers.\n- Command can be deferred/queued. Observer is usually immediate.\n- One sentence: Command is a directed letter; Observer is a radio broadcast.\n\nCommand vs Memento:\n- Command remembers what you DID (the action). Memento remembers what things LOOKED LIKE (the state).\n- Command undo reverses the action. Memento undo restores a snapshot.\n- Command is cheap (stores action + delta). Memento is expensive (stores full state).\n- One sentence: Command is the recipe to cook and uncook; Memento is a photo of the kitchen.",
+          "keyPoints": [
+            "Command vs Strategy: WHAT to do vs HOW to do it",
+            "Command vs Observer: directed letter vs radio broadcast",
+            "Command vs Memento: action log vs state snapshot",
+            "In interviews, use comparison tables to show clarity of thought"
+          ]
+        },
+        {
+          "id": "command-event-sourcing",
+          "title": "Command at Scale — Event Sourcing",
+          "explanation": "Event Sourcing is the Command pattern taken to the architectural level. Instead of storing current state in a database, you store EVERY command (event) that ever happened. To get current state, you replay all events from the beginning.\n\nWhy this is powerful:\n- Complete audit trail — you know exactly what happened and when\n- Time travel — replay events up to any point to see historical state\n- Debugging — reproduce any bug by replaying the exact sequence of events\n- Scalability — events can be distributed across systems via message queues (Kafka)\n\nThis is how banking ledgers work (every transaction is recorded, balance is derived), how Git works (every commit is a command, current code is the result of replaying all commits), and how Redux works (every action is dispatched, state is derived from the action log).\n\nIn an LLD interview, mentioning Event Sourcing when discussing Command pattern shows you understand the pattern at production scale.",
+          "realWorldAnalogy": "A bank ledger. The bank doesn't store 'Alice has $5000.' It stores every deposit and withdrawal ever made. Alice's balance is DERIVED by replaying all her transactions. If there's a dispute, they can trace the exact sequence. That ledger IS a persistent command log.",
+          "keyPoints": [
+            "Event Sourcing = persistent command log as source of truth",
+            "Current state is derived by replaying all events",
+            "Enables: audit trails, time travel, debugging, distributed systems",
+            "Real examples: banking ledgers, Git, Redux, Kafka event streams",
+            "Mentioning this in interviews shows production-level thinking"
+          ]
+        }
+      ],
+      "cppCode": {
+        "title": "Event Sourcing with Command Pattern in C++",
+        "code": "#include <iostream>\n#include <memory>\n#include <vector>\n#include <string>\n#include <chrono>\n#include <iomanip>\n#include <sstream>\n\n// ====== Event (Persistent Command) ======\nclass Event {\npublic:\n    virtual ~Event() = default;\n    virtual void apply(class BankAccount& account) = 0;\n    virtual std::string describe() const = 0;\n    \n    std::string timestamp;\n    Event() {\n        auto now = std::chrono::system_clock::now();\n        auto time = std::chrono::system_clock::to_time_t(now);\n        std::stringstream ss;\n        ss << std::put_time(std::localtime(&time), \"%H:%M:%S\");\n        timestamp = ss.str();\n    }\n};\n\n// ====== Aggregate (Receiver) ======\nclass BankAccount {\n    std::string owner_;\n    double balance_ = 0;\npublic:\n    explicit BankAccount(std::string owner) : owner_(std::move(owner)) {}\n    void credit(double amount) { balance_ += amount; }\n    void debit(double amount) {\n        if (balance_ < amount) throw std::runtime_error(\"Insufficient funds\");\n        balance_ -= amount;\n    }\n    double getBalance() const { return balance_; }\n    std::string getOwner() const { return owner_; }\n};\n\n// ====== Concrete Events ======\nclass DepositEvent : public Event {\n    double amount_;\npublic:\n    explicit DepositEvent(double amount) : amount_(amount) {}\n    void apply(BankAccount& account) override { account.credit(amount_); }\n    std::string describe() const override {\n        return \"[\" + timestamp + \"] DEPOSIT $\" + std::to_string((int)amount_);\n    }\n};\n\nclass WithdrawEvent : public Event {\n    double amount_;\npublic:\n    explicit WithdrawEvent(double amount) : amount_(amount) {}\n    void apply(BankAccount& account) override { account.debit(amount_); }\n    std::string describe() const override {\n        return \"[\" + timestamp + \"] WITHDRAW $\" + std::to_string((int)amount_);\n    }\n};\n\n// ====== Event Store (Persistent Command Log) ======\nclass EventStore {\n    std::vector<std::shared_ptr<Event>> events_;\npublic:\n    void append(std::shared_ptr<Event> event) {\n        events_.push_back(std::move(event));\n    }\n    \n    // Replay ALL events to rebuild current state\n    BankAccount replay(const std::string& owner) const {\n        BankAccount account(owner);\n        for (const auto& event : events_) {\n            event->apply(account);\n        }\n        return account;\n    }\n    \n    // Replay up to N events (time travel!)\n    BankAccount replayUpTo(const std::string& owner, size_t n) const {\n        BankAccount account(owner);\n        for (size_t i = 0; i < n && i < events_.size(); ++i) {\n            events_[i]->apply(account);\n        }\n        return account;\n    }\n    \n    // Audit trail\n    void printAuditLog() const {\n        std::cout << \"=== AUDIT LOG ===\\n\";\n        for (const auto& event : events_) {\n            std::cout << event->describe() << \"\\n\";\n        }\n    }\n    \n    size_t size() const { return events_.size(); }\n};\n\nint main() {\n    EventStore store;\n    \n    // Record events (commands)\n    store.append(std::make_shared<DepositEvent>(1000));\n    store.append(std::make_shared<DepositEvent>(500));\n    store.append(std::make_shared<WithdrawEvent>(200));\n    store.append(std::make_shared<DepositEvent>(300));\n    \n    // Rebuild current state by replaying all events\n    auto current = store.replay(\"Alice\");\n    std::cout << \"Current balance: $\" << current.getBalance() << \"\\n\"; // $1600\n    \n    // Time travel: what was the balance after 2 transactions?\n    auto historical = store.replayUpTo(\"Alice\", 2);\n    std::cout << \"After 2 events: $\" << historical.getBalance() << \"\\n\"; // $1500\n    \n    // Full audit trail\n    store.printAuditLog();\n    return 0;\n}",
+        "explanation": "Event Sourcing treats commands as events that are persisted forever. The EventStore is the invoker — it stores events in an append-only list (never delete!). To get current state, replay ALL events from the beginning. To time-travel, replay up to event N. This is exactly how Git, Redux, and banking systems work. In production, the EventStore would be backed by Kafka or a database — here we use a vector for simplicity."
+      },
+      "javaCode": {
+        "title": "Event Sourcing with Command Pattern in Java",
+        "code": "import java.time.LocalTime;\nimport java.time.format.DateTimeFormatter;\nimport java.util.*;\n\n// ====== Event (Persistent Command) ======\nabstract class Event {\n    final String timestamp = LocalTime.now().format(DateTimeFormatter.ofPattern(\"HH:mm:ss\"));\n    abstract void apply(BankAccount account);\n    abstract String describe();\n}\n\n// ====== Aggregate (Receiver) ======\nclass BankAccount {\n    private String owner;\n    private double balance = 0;\n\n    public BankAccount(String owner) { this.owner = owner; }\n    public void credit(double amount) { balance += amount; }\n    public void debit(double amount) {\n        if (balance < amount) throw new RuntimeException(\"Insufficient funds\");\n        balance -= amount;\n    }\n    public double getBalance() { return balance; }\n}\n\n// ====== Concrete Events ======\nclass DepositEvent extends Event {\n    private double amount;\n    DepositEvent(double amount) { this.amount = amount; }\n    void apply(BankAccount account) { account.credit(amount); }\n    String describe() { return String.format(\"[%s] DEPOSIT $%.0f\", timestamp, amount); }\n}\n\nclass WithdrawEvent extends Event {\n    private double amount;\n    WithdrawEvent(double amount) { this.amount = amount; }\n    void apply(BankAccount account) { account.debit(amount); }\n    String describe() { return String.format(\"[%s] WITHDRAW $%.0f\", timestamp, amount); }\n}\n\n// ====== Event Store (Persistent Command Log) ======\nclass EventStore {\n    private List<Event> events = new ArrayList<>();\n\n    public void append(Event event) { events.add(event); }\n\n    // Replay ALL events to rebuild current state\n    public BankAccount replay(String owner) {\n        BankAccount account = new BankAccount(owner);\n        events.forEach(e -> e.apply(account));\n        return account;\n    }\n\n    // Replay up to N events (time travel!)\n    public BankAccount replayUpTo(String owner, int n) {\n        BankAccount account = new BankAccount(owner);\n        events.stream().limit(n).forEach(e -> e.apply(account));\n        return account;\n    }\n\n    // Audit trail\n    public void printAuditLog() {\n        System.out.println(\"=== AUDIT LOG ===\");\n        events.forEach(e -> System.out.println(e.describe()));\n    }\n}\n\n// ====== Client ======\npublic class EventSourcingDemo {\n    public static void main(String[] args) {\n        EventStore store = new EventStore();\n\n        store.append(new DepositEvent(1000));\n        store.append(new DepositEvent(500));\n        store.append(new WithdrawEvent(200));\n        store.append(new DepositEvent(300));\n\n        // Current state by replaying all events\n        BankAccount current = store.replay(\"Alice\");\n        System.out.printf(\"Current balance: $%.0f%n\", current.getBalance()); // $1600\n\n        // Time travel: balance after 2 events\n        BankAccount historical = store.replayUpTo(\"Alice\", 2);\n        System.out.printf(\"After 2 events: $%.0f%n\", historical.getBalance()); // $1500\n\n        store.printAuditLog();\n    }\n}",
+        "explanation": "The Java Event Sourcing implementation uses an abstract Event class as the command, ArrayList as the persistent store, and streams for elegant replay. The key insight: state is NEVER stored directly — it's always derived by replaying events. This gives you a complete audit trail, time-travel debugging, and the ability to rebuild state at any point in history. In production, replace ArrayList with Kafka or EventStoreDB."
+      },
+      "comparison": [
+        {
+          "aspect": "Event Base Class",
+          "cpp": "Abstract class with virtual destructor, manual timestamp formatting",
+          "java": "Abstract class with LocalTime and DateTimeFormatter"
+        },
+        {
+          "aspect": "Event Storage",
+          "cpp": "std::vector<shared_ptr<Event>> — contiguous memory, cache-friendly",
+          "java": "List<Event> (ArrayList) — dynamic array, GC-managed"
+        },
+        {
+          "aspect": "Replay Mechanism",
+          "cpp": "Range-based for loop with index boundary check",
+          "java": "Stream API with .limit(n) for elegant time travel"
+        },
+        {
+          "aspect": "Production Backing Store",
+          "cpp": "Apache Kafka C++ client, RocksDB, or custom file-based log",
+          "java": "Kafka, EventStoreDB, or Axon Framework (mature ecosystem)"
+        }
+      ],
+      "practiceQuestions": [
+        {
+          "id": "cmd-q5",
+          "title": "Chess Move System with Full Undo/Redo",
+          "difficulty": "advanced",
+          "description": "Design a chess move system using Command pattern. Each move captures: piece, from-square, to-square, and captured piece (if any). Implement execute() to move the piece and undo() to reverse it (restoring any captured piece). Support special moves: castling (moves two pieces) should be a MacroCommand. Maintain a move history with undo/redo capability.",
+          "hints": [
+            "MoveCommand stores: piece, fromSquare, toSquare, capturedPiece (nullable)",
+            "CastleCommand is a MacroCommand containing two MoveCommands (king + rook)",
+            "The undo of a capture must restore the captured piece to its original square",
+            "Use two stacks for undo/redo, clear redo stack on new move"
+          ],
+          "solutions": {
+            "cpp": "#include <iostream>\n#include <memory>\n#include <stack>\n#include <vector>\n#include <string>\n#include <optional>\n\nclass Command {\npublic:\n    virtual ~Command() = default;\n    virtual void execute() = 0;\n    virtual void undo() = 0;\n    virtual std::string notation() const = 0;\n};\n\nstruct Piece {\n    std::string name; // \"WK\" = White King, \"BR\" = Black Rook, etc.\n};\n\nclass Board {\n    std::optional<Piece> squares_[8][8];\npublic:\n    void placePiece(int row, int col, Piece piece) {\n        squares_[row][col] = piece;\n    }\n    std::optional<Piece> removePiece(int row, int col) {\n        auto piece = squares_[row][col];\n        squares_[row][col] = std::nullopt;\n        return piece;\n    }\n    std::optional<Piece> getPiece(int row, int col) const {\n        return squares_[row][col];\n    }\n};\n\nclass MoveCommand : public Command {\n    Board& board_;\n    int fromRow_, fromCol_, toRow_, toCol_;\n    std::optional<Piece> capturedPiece_;\n    Piece movingPiece_;\npublic:\n    MoveCommand(Board& board, int fr, int fc, int tr, int tc)\n        : board_(board), fromRow_(fr), fromCol_(fc),\n          toRow_(tr), toCol_(tc) {}\n\n    void execute() override {\n        movingPiece_ = *board_.removePiece(fromRow_, fromCol_);\n        capturedPiece_ = board_.removePiece(toRow_, toCol_);\n        board_.placePiece(toRow_, toCol_, movingPiece_);\n        std::cout << movingPiece_.name << \": (\"\n                  << fromRow_ << \",\" << fromCol_ << \") -> (\"\n                  << toRow_ << \",\" << toCol_ << \")\";\n        if (capturedPiece_) std::cout << \" captures \" << capturedPiece_->name;\n        std::cout << \"\\n\";\n    }\n    void undo() override {\n        board_.removePiece(toRow_, toCol_);\n        board_.placePiece(fromRow_, fromCol_, movingPiece_);\n        if (capturedPiece_) board_.placePiece(toRow_, toCol_, *capturedPiece_);\n        std::cout << \"Undo: \" << movingPiece_.name << \" back to (\"\n                  << fromRow_ << \",\" << fromCol_ << \")\\n\";\n    }\n    std::string notation() const override {\n        return movingPiece_.name + \"(\" + std::to_string(fromRow_) + \",\"\n               + std::to_string(fromCol_) + \")->(\"\n               + std::to_string(toRow_) + \",\" + std::to_string(toCol_) + \")\";\n    }\n};\n\nclass CastleCommand : public Command {\n    std::shared_ptr<MoveCommand> kingMove_;\n    std::shared_ptr<MoveCommand> rookMove_;\npublic:\n    CastleCommand(std::shared_ptr<MoveCommand> king, std::shared_ptr<MoveCommand> rook)\n        : kingMove_(std::move(king)), rookMove_(std::move(rook)) {}\n    void execute() override {\n        kingMove_->execute();\n        rookMove_->execute();\n        std::cout << \"Castled!\\n\";\n    }\n    void undo() override {\n        rookMove_->undo();\n        kingMove_->undo();\n        std::cout << \"Castle undone!\\n\";\n    }\n    std::string notation() const override { return \"O-O\"; }\n};\n\nclass GameController {\n    std::stack<std::shared_ptr<Command>> undoStack_;\n    std::stack<std::shared_ptr<Command>> redoStack_;\npublic:\n    void makeMove(std::shared_ptr<Command> cmd) {\n        cmd->execute();\n        undoStack_.push(cmd);\n        while (!redoStack_.empty()) redoStack_.pop();\n    }\n    void undo() {\n        if (!undoStack_.empty()) {\n            auto cmd = undoStack_.top(); undoStack_.pop();\n            cmd->undo();\n            redoStack_.push(cmd);\n        }\n    }\n    void redo() {\n        if (!redoStack_.empty()) {\n            auto cmd = redoStack_.top(); redoStack_.pop();\n            cmd->execute();\n            undoStack_.push(cmd);\n        }\n    }\n};\n\nint main() {\n    Board board;\n    board.placePiece(0, 4, {\"WK\"});\n    board.placePiece(0, 7, {\"WR\"});\n    board.placePiece(6, 4, {\"BP\"});\n\n    GameController game;\n\n    // Normal move\n    game.makeMove(std::make_shared<MoveCommand>(board, 6, 4, 4, 4));\n\n    // Castle\n    auto kingMove = std::make_shared<MoveCommand>(board, 0, 4, 0, 6);\n    auto rookMove = std::make_shared<MoveCommand>(board, 0, 7, 0, 5);\n    game.makeMove(std::make_shared<CastleCommand>(kingMove, rookMove));\n\n    // Undo castle (both king and rook return)\n    game.undo();\n\n    // Redo castle\n    game.redo();\n    return 0;\n}",
+            "java": "import java.util.*;\n\ninterface Command {\n    void execute();\n    void undo();\n    String notation();\n}\n\nclass Piece {\n    String name;\n    Piece(String name) { this.name = name; }\n}\n\nclass Board {\n    private Piece[][] squares = new Piece[8][8];\n    public void placePiece(int row, int col, Piece piece) { squares[row][col] = piece; }\n    public Piece removePiece(int row, int col) {\n        Piece piece = squares[row][col];\n        squares[row][col] = null;\n        return piece;\n    }\n    public Piece getPiece(int row, int col) { return squares[row][col]; }\n}\n\nclass MoveCommand implements Command {\n    private Board board;\n    private int fromRow, fromCol, toRow, toCol;\n    private Piece capturedPiece;\n    private Piece movingPiece;\n\n    MoveCommand(Board board, int fr, int fc, int tr, int tc) {\n        this.board = board;\n        fromRow = fr; fromCol = fc; toRow = tr; toCol = tc;\n    }\n    public void execute() {\n        movingPiece = board.removePiece(fromRow, fromCol);\n        capturedPiece = board.removePiece(toRow, toCol);\n        board.placePiece(toRow, toCol, movingPiece);\n        System.out.printf(\"%s: (%d,%d)->(%d,%d)\", movingPiece.name,\n                          fromRow, fromCol, toRow, toCol);\n        if (capturedPiece != null) System.out.print(\" captures \" + capturedPiece.name);\n        System.out.println();\n    }\n    public void undo() {\n        board.removePiece(toRow, toCol);\n        board.placePiece(fromRow, fromCol, movingPiece);\n        if (capturedPiece != null) board.placePiece(toRow, toCol, capturedPiece);\n        System.out.println(\"Undo: \" + movingPiece.name + \" back to (\" + fromRow + \",\" + fromCol + \")\");\n    }\n    public String notation() {\n        return movingPiece.name + \"(\" + fromRow + \",\" + fromCol + \")->(\" + toRow + \",\" + toCol + \")\";\n    }\n}\n\nclass CastleCommand implements Command {\n    private MoveCommand kingMove, rookMove;\n    CastleCommand(MoveCommand king, MoveCommand rook) {\n        this.kingMove = king;\n        this.rookMove = rook;\n    }\n    public void execute() {\n        kingMove.execute();\n        rookMove.execute();\n        System.out.println(\"Castled!\");\n    }\n    public void undo() {\n        rookMove.undo();\n        kingMove.undo();\n        System.out.println(\"Castle undone!\");\n    }\n    public String notation() { return \"O-O\"; }\n}\n\nclass GameController {\n    private Deque<Command> undoStack = new ArrayDeque<>();\n    private Deque<Command> redoStack = new ArrayDeque<>();\n\n    public void makeMove(Command cmd) {\n        cmd.execute();\n        undoStack.push(cmd);\n        redoStack.clear();\n    }\n    public void undo() {\n        if (!undoStack.isEmpty()) {\n            Command cmd = undoStack.pop();\n            cmd.undo();\n            redoStack.push(cmd);\n        }\n    }\n    public void redo() {\n        if (!redoStack.isEmpty()) {\n            Command cmd = redoStack.pop();\n            cmd.execute();\n            undoStack.push(cmd);\n        }\n    }\n}\n\npublic class ChessGame {\n    public static void main(String[] args) {\n        Board board = new Board();\n        board.placePiece(0, 4, new Piece(\"WK\"));\n        board.placePiece(0, 7, new Piece(\"WR\"));\n        board.placePiece(6, 4, new Piece(\"BP\"));\n\n        GameController game = new GameController();\n        game.makeMove(new MoveCommand(board, 6, 4, 4, 4));\n\n        MoveCommand kingMove = new MoveCommand(board, 0, 4, 0, 6);\n        MoveCommand rookMove = new MoveCommand(board, 0, 7, 0, 5);\n        game.makeMove(new CastleCommand(kingMove, rookMove));\n\n        game.undo();  // Undo castle\n        game.redo();  // Redo castle\n    }\n}"
+          },
+          "tags": ["command", "composite", "chess", "undo-redo", "advanced"]
+        },
+        {
+          "id": "cmd-q6",
+          "title": "Database Migration with Transaction Rollback",
+          "difficulty": "advanced",
+          "description": "Design a database migration system. Each migration is a Command with execute() (apply migration) and undo() (rollback). A MigrationRunner executes migrations in order and supports: migrateUp() runs all pending migrations, migrateDown(n) rolls back last N migrations, and getStatus() shows which migrations have been applied. If any migration fails during migrateUp(), all previously applied migrations in that batch must be rolled back.",
+          "hints": [
+            "Each migration command stores a version number and description",
+            "MigrationRunner maintains a list of applied migrations (like a history stack)",
+            "migrateUp should use the transaction pattern — rollback on failure",
+            "migrateDown pops from the applied list and calls undo()"
+          ],
+          "solutions": {
+            "cpp": "#include <iostream>\n#include <memory>\n#include <vector>\n#include <stack>\n#include <string>\n#include <stdexcept>\n\nclass Migration {\npublic:\n    virtual ~Migration() = default;\n    virtual void up() = 0;\n    virtual void down() = 0;\n    virtual std::string version() const = 0;\n    virtual std::string description() const = 0;\n};\n\nclass CreateUsersTable : public Migration {\npublic:\n    void up() override {\n        std::cout << \"Creating users table...\\n\";\n    }\n    void down() override {\n        std::cout << \"Dropping users table...\\n\";\n    }\n    std::string version() const override { return \"001\"; }\n    std::string description() const override { return \"Create users table\"; }\n};\n\nclass AddEmailColumn : public Migration {\npublic:\n    void up() override {\n        std::cout << \"Adding email column to users...\\n\";\n    }\n    void down() override {\n        std::cout << \"Removing email column from users...\\n\";\n    }\n    std::string version() const override { return \"002\"; }\n    std::string description() const override { return \"Add email column\"; }\n};\n\nclass AddIndexOnEmail : public Migration {\npublic:\n    void up() override {\n        throw std::runtime_error(\"Index creation failed!\");\n    }\n    void down() override {\n        std::cout << \"Dropping email index...\\n\";\n    }\n    std::string version() const override { return \"003\"; }\n    std::string description() const override { return \"Add index on email\"; }\n};\n\nclass MigrationRunner {\n    std::vector<std::shared_ptr<Migration>> pending_;\n    std::vector<std::shared_ptr<Migration>> applied_;\npublic:\n    void addMigration(std::shared_ptr<Migration> m) {\n        pending_.push_back(std::move(m));\n    }\n\n    void migrateUp() {\n        std::stack<std::shared_ptr<Migration>> batch;\n        try {\n            for (auto& m : pending_) {\n                std::cout << \"[\" << m->version() << \"] \" << m->description() << \"\\n\";\n                m->up();\n                batch.push(m);\n            }\n            while (!batch.empty()) {\n                applied_.push_back(batch.top());\n                batch.pop();\n            }\n            pending_.clear();\n            std::cout << \"All migrations applied successfully!\\n\";\n        } catch (const std::exception& e) {\n            std::cout << \"FAILED: \" << e.what() << \" — Rolling back batch...\\n\";\n            while (!batch.empty()) {\n                batch.top()->down();\n                batch.pop();\n            }\n        }\n    }\n\n    void migrateDown(int n) {\n        for (int i = 0; i < n && !applied_.empty(); ++i) {\n            auto m = applied_.back();\n            std::cout << \"Rolling back [\" << m->version() << \"] \"\n                      << m->description() << \"\\n\";\n            m->down();\n            applied_.pop_back();\n        }\n    }\n\n    void getStatus() const {\n        std::cout << \"\\n=== Migration Status ===\\n\";\n        std::cout << \"Applied: \" << applied_.size() << \"\\n\";\n        for (const auto& m : applied_)\n            std::cout << \"  [\" << m->version() << \"] \" << m->description() << \"\\n\";\n        std::cout << \"Pending: \" << pending_.size() << \"\\n\";\n        for (const auto& m : pending_)\n            std::cout << \"  [\" << m->version() << \"] \" << m->description() << \"\\n\";\n    }\n};\n\nint main() {\n    MigrationRunner runner;\n    runner.addMigration(std::make_shared<CreateUsersTable>());\n    runner.addMigration(std::make_shared<AddEmailColumn>());\n    runner.addMigration(std::make_shared<AddIndexOnEmail>()); // will fail!\n\n    runner.migrateUp();   // applies 1, 2, fails on 3, rolls back 2 and 1\n    runner.getStatus();   // all still pending\n    return 0;\n}",
+            "java": "import java.util.*;\n\nabstract class Migration {\n    abstract void up();\n    abstract void down();\n    abstract String version();\n    abstract String description();\n}\n\nclass CreateUsersTable extends Migration {\n    void up() { System.out.println(\"Creating users table...\"); }\n    void down() { System.out.println(\"Dropping users table...\"); }\n    String version() { return \"001\"; }\n    String description() { return \"Create users table\"; }\n}\n\nclass AddEmailColumn extends Migration {\n    void up() { System.out.println(\"Adding email column to users...\"); }\n    void down() { System.out.println(\"Removing email column from users...\"); }\n    String version() { return \"002\"; }\n    String description() { return \"Add email column\"; }\n}\n\nclass AddIndexOnEmail extends Migration {\n    void up() { throw new RuntimeException(\"Index creation failed!\"); }\n    void down() { System.out.println(\"Dropping email index...\"); }\n    String version() { return \"003\"; }\n    String description() { return \"Add index on email\"; }\n}\n\nclass MigrationRunner {\n    private List<Migration> pending = new ArrayList<>();\n    private List<Migration> applied = new ArrayList<>();\n\n    public void addMigration(Migration m) { pending.add(m); }\n\n    public void migrateUp() {\n        Deque<Migration> batch = new ArrayDeque<>();\n        try {\n            for (Migration m : pending) {\n                System.out.println(\"[\" + m.version() + \"] \" + m.description());\n                m.up();\n                batch.push(m);\n            }\n            applied.addAll(pending);\n            pending.clear();\n            System.out.println(\"All migrations applied successfully!\");\n        } catch (Exception e) {\n            System.out.println(\"FAILED: \" + e.getMessage() + \" — Rolling back batch...\");\n            while (!batch.isEmpty()) {\n                batch.pop().down();\n            }\n        }\n    }\n\n    public void migrateDown(int n) {\n        for (int i = 0; i < n && !applied.isEmpty(); i++) {\n            Migration m = applied.remove(applied.size() - 1);\n            System.out.println(\"Rolling back [\" + m.version() + \"] \" + m.description());\n            m.down();\n        }\n    }\n\n    public void getStatus() {\n        System.out.println(\"\\n=== Migration Status ===\");\n        System.out.println(\"Applied: \" + applied.size());\n        applied.forEach(m -> System.out.println(\"  [\" + m.version() + \"] \" + m.description()));\n        System.out.println(\"Pending: \" + pending.size());\n        pending.forEach(m -> System.out.println(\"  [\" + m.version() + \"] \" + m.description()));\n    }\n}\n\npublic class MigrationDemo {\n    public static void main(String[] args) {\n        MigrationRunner runner = new MigrationRunner();\n        runner.addMigration(new CreateUsersTable());\n        runner.addMigration(new AddEmailColumn());\n        runner.addMigration(new AddIndexOnEmail()); // will fail!\n\n        runner.migrateUp();  // applies 1, 2, fails on 3, rolls back\n        runner.getStatus();  // all still pending\n    }\n}"
+          },
+          "tags": ["command", "transaction", "rollback", "migration", "advanced"]
+        }
+      ]
+    }
+  },
+  "keyDifferences": [
+    {
+      "title": "Command Interface",
+      "cpp": "Abstract class with pure virtual methods and virtual destructor",
+      "java": "interface with execute() and undo() methods"
+    },
+    {
+      "title": "Memory Management for History",
+      "cpp": "std::shared_ptr<Command> in stack/queue — RAII cleanup",
+      "java": "Direct references in Deque/List — GC handles cleanup"
+    },
+    {
+      "title": "Receiver Binding",
+      "cpp": "Reference (Light&) — receiver MUST outlive command",
+      "java": "Object reference — GC keeps receiver alive if command references it"
+    },
+    {
+      "title": "Null Object Pattern",
+      "cpp": "NoOpCommand concrete class inheriting from Command",
+      "java": "Anonymous class, lambda, or Command.NOOP static field"
+    },
+    {
+      "title": "Composite Command",
+      "cpp": "std::vector<shared_ptr<Command>> with reverse iterators for undo",
+      "java": "List<Command> with Collections.reverse() or reversed stream"
+    }
+  ],
+  "bestPractices": [
+    "Always save relevant previous state in the ConcreteCommand BEFORE executing — this is essential for undo",
+    "Keep commands thin — they should delegate to receivers, not contain business logic",
+    "Use the Null Object pattern (NoOpCommand) to avoid null checks in the invoker",
+    "Cap the undo history size to prevent memory leaks (typically 50-100 levels)",
+    "Clear the redo stack when a new command is executed — you can't redo after a new action",
+    "For irreversible actions, combine Command with Memento to snapshot full state",
+    "Use MacroCommand (Composite) for batch operations — undo reverses all children in reverse order",
+    "In transactions, track which commands succeeded so rollback only undoes what was actually done",
+    "Choose the right data structure for the invoker: Stack for undo, Queue for scheduling, List for audit",
+    "Apply the YAGNI test: only use Command when you need undo, queuing, logging, or scheduling"
+  ],
+  "commonMistakes": [
+    {
+      "mistake": "Putting all business logic inside the command (God Command) instead of delegating to a receiver",
+      "correct": "Keep the command as a thin wrapper that calls receiver methods. The receiver holds the business logic."
+    },
+    {
+      "mistake": "Forgetting to save previous state before execute(), making undo impossible or broken",
+      "correct": "Always capture the relevant state (e.g., previousVolume, capturedPiece) BEFORE calling receiver methods in execute()."
+    },
+    {
+      "mistake": "Using Command pattern when a simple method call would suffice (no undo, queue, or log needed)",
+      "correct": "Apply the YAGNI test: Do you need undo? Queuing? Logging? Scheduling? If all answers are no, use a direct method call."
+    },
+    {
+      "mistake": "Allowing the undo/redo history stack to grow unbounded, causing memory leaks",
+      "correct": "Cap the history at a reasonable size (e.g., 50-100 entries). Drop the oldest command when the limit is reached."
+    },
+    {
+      "mistake": "Not handling partial execution in transaction-style commands — step 1 succeeds, step 2 fails, step 1 is not rolled back",
+      "correct": "Use a try/catch block that tracks executed commands in a stack. On failure, pop and undo each executed command in reverse order."
+    },
+    {
+      "mistake": "Confusing Command with Strategy — using Command to swap algorithms instead of encapsulating requests",
+      "correct": "Strategy = HOW to do something (swap algorithms). Command = WHAT to do (encapsulate request for undo/queue/log). Strategy picks the recipe; Command writes the order slip."
+    }
+  ]
+}

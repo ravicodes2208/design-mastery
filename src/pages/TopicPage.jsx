@@ -10,11 +10,15 @@ import clsx from 'clsx'
 
 // Import topic data
 import classesData from '../data/topics/fundamentals/classes.json'
+import commandData from '../data/topics/design-patterns/command.json'
 
 // Topic data mapping (design patterns use PatternPage instead)
 const topicDataMap = {
   'fundamentals': {
     'classes': classesData
+  },
+  'design-patterns': {
+    'command': commandData
   }
 }
 

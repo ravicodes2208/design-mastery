@@ -56,6 +56,7 @@ const phases = [
       { id: 'builder', title: 'Builder Pattern', icon: '🏗️' },
       { id: 'observer', title: 'Observer Pattern', icon: '👁️' },
       { id: 'strategy', title: 'Strategy Pattern', icon: '♟️' },
+      { id: 'command', title: 'Command Pattern', icon: '📜' },
       { id: 'decorator', title: 'Decorator Pattern', icon: '🎀' },
       { id: 'adapter', title: 'Adapter Pattern', icon: '🔌' },
       { id: 'facade', title: 'Facade Pattern', icon: '🏛️' },
